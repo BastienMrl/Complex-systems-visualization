@@ -15,7 +15,7 @@ Ce projet a pour but d'implémenter un visualisateur de système complexes tel q
 
 ## Installation
 
-Décrivez les étapes pour installer les dépendances nécessaires et pour exécuter le projet. Par exemple :
+Étapes pour installer les dépendances nécessaires et pour exécuter le projet :
 
 ```bash
 git clone https://github.com/BastienMrl/Complex-systems-visualization.git
@@ -25,7 +25,7 @@ pip install -r requirements.txt
 
 ## Utilisation
 
-Expliquez comment utiliser le programme. Par exemple :
+Lancer le serveur en local :
 
 ```bash
 cd complexSystemViewer
@@ -41,7 +41,7 @@ Inclure des captures d'écran ou des GIFs montrant le fonctionnement du projet.
 
 ## Licence
 
-Spécifiez la licence sous laquelle le projet est distribué. [MIT, GPL, etc.]
+La licence sous laquelle le projet est distribué. [MIT, GPL, etc.]
 
 ## Auteurs
 
