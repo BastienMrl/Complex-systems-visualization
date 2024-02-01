@@ -1,0 +1,4 @@
+# Python cache
+complexSystemViewer/__pycache__
+viewer/__pycache__
+viewer/migrations/__pycache__
