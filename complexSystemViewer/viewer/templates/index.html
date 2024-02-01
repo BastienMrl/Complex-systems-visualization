@@ -1,1 +1,51 @@
-Ceci est le template de base
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accueil</title>
+</head>
+<body>
+    <h1>Bonjour c'est la page d'accueil</h1>
+    <p>Voici le test du compteur mis a jour : <span id="compteur">0</span></p>
+    <input id="button" type="button" value="Start">
+    <script>
+        isrunning = false;
+        const socket = new WebSocket(
+            'ws://'
+            + window.location.host
+            + '/ws/viewer/'
+        );
+
+        socket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            var sum = Number(document.querySelector('#compteur').textContent);
+            sum += Number(data.message)
+            document.querySelector('#compteur').textContent = sum;
+        }
+
+        socket.onclose = function(e) {
+            console.error('Chat socket closed unexpectedly');
+        }
+
+        document.querySelector('#button').onclick = function(e) {
+            if (!isrunning) {
+                const message = "Start";
+                socket.send(JSON.stringify({
+                    'message': message
+                }));
+                isrunning = true
+                document.querySelector('#button').value = "Stop";
+            } else {
+                const message = "Stop";
+                socket.send(JSON.stringify({
+                    'message': message
+                }));
+                isrunning = false
+                document.querySelector('#button').value = "Start";
+            }
+            
+        };
+    </script>
+</body>
+</html>
