@@ -1,4 +1,5 @@
-# Python cache
-complexSystemViewer/complexSystemViewer/__pycache__
-complexSystemViewer/viewer/__pycache__
-complexSystemViewer/viewer/migrations/__pycache__
+# Django #
+*.log
+*.pot
+*.pyc
+__pycache__
