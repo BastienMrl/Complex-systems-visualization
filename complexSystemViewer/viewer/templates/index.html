@@ -1,1 +1,25 @@
-Ceci est le template de base
+<!DOCTYPE html>
+{% load static %}
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/index.css' %}">
+    {% block links %}{% endblock %}
+</head>
+
+<body>
+    <div id="headerContainer">
+        {% include "header.html" %}
+    </div>
+    <div id="toolbarContainer">
+        {% include "toolbar.html" %}
+    </div>
+    <div id="canvasContainer">
+        {% include "canvas.html" %}
+    </div>
+    <div id="configurationPanelContainer">
+        {% include "configurationPanel.html" %}
+    </div>
+</body>
