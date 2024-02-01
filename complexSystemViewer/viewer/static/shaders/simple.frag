@@ -2,12 +2,13 @@
 precision mediump float;
 
 in vec3 v_normal;
+in vec3 v_color;
+in vec2 v_uv;
 
 out vec4 out_color;
 
 
 uniform vec3 u_light_dir;
-uniform vec3 u_color;
 
 
 vec4 get_normal_color(in vec3 normal){
@@ -17,8 +18,8 @@ vec4 get_normal_color(in vec3 normal){
 
 
 vec4 get_color(in vec3 normal){
-    vec3 diffuse = u_color * (dot(normal, u_light_dir) * 0.5 + 0.5);
-    return vec4(u_color * 0.1 + diffuse, 1);
+    vec3 diffuse = v_color * (dot(normal, u_light_dir) * 0.5 + 0.5);
+    return vec4(v_color * 0.1 + diffuse, 1);
 }
 
 void main(){

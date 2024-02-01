@@ -15,14 +15,19 @@ class Camera{
     #up;
     #cameraMatrix;
     #viewMatrix;
+
+    #projViewMatrix;
     
 
     constructor(cameraPosition, cameraTarget, up, fovy, aspect, near, far){
+        this.#cameraMatrix = mat4.create();
+        this.#viewMatrix = mat4.create();
+        this.#projectionMatrix = mat4.create();
+        this.#projViewMatrix = mat4.create();
+
         this.#cameraPosition = cameraPosition;
         this.#cameraTarget = cameraTarget;
         this.#up = up;
-        this.#cameraMatrix = mat4.create();
-        this.#viewMatrix = mat4.create();
         this.#updateCameraMatrix();
 
 
@@ -30,13 +35,13 @@ class Camera{
         this.#aspect = aspect;
         this.#near = near;
         this.#far = far;
-        this.#projectionMatrix = mat4.create();
         
         this.#updateProjectionMatrix();
     }
 
     #updateProjectionMatrix(){
         mat4.perspective(this.#projectionMatrix, this.#fovy, this.#aspect, this.#near, this.#far);
+        this.#updateProjViewMatrix()
     }
 
     getProjectionMatrix(){
@@ -46,10 +51,19 @@ class Camera{
     #updateCameraMatrix(){
         mat4.targetTo(this.#cameraMatrix, this.#cameraPosition, this.#cameraTarget, this.#up);
         mat4.invert(this.#viewMatrix, this.#cameraMatrix);
+        this.#updateProjViewMatrix()
     }
     
     getViewMatrix(){
         return this.#viewMatrix;
+    }
+
+    #updateProjViewMatrix(){
+        mat4.multiply(this.#projViewMatrix, this.#projectionMatrix, this.#viewMatrix);
+    }
+
+    getProjViewMatrix() {
+        return this.#projViewMatrix;
     }
 }
 
