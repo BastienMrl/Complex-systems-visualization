@@ -8,7 +8,7 @@ class Viewer {
     canvas;
     shaderProgram;
 
-    #camera;
+    camera;
     #multipleInstances;
 
     #last_time = 0;
@@ -54,10 +54,10 @@ class Viewer {
         const fovy = Math.PI / 4;
         const aspect = this.gl.canvas.clientWidth / this.gl.canvas.clientHeight;
         const near = 0.1;
-        const far = 1000;
+        const far = 100000;
         
         
-        this.#camera = new Camera(cameraPos, cameraTarget, up, fovy, aspect, near, far);
+        this.camera = new Camera(cameraPos, cameraTarget, up, fovy, aspect, near, far);
     }
 
 
@@ -73,8 +73,8 @@ class Viewer {
 
     updateState(data){
         let colors = new Float32Array(data.length * 3);
-        const c1 = [0.3, 0.8, 0.8];
-        const c2 = [0.3, 0.2, 0.2];
+        const c1 = [0.55, 0.95, 0.65];
+        const c2 = [0.5, 0.3, 0.7];
 
         for (let i = 0; i < data.length; i++){
             let c = data[i] ? c1 : c2;
@@ -83,7 +83,9 @@ class Viewer {
             }
         }
 
-        this.#multipleInstances.updateColors(colors)
+        this.#multipleInstances.updateColors(colors);
+
+        this.#multipleInstances.updateYpos(data);
     }
 
     #updateScene(delta){
@@ -96,14 +98,12 @@ class Viewer {
 
     #draw(){
         var projViewLoc = this.gl.getUniformLocation(this.shaderProgram, "u_proj_view");
-        var lightLoc = this.gl.getUniformLocation(this.shaderProgram, "u_light_dir");
+        var lightLoc = this.gl.getUniformLocation(this.shaderProgram, "u_light_loc");
 
 
-        this.gl.uniformMatrix4fv(projViewLoc, false, this.#camera.getProjViewMatrix());
+        this.gl.uniformMatrix4fv(projViewLoc, false, this.camera.getProjViewMatrix());
 
-        let lightdir = vec3.fromValues(0, 2, 4);
-        vec3.normalize(lightdir, lightdir);
-        this.gl.uniform3f(lightLoc, lightdir[0], lightdir[1], lightdir[2]);
+        this.gl.uniform3f(lightLoc, 0, 0, 0);
 
         
         this.#multipleInstances.draw();

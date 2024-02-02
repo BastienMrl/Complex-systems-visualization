@@ -33,7 +33,10 @@ class MultipleMeshInstances{
         }
 
         this.#colors = new Float32Array(nbInstances * 3);
-        for (let i = 0; i < nbInstances * 3; i += 3){
+        this.#colors[0] = 1.;
+        this.#colors[1] = 1.;
+        this.#colors[2] = 1.;
+        for (let i = 3; i < nbInstances * 3; i += 3){
             this.#colors[i] = 0;
             this.#colors[i + 1] = 0.5;
             this.#colors[i + 2] = 0.5;
@@ -102,12 +105,12 @@ class MultipleMeshInstances{
 
         this.#vertNormals = [];
         let normals = [
-            vec3.fromValues(0., 0, -1.),
-            vec3.fromValues(0., 0., 1.),
-            vec3.fromValues(0., -1, 0.),
-            vec3.fromValues(0., 1.0, 0.),
-            vec3.fromValues(-1.0, 0., 0.),
-            vec3.fromValues(1., 0, 0),
+            vec3.fromValues(0., 0, 1.),
+            vec3.fromValues(0., 0., -1.),
+            vec3.fromValues(0., 1, 0.),
+            vec3.fromValues(0., -1.0, 0.),
+            vec3.fromValues(1.0, 0., 0.),
+            vec3.fromValues(-1., 0, 0),
         ]
         normals.forEach(element => {
             for (let i = 0; i < 6; i++)
@@ -143,6 +146,13 @@ class MultipleMeshInstances{
         }
         this.#updateMatrixBuffer()
         this.#nbCol = nbCol
+    }
+
+    updateYpos(data){
+        for (let i = 0; i < data.length; i++){
+            this.#modelMatrices[i * 16 + 13] = data[i] ? 1. : 0;
+        }
+        this.#updateMatrixBuffer();
     }
 
 

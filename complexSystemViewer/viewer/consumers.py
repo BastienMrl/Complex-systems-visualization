@@ -39,6 +39,6 @@ class ViewerConsumer(AsyncWebsocketConsumer):
         try:
             while True:
                 await self.send(text_data=json.dumps(generate_states()))
-                await asyncio.sleep(0.001)  # Contrôle la vitesse de la simulation
+                await asyncio.sleep(0.01)  # Contrôle la vitesse de la simulation
         except asyncio.CancelledError:
             pass  # La tâche a été annulée, arrêter la simulation proprement
