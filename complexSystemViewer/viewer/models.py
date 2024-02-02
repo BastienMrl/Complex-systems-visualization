@@ -1,6 +1,6 @@
 from django.db import models
 
-class ConfiguationItem(models.Model):
+class ConfigurationItem(models.Model):
     name = models.CharField(max_length=128)
     
     def __str__(self):
@@ -8,7 +8,7 @@ class ConfiguationItem(models.Model):
     
 class Parameter(models.Model):
     name = models.CharField(max_length=128)
-    configuration = models.ForeignKey(ConfiguationItem, on_delete=models.CASCADE)
+    configuration = models.ForeignKey(ConfigurationItem, on_delete=models.CASCADE)
     
     class Meta:
         abstract = True
