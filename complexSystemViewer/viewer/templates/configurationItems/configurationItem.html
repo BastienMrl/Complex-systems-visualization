@@ -1,0 +1,14 @@
+{% load static %}
+
+<div class="configurationItem" id="{{config.id}}">
+    <!-- TODO : Itération sur la liste des paramétres de l'élément de configuration-->
+    <h2>{{ config.title }}</h2>
+    <!-- TODO : Ajouter une boucle for sur l'ensemble des paramètres avec un "switch" sur le type. Le type du paramètre détermine quel template appelé avec la balise ci dessous
+        {% for param in config.parameters %}
+            {% if param.type == "intRange" %}
+                {% include intRangeParameter.html with param=param %}
+            {% endif %}
+            ...
+        {% endfor %}
+    -->
+</div>

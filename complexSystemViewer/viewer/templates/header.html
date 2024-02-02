@@ -1,3 +1,12 @@
+{% load static %}
 <header>
-    <h1>Complex System Visualization</h1>
+    <h1>ALife Simulator</h1>
+    <div>
+        <button>Play</button>
+        <button>Pause</button>
+        <button>Reset</button>
+    </div>
+    <select name="model" id="modelSelector">
+        <!-- TODO : à l'avenir la génération des options doit être fait en fonction d'une liste transmise en paramètre-->
+        <option value="GOL">Jeu de la vie</option>
 </header>
