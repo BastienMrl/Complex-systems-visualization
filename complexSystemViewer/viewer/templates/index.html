@@ -22,4 +22,43 @@
     <div id="configurationPanelContainer">
         {% include "configurationPanel.html" %}
     </div>
+    <input id="button" type="button" value="Start">
+    <script>
+        isrunning = false;
+        const socket = new WebSocket(
+            'ws://'
+            + window.location.host
+            + '/ws/viewer/'
+        );
+    
+        socket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            var sum = Number(document.querySelector('#compteur').textContent);
+            sum += Number(data.message)
+            document.querySelector('#compteur').textContent = sum;
+        }
+    
+        socket.onclose = function(e) {
+            console.error('Chat socket closed unexpectedly');
+        }
+    
+        document.querySelector('#button').onclick = function(e) {
+            if (!isrunning) {
+                const message = "Start";
+                socket.send(JSON.stringify({
+                    'message': message
+                }));
+                isrunning = true
+                document.querySelector('#button').value = "Stop";
+            } else {
+                const message = "Stop";
+                socket.send(JSON.stringify({
+                    'message': message
+                }));
+                isrunning = false
+                document.querySelector('#button').value = "Start";
+            }
+            
+        };
+    </script>
 </body>
