@@ -18,16 +18,16 @@ class Viewer {
         this.gl = this.canvas.getContext("webgl2");
     }
     
-    async initialization(srcVs, srcFs){
+    async initialization(srcVs, srcFs, nbInstances){
         this.shaderProgram = await shaderUtils.initShaders(this.gl, srcVs, srcFs);
 
         this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
-        this.gl.clearColor(0.1, 0.1, 0.1, 1.0);
+        this.gl.clearColor(0.2, 0.2, 0.2, 1.0);
         this.gl.disable(this.gl.CULL_FACE);
         this.gl.enable(this.gl.DEPTH_TEST);
 
         this.initCamera(this.gl);
-        this.initMesh(40 * 40);
+        this.initMesh(nbInstances);
     }
 
     async initMesh(nbInstances){
@@ -44,17 +44,6 @@ class Viewer {
         let center = -nbRow * offset / 2.;
         let firstPos = vec3.fromValues(center, 0, center);
         this.#multipleInstances.applyGridLayout(firstPos, sqrtInstances, sqrtInstances, offsetRow, offsetCol);
-
-
-        // test :
-        for (let k = 0; k < 30; k++){
-            let i = Math.floor(Math.random() * nbRow);
-            let j = Math.floor(Math.random() * nbRow);
-            let color = vec3.fromValues(Math.random(), Math.random(), Math.random());
-            this.#multipleInstances.setColor(i, j, color);
-        }
-
-        this.#multipleInstances.updateColorBuffer();
     }
 
     initCamera(){
@@ -80,6 +69,21 @@ class Viewer {
         this.#clear();
         this.#updateScene(delta);
         this.#draw();
+    }
+
+    updateState(data){
+        let colors = new Float32Array(data.length * 3);
+        const c1 = [0.3, 0.8, 0.8];
+        const c2 = [0.3, 0.2, 0.2];
+
+        for (let i = 0; i < data.length; i++){
+            let c = data[i] ? c1 : c2;
+            for (let k = 0; k < 3; k++){
+                colors[i * 3 + k] = c[k];
+            }
+        }
+
+        this.#multipleInstances.updateColors(colors)
     }
 
     #updateScene(delta){

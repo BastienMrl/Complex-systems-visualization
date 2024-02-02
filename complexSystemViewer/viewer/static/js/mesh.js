@@ -33,10 +33,7 @@ class MultipleMeshInstances{
         }
 
         this.#colors = new Float32Array(nbInstances * 3);
-        this.#colors[0] = 0.5;
-        this.#colors[1] = 0.5;
-        this.#colors[2] = 0;
-        for (let i = 3; i < nbInstances * 3; i += 3){
+        for (let i = 0; i < nbInstances * 3; i += 3){
             this.#colors[i] = 0;
             this.#colors[i + 1] = 0.5;
             this.#colors[i + 2] = 0.5;
@@ -148,12 +145,10 @@ class MultipleMeshInstances{
         this.#nbCol = nbCol
     }
 
-    setColor(i, j, color){
-        let index = this.#getIndexFromCoords(i, j, this.#nbCol);
-        for (let k = 0; k < 3; k++ ){
-            this.#colors[index * 3 + k] = color[k];
-        }
 
+    updateColors(colors){
+        this.#colors = colors;
+        this.#updateColorBuffer();
     }
 
 
@@ -171,7 +166,7 @@ class MultipleMeshInstances{
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
     }
 
-    updateColorBuffer(){
+    #updateColorBuffer(){
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.#colorBuffer);
         this.gl.bufferSubData(this.gl.ARRAY_BUFFER, 0, this.#colors);
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
