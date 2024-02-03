@@ -77,9 +77,8 @@ class Viewer {
         const c2 = [0.5, 0.3, 0.7];
 
         for (let i = 0; i < data.length; i++){
-            let c = data[i] ? c1 : c2;
             for (let k = 0; k < 3; k++){
-                colors[i * 3 + k] = c[k];
+                colors[i * 3 + k] = c1[k] * data[i] + c2[k] * (1. - data[i]);
             }
         }
 
