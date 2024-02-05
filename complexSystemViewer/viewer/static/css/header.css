@@ -1,0 +1,36 @@
+header {
+    position: sticky;
+    top: 0px;
+    padding: 0px 70px;
+    display: flex;
+    justify-content: space-between;
+    background-color: var(--color-midDark);
+    align-items: center;
+    height: 60px;
+}
+
+header h1 {
+    font-size: 1.75em;
+    color: white;
+}
+
+header #headerAction {
+    display: flex;
+    align-items: center;
+}
+
+#headerAction button {
+    margin-right: 10px;
+    width:  35px;
+    height: 35px;
+    padding: 0px;
+}
+
+#headerAction button svg{
+    width: 100%;
+    aspect-ratio: 1;
+}
+
+header h1 {
+    margin: 0px;
+}

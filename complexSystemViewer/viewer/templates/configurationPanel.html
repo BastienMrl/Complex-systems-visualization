@@ -1,8 +1,10 @@
-<div id="configurationPanel">
-    <!-- TODO : Rendre la génération des différents param dynamique en fonction d'une liste passé en param
-    {% for configurationItem in configurationItemList %}
-        {% include "configurationItems/configurationItem.html" with config=configurationItem %}
-    {% endfor %}
-    -->
+{% regroup parameters by configuration as param_list %}
 
+<div id="configurationPanel">
+    <select name="model" id="modelSelector">
+        <option value="GOL">Jeu de la vie</option>
+    </select>
+    {% for configurationTuple in param_list %}
+        {% include "configurationItems/configurationItem.html" with config=configurationTuple.grouper paramConfig=configurationTuple.list %}
+    {% endfor %}
 </div>

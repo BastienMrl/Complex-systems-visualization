@@ -1,5 +1,4 @@
 {% load static %}
-<div class="parameterItem">
-    <h3>{{parameter.title}}</h3>
+<div class="parameterItem {{param.type}}">
     {% block valueControl %}{% endblock valueControl %}
 </div>

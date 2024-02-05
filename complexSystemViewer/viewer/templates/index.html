@@ -7,12 +7,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" type="text/css" href="{% static 'css/index.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'css/header.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/toolbar.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/canvas.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/configurationPanel.css' %}">
     <link rel="icon" type="image/png" sizes="16x16" href="{% static "css/favicon-16x16.png" %}">
 </head>
 
 <body>
     {% include "header.html" %}
-    {% include "toolbar.html" %}
-    {% include "canvas.html" %}
-    {% include "configurationPanel.html" %}
+
+    <div id="simulator">
+        {% include "toolbar.html" %}
+        {% include "canvas.html" %}
+        {% include "configurationPanel.html"%}
+    </div>
 </body>

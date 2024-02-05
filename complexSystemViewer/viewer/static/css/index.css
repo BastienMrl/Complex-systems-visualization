@@ -5,4 +5,24 @@
 
 :root {
     font-family: Inria;
+    --color-dark: #062d38;
+    --color-midDark: #0a3b49;
+    --color-light: #f3f6f8;
+    --color-action: #ff9d2d;
 }
+
+body {
+  margin: 0px;
+}
+
+div#simulator {
+  display: flex;
+  position: absolute;
+  top: 60px;
+  left: 0px;
+  right: 0px;
+  bottom: 0px;
+  z-index: 0;
+  overflow: hidden;
+}
+
