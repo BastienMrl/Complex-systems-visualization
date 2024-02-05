@@ -103,7 +103,7 @@ class Camera{
         
         mat4.fromYRotation(matrix, this.#angleY);
         mat4.rotateX(matrix, matrix, this.#angleX);
-        mat4.translate(matrix, matrix, vec3.fromValues(0, 0, this.#distance));       
+        mat4.translate(matrix, matrix, vec3.fromValues(0, 0, this.#distance));   
 
         vec3.transformMat4(this.#cameraPosition, vec3.fromValues(0, 0, 0), matrix);
 

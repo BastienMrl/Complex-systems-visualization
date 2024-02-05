@@ -20,8 +20,8 @@ vec4 get_normal_color(in vec3 normal){
 
 vec4 get_color(in vec3 normal, in vec3 position){
     vec3 light_dir = normalize(u_light_loc - position);
-    vec3 diffuse = v_color * (dot(normal, light_dir) * 0.5 + 0.5);
-    return vec4(v_color * 0.4 + diffuse * 0.6, 1);
+    float diffuse = (dot(normal, light_dir) * 0.5 + 0.5);
+    return vec4(v_color * 0.1 + v_color * diffuse, 1);
 }
 
 void main(){

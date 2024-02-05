@@ -12,13 +12,15 @@ out vec3 v_normal;
 out vec3 v_color;
 out vec2 v_uv;
 
-uniform mat4 u_proj_view;
+uniform mat4 u_proj;
+uniform mat4 u_view;
 
 
 void main(){
-    mat4 transform = u_proj_view * a_world;
-    gl_Position = vec4(transform * vec4(a_position, 1.0));
-    v_position = gl_Position.xyz;
+    mat4 transform = u_view * a_world;
+    vec4 view_pos = transform * vec4(a_position, 1.0);
+    gl_Position = u_proj * view_pos;
+    v_position = view_pos.xyz;
     v_normal = transpose(inverse(mat3(transform))) * a_normal;
     v_color = a_color;
     v_uv = a_uv;

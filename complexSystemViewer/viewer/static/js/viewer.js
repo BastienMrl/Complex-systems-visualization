@@ -1,5 +1,5 @@
 import * as shaderUtils from "./shaderUtils.js"
-import { vec3 } from "./glMatrix/esm/index.js";
+import { vec3, mat4 } from "./glMatrix/esm/index.js";
 import { Camera } from "./camera.js";
 import { MultipleMeshInstances } from "./mesh.js";
 
@@ -97,13 +97,19 @@ class Viewer {
     }
 
     #draw(){
-        var projViewLoc = this.gl.getUniformLocation(this.shaderProgram, "u_proj_view");
+        var projLoc = this.gl.getUniformLocation(this.shaderProgram, "u_proj");
+        var viewLoc = this.gl.getUniformLocation(this.shaderProgram, "u_view")
         var lightLoc = this.gl.getUniformLocation(this.shaderProgram, "u_light_loc");
 
+        var lightPos = vec3.fromValues(0.0, 100.0, 10.0);
+        vec3.transformMat4(lightPos, lightPos, this.camera.getViewMatrix());
+        console.log(lightPos)
 
-        this.gl.uniformMatrix4fv(projViewLoc, false, this.camera.getProjViewMatrix());
 
-        this.gl.uniform3f(lightLoc, 0, 0, 0);
+        this.gl.uniformMatrix4fv(projLoc, false, this.camera.getProjectionMatrix());
+        this.gl.uniformMatrix4fv(viewLoc, false, this.camera.getViewMatrix());
+
+        this.gl.uniform3fv(lightLoc, lightPos);
 
         
         this.#multipleInstances.draw();

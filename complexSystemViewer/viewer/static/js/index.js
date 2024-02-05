@@ -42,11 +42,13 @@ async function main(){
     
     let mousePressed = false;
     viewer.canvas.addEventListener('mousedown', (e) =>{
-        mousePressed = true;
+        if (e.button == 1)
+            mousePressed = true;
     });
 
     viewer.canvas.addEventListener('mouseup', (e) => {
-        mousePressed = false;
+        if (e.button == 1)
+            mousePressed = false;
     });
 
     viewer.canvas.addEventListener('mousemove', (e) => {
