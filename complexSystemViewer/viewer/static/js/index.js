@@ -2,6 +2,12 @@ import { Viewer } from "./viewer.js"
 import { SocketHandler } from "./socketHandler.js";
 
 async function main(){
+    let canvas = document.getElementById("c");
+    canvas.height = canvas.scrollHeight;
+    canvas.width = canvas.scrollWidth;
+
+    console.log(canvas)
+    
     let viewer = new Viewer("c");
     let nbInstances = 40 * 40
     await viewer.initialization("/static/shaders/simple.vert", "/static/shaders/simple.frag", nbInstances);

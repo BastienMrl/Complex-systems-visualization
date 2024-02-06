@@ -1,0 +1,13 @@
+{% load static %}
+
+<div class="configurationItem" id="{{config.id}}">
+    <h2>{{ config.name }}</h2>
+        <div class="parametersList">
+            {% for param in paramConfig %}
+                <h3>{{param.name}}</h3>
+                {% if param.type == "IR" %}
+                    {% include "configurationItems/parameterItems/intRangeParameter.html" with param=param %}
+                {% endif %}
+            {% endfor %}
+        </div>
+</div>

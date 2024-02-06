@@ -1,6 +1,7 @@
 from django.shortcuts import render
+from .models import ConfigurationItem, IntRangeParameter
 
 # Create your views here.
 def index(request):
-    context = {}
-    return render(request, "index.html", context)
+    parameters = IntRangeParameter.objects.all()
+    return render(request, "index.html", {'parameters':parameters})

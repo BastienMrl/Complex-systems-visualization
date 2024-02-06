@@ -6,20 +6,19 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" type="text/css" href="{% static 'css/index.css' %}">
-    {% block links %}{% endblock %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/header.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/toolbar.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/canvas.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/configurationPanel.css' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static "css/favicon-16x16.png" %}">
 </head>
 
 <body>
-    <div id="headerContainer">
-        {% include "header.html" %}
-    </div>
-    <div id="toolbarContainer">
+    {% include "header.html" %}
+
+    <div id="simulator">
         {% include "toolbar.html" %}
-    </div>
-    <div id="canvasContainer">
         {% include "canvas.html" %}
-    </div>
-    <div id="configurationPanelContainer">
-        {% include "configurationPanel.html" %}
+        {% include "configurationPanel.html"%}
     </div>
 </body>

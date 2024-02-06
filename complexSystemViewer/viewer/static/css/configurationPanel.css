@@ -1,0 +1,71 @@
+#configurationPanel {
+    width: 350px;
+    background-color: var(--color-dark);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-y: scroll;
+    position: absolute;
+    top: 0px;
+    bottom: 0px;
+    right: 0px;
+}
+
+#configurationPanel select{
+    margin: 10px;
+}
+
+.configurationItem {
+    background-color: var(--color-light);
+    margin: 10px;
+    margin-bottom: 0px;
+    padding: 10px;
+    width: calc(100% - 40px);
+}
+
+.configurationItem:last-child {
+    margin-bottom: 10px;
+}
+
+.configurationItem h2 {
+    margin: 0px;
+}
+
+.parametersList {
+    padding: 10px;
+}
+
+.parametersList h3 {
+
+    margin: 0px;
+}
+
+.parameterItem {
+    display: flex;
+}
+
+.parameterItem h4 {
+    padding-right: 10px;
+}
+
+input,button,select {
+    border: solid var(--color-action) 2px;
+    border-radius: 4px;
+}
+
+input[type=number] {
+    width: 40px;
+    height: 20px;
+    text-align: center;
+}
+
+input[type=number]:focus {
+    outline: none;
+
+}
+
+.IR div{
+    display: flex;
+    align-items: baseline;
+    margin: 0px 10px 0px 10px;
+}
