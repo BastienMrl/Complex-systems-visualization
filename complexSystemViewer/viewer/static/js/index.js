@@ -28,17 +28,19 @@ async function main(){
 
     socketHandler.connectSocket(url);
 
-    document.querySelector('#button').onclick = function(e) {
-        if (socketHandler.isRunning()){
-            socketHandler.stop();
-            document.querySelector('#button').value = "Start";
-        }
-        else{
-            document.querySelector('#button').value = "Stop"
+    document.querySelector('#buttonPlay').onclick = function(e) {
+        if (!socketHandler.isRunning()){
             socketHandler.start(nbInstances);
+            console.log("START")
         }
     }
 
+    document.querySelector('#buttonPause').onclick = function(e) {
+        if (socketHandler.isRunning()){
+            socketHandler.stop();
+            console.log(socketHandler)
+        }
+    }
 
     // camera commands 
     viewer.canvas.addEventListener('wheel', (e) =>{
