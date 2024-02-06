@@ -1,0 +1,14 @@
+{% extends "configurationItems/parameterItems/baseParameter.html" %}
+
+{% load static %}
+
+{% block valueControl %}
+    <div>
+        <h4>min</h4>
+        <input type="number" id="{{param.id}}" name="{{param.name}}Min" step="1" value="{{param.minDefaultValue}}" />
+    </div>
+    <div>
+        <h4>max</h4>
+        <input type="number" id="{{param.id}}" name="{{param.name}}Max" step="1" value="{{param.maxDefaultValue}}" />
+    </div>
+{% endblock valueControl %}
