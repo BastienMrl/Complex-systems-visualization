@@ -47,7 +47,7 @@ class Viewer {
 
         let sqrtInstances = Math.sqrt(nbInstances);
 
-        let offset = 2.5;
+        let offset = 2.1;
         let nbRow = sqrtInstances
         let offsetRow = vec3.fromValues(0, 0, offset);
         let offsetCol = vec3.fromValues(offset, 0, 0);
@@ -118,8 +118,8 @@ class Viewer {
 
     updateState(data){
         let colors = new Float32Array(data.length * 3);
-        const c1 = [0.55, 0.95, 0.65];
-        const c2 = [0.5, 0.3, 0.7];
+        const c1 = [0.0392156862745098, 0.23137254901960785, 0.28627450980392155];
+        const c2 = [0.8705882352941177, 0.8901960784313725, 0.9294117647058824];
 
         for (let i = 0; i < data.length; i++){
             for (let k = 0; k < 3; k++){

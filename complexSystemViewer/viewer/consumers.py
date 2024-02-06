@@ -41,7 +41,6 @@ class ViewerConsumer(AsyncWebsocketConsumer):
                 kernel = jnp.transpose(kernel, [3, 2, 0, 1])
                 self.simulation_task = asyncio.create_task(self.sendGameOfLife(grid, kernel))
         elif message == "Stop":
-            print(message)
             if self.simulation_task:
                 self.simulation_task.cancel()
                 self.simulation_task = None
