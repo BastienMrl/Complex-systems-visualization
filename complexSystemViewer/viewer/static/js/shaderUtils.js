@@ -27,7 +27,6 @@ async function initShaders(gl, srcVertex, srcFragment) {
         alert("Could not initialise shaders"); 
     } 
 
-    gl.useProgram(shaderProgram);
     return shaderProgram;
 }
 

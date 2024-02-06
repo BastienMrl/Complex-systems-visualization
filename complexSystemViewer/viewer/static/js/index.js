@@ -3,7 +3,7 @@ import { SocketHandler } from "./socketHandler.js";
 
 async function main(){
     let viewer = new Viewer("c");
-    let nbInstances = 200 * 200;
+    let nbInstances = 40 * 40
     await viewer.initialization("/static/shaders/simple.vert", "/static/shaders/simple.frag", nbInstances);
 
     const url = 

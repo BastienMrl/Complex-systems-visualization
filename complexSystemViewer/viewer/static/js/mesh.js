@@ -16,6 +16,9 @@ class MultipleMeshInstances{
     #colorBuffer;
 
     #vao;
+    #selectionVao;
+    #mouseOverBuffer;
+
     #nbCol;
 
     constructor(gl, nbInstances){
@@ -43,7 +46,9 @@ class MultipleMeshInstances{
         }
 
 
+
         this.#vao = gl.createVertexArray();
+        this.#selectionVao = gl.createVertexArray();
     }
 
     loadCube(){
@@ -120,6 +125,7 @@ class MultipleMeshInstances{
 
         this.#nbFaces = this.#vertPositions.length / 3;
         this.updateBuffersVAO();
+        this.initSelectionVAO();
     }
 
     #getIndexFromCoords(i, j, nbCol){
@@ -161,6 +167,17 @@ class MultipleMeshInstances{
         this.#updateColorBuffer();
     }
 
+    setColor(color, idx){
+        for (let i = 0; i < 3; ++i){
+            this.#colors[idx * 3 + i] = color[i]
+        }
+        this.#updateColorBuffer();
+    }
+
+    setMouseOver(idx){
+        this.#updataMouseOverBuffer(idx);
+    }
+
 
     getVertPositions() {
         return this.#vertPositions;
@@ -180,6 +197,54 @@ class MultipleMeshInstances{
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.#colorBuffer);
         this.gl.bufferSubData(this.gl.ARRAY_BUFFER, 0, this.#colors);
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
+    }
+
+    #updataMouseOverBuffer(idx){
+        let arr = new Float32Array(this.nbInstances).fill(0.);
+        if (idx != null)
+            arr[idx] = 1.;
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.#mouseOverBuffer);
+        this.gl.bufferSubData(this.gl.ARRAY_BUFFER, 0, arr);
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
+    }
+
+    initSelectionVAO(){
+        this.gl.bindVertexArray(this.#selectionVao);
+
+        // positions
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.gl.createBuffer());
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(this.getVertPositions()), this.gl.STATIC_DRAW);
+        this.gl.vertexAttribPointer(0, 3, this.gl.FLOAT, false, 0, 0);
+        this.gl.enableVertexAttribArray(0);
+
+        // id
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.gl.createBuffer());
+        let ids = new Float32Array(this.nbInstances * 4);
+        for (let i = 0; i < this.nbInstances; i++){
+            ids[i * 4] = (((i + 1) & 0x000000FF) >> 0) / 0xFF;
+            ids[i * 4 + 1] = (((i + 1) & 0x0000FF00) >> 8) / 0xFF;
+            ids[i * 4 + 2] = (((i + 1) & 0x00FF0000) >> 16) / 0xFF;
+            ids[i * 4 + 3] = (((i + 1) & 0xFF000000) >> 24) / 0xFF;
+        }
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, ids, this.gl.STATIC_DRAW);
+        this.gl.vertexAttribPointer(1, 4, this.gl.FLOAT, false, 0, 0);
+        this.gl.vertexAttribDivisor(1, 1);
+        this.gl.enableVertexAttribArray(1);
+
+        // world matrices
+        const matrixLoc = 2
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.#matrixBuffer);
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, this.#modelMatrices, this.gl.DYNAMIC_DRAW);
+        for (let i = 0; i < 4; i++){
+            let location = matrixLoc + i;
+            let offset = 16 * i;
+            this.gl.vertexAttribPointer(location, 4, this.gl.FLOAT, false, 4 * 16, offset);
+            this.gl.vertexAttribDivisor(location, 1);
+            this.gl.enableVertexAttribArray(location)
+        }
+        
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
+        this.gl.bindVertexArray(null);
     }
 
     updateBuffersVAO(){
@@ -205,12 +270,22 @@ class MultipleMeshInstances{
         this.gl.vertexAttribDivisor(3, 1);
         this.gl.enableVertexAttribArray(3);
 
+        // mouse over
+        this.#mouseOverBuffer = this.gl.createBuffer();
+        const arr = new Float32Array(this.nbInstances).fill(0.);
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.#mouseOverBuffer);
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, arr, this.gl.DYNAMIC_DRAW);
+        this.gl.vertexAttribPointer(4, 1, this.gl.FLOAT, false, 0, 0);
+        this.gl.vertexAttribDivisor(4, 1);
+        this.gl.enableVertexAttribArray(4);
+
         // world matrices
         this.#matrixBuffer = this.gl.createBuffer();
+        const matrixLoc = 5;
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.#matrixBuffer);
         this.gl.bufferData(this.gl.ARRAY_BUFFER, this.#modelMatrices, this.gl.DYNAMIC_DRAW);
         for (let i = 0; i < 4; i++){
-            let location = 4 + i;
+            let location = matrixLoc + i;
             let offset = 16 * i;
             this.gl.vertexAttribPointer(location, 4, this.gl.FLOAT, false, 4 * 16, offset);
             this.gl.vertexAttribDivisor(location, 1);
@@ -223,6 +298,12 @@ class MultipleMeshInstances{
 
     draw(){
         this.gl.bindVertexArray(this.#vao);
+        this.gl.drawArraysInstanced(this.gl.TRIANGLES, 0, this.#nbFaces, this.nbInstances);
+        this.gl.bindVertexArray(null);
+    }
+
+    drawSelection(){
+        this.gl.bindVertexArray(this.#selectionVao);
         this.gl.drawArraysInstanced(this.gl.TRIANGLES, 0, this.#nbFaces, this.nbInstances);
         this.gl.bindVertexArray(null);
     }
