@@ -20,7 +20,6 @@ async function main(){
 
     // for instance, data is an array of bool
     socketHandler.onDataReceived = function(data) {
-        console.log("received")
         viewer.updateState(data);
     }
 

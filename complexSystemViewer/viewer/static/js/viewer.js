@@ -2,6 +2,7 @@ import * as shaderUtils from "./shaderUtils.js"
 import { vec3, mat4 } from "./glMatrix/esm/index.js";
 import { Camera } from "./camera.js";
 import { MultipleMeshInstances } from "./mesh.js";
+import { Stats } from "./stats.js";
 
 class Viewer {
     gl;
@@ -24,9 +25,13 @@ class Viewer {
     mouseY;
     #selectedId;
 
+    #stats
+    
     constructor(canvasId){
         this.canvas = document.getElementById(canvasId);
         this.gl = this.canvas.getContext("webgl2");
+
+        this.#stats = new Stats(document.getElementById("renderingFps"), document.getElementById("updateMs"), document.getElementById("renderingMs"));
     }
     
     async initialization(srcVs, srcFs, nbInstances){
@@ -128,6 +133,7 @@ class Viewer {
         let delta = this.#last_time = 0 ? 0 : time - this.#last_time;
         this.#last_time = time
 
+        this.#stats.startRenderingTimer(delta);
         this.#clear();
         this.#updateScene(delta);
         let selection = this.#getSelection();
@@ -136,9 +142,13 @@ class Viewer {
             this.#multipleInstances.setMouseOver(this.#selectedId);
         }
         this.#draw();
+
+       this.#stats.stopRenderingTimer();
     }
 
     updateState(data){
+        this.#stats.startUpdateTimer();
+        
         let colors = new Float32Array(data.length * 3);
         const c1 = [0.0392156862745098, 0.23137254901960785, 0.28627450980392155];
         const c2 = [0.8705882352941177, 0.8901960784313725, 0.9294117647058824];
@@ -151,6 +161,8 @@ class Viewer {
         this.#multipleInstances.updateColors(colors);
 
         this.#multipleInstances.updateYpos(data);
+
+        this.#stats.stopUpdateTimer();
     }
 
     #updateScene(delta){
