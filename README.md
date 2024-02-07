@@ -12,6 +12,7 @@ Ce projet a pour but d'implémenter un visualisateur de système complexes tel q
 
 - Python 3.10
 - `Django`
+- WebGL 2.0
 
 ## Installation
 

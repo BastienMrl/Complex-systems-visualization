@@ -7,12 +7,15 @@ class Viewer {
     gl;
     canvas;
     shaderProgram;
+    resizeObserver;
 
 
     camera;
     #multipleInstances;
 
     #frameBuffer
+    #selectionTargetTexture;
+    #selectionDepthBuffer;
     #selectionProgram;
 
     #last_time = 0;
@@ -35,9 +38,14 @@ class Viewer {
         this.gl.enable(this.gl.CULL_FACE);
         this.gl.enable(this.gl.DEPTH_TEST);
 
+        let self = this;
+        
         await this.initSelectionBuffer("/static/shaders/selection.vert", "/static/shaders/selection.frag");
         this.initCamera(this.gl);
         this.initMesh(nbInstances);
+
+        this.resizeObserver = new ResizeObserver(function() {self.onCanvasResize();});
+        this.resizeObserver.observe(this.canvas);
     }
 
     async initMesh(nbInstances){
@@ -82,22 +90,36 @@ class Viewer {
         this.#frameBuffer = this.gl.createFramebuffer();
         this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.#frameBuffer);
         
-        const targetTexture = this.gl.createTexture();
-        this.gl.bindTexture(this.gl.TEXTURE_2D, targetTexture);
+        this.#selectionTargetTexture = this.gl.createTexture();
+        this.gl.bindTexture(this.gl.TEXTURE_2D, this.#selectionTargetTexture);
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
-        this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0, this.gl.TEXTURE_2D, targetTexture, 0);
+        this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0, this.gl.TEXTURE_2D, this.#selectionTargetTexture, 0);
         this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.canvas.width, this.canvas.height, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, null);
         this.gl.bindTexture(this.gl.TEXTURE_2D, null);        
         
-        const depthBuffer = this.gl.createRenderbuffer();
-        this.gl.bindRenderbuffer(this.gl.RENDERBUFFER, depthBuffer);
-        this.gl.framebufferRenderbuffer(this.gl.FRAMEBUFFER, this.gl.DEPTH_ATTACHMENT, this.gl.RENDERBUFFER, depthBuffer);
+        this.#selectionDepthBuffer = this.gl.createRenderbuffer();
+        this.gl.bindRenderbuffer(this.gl.RENDERBUFFER, this.#selectionDepthBuffer);
+        this.gl.framebufferRenderbuffer(this.gl.FRAMEBUFFER, this.gl.DEPTH_ATTACHMENT, this.gl.RENDERBUFFER, this.#selectionDepthBuffer);
         this.gl.renderbufferStorage(this.gl.RENDERBUFFER, this.gl.DEPTH_COMPONENT16, this.canvas.width, this.canvas.height);
         this.gl.bindRenderbuffer(this.gl.RENDERBUFFER, null);
 
         this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
+    }
+
+    onCanvasResize(){
+        this.canvas.width = this.canvas.clientWidth;
+        this.canvas.height = this.canvas.clientHeight;
+        const aspect = this.gl.canvas.clientWidth / this.gl.canvas.clientHeight;
+        this.camera.setAspectRatio(aspect);
+        this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
+
+        this.gl.bindTexture(this.gl.TEXTURE_2D, this.#selectionTargetTexture);
+        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.canvas.width, this.canvas.height, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, null);
+       
+        this.gl.bindRenderbuffer(this.gl.RENDERBUFFER, this.#selectionDepthBuffer);
+        this.gl.renderbufferStorage(this.gl.RENDERBUFFER, this.gl.DEPTH_COMPONENT16, this.canvas.width, this.canvas.height);
     }
 
 

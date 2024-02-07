@@ -78,6 +78,11 @@ class Camera{
         return this.#projViewMatrix;
     }
 
+    setAspectRatio(aspect){
+        this.#aspect = aspect;
+        this.#updateProjectionMatrix();
+    }
+
     moveForward(distance){
         distance *= this.#distance;
         distance = this.#distanceMin < (this.#distance - distance) ? distance : this.#distance - this.#distanceMin;

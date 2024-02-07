@@ -3,10 +3,9 @@ import { SocketHandler } from "./socketHandler.js";
 
 async function main(){
     let canvas = document.getElementById("c");
-    canvas.height = canvas.scrollHeight;
-    canvas.width = canvas.scrollWidth;
-
-    console.log(canvas)
+    canvas.height = canvas.clientHeight;
+    canvas.width = canvas.clientWidth;
+    
     
     let viewer = new Viewer("c");
     let nbInstances = 200 * 200;
