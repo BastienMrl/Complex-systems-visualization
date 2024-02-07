@@ -11,7 +11,7 @@ Ce projet a pour but d'implémenter un visualisateur de système complexes tel q
 ## Dépendances
 
 - Python 3.10
-- `Django`
+- `Django`, `Daphne`, `Jax`, `Jaxlib`
 
 ## Installation
 

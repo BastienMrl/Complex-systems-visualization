@@ -14,12 +14,24 @@ SECRET_KEY = 'django-insecure-^m-*4b*mnv932htbo$wg4u^m&0ab=2rxeg^!n&1nzi$znp!7)8
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+# Add js type to mimeTypes if we are in debug mode for windows
+if DEBUG:
+    import mimetypes
+    mimetypes.add_type("application/javascript", ".js", True)
+
+
+
+#allowed hosts to launch server
 ALLOWED_HOSTS = []
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    "daphne",
+    "channels",
+
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -58,6 +70,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'complexSystemViewer.wsgi.application'
+ASGI_APPLICATION = 'complexSystemViewer.asgi.application'
 
 
 # Database
