@@ -1,5 +1,6 @@
 import { Viewer } from "./viewer.js"
 import { SocketHandler } from "./socketHandler.js";
+import { UserEventHandler } from "./userEventHandler.js"
 
 async function main(){
     let canvas = document.getElementById("c");
@@ -9,6 +10,8 @@ async function main(){
     console.log(canvas)
     
     let viewer = new Viewer("c");
+    let userEventHandler = new UserEventHandler(viewer, window);
+    userEventHandler.initHandlers();
     let nbInstances = 200 * 200;
     await viewer.initialization("/static/shaders/simple.vert", "/static/shaders/simple.frag", nbInstances);
 
@@ -42,31 +45,6 @@ async function main(){
         }
     }
 
-    // camera commands 
-    viewer.canvas.addEventListener('wheel', (e) =>{
-        let delta = e.deltaY * 0.001;
-        viewer.camera.moveForward(-delta);
-    });
-
-    
-    let mousePressed = false;
-    viewer.canvas.addEventListener('mousedown', (e) =>{
-        if (e.button == 1)
-            mousePressed = true;
-    });
-
-    viewer.canvas.addEventListener('mouseup', (e) => {
-        if (e.button == 1)
-            mousePressed = false;
-    });
-
-    viewer.canvas.addEventListener('mousemove', (e) => {
-        if (mousePressed)
-            viewer.camera.rotateCamera(e.movementY * 0.005, e.movementX * 0.005);
-    })
-    //....................................................
-
-
     
     function loop(time){
         viewer.render(time);
@@ -75,5 +53,6 @@ async function main(){
     requestAnimationFrame(loop);
 }
 
-
-main()
+window.onload = function () {
+    main()
+}
