@@ -1,4 +1,5 @@
-<div id="configurationPanel">
+{% load static %}
+<div id="configurationPanel" class="withTransition">
     <select name="model" id="modelSelector">
         {% for model in models %}
         <option value="{{model.id}}">{{model.name}}</option>
@@ -8,3 +9,10 @@
         {% include "configurationItems/configurationItem.html"%}
     {% endfor %}
 </div>
+<div id="foldButton" class="withTransition">
+    <svg class="w-6 h-6 text-gray-800 dark:text-white withTransition" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="m9 5 7 7-7 7"/>
+  </svg>
+</div>
+
+<script src="{% static 'js/configurationPanel.js' %}" type="module"></script>

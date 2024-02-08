@@ -1,3 +1,7 @@
+.withTransition {
+    transition: transform 330ms ease-out;
+}
+
 #configurationPanel {
     width: 350px;
     background-color: var(--color-dark);
@@ -11,8 +15,36 @@
     right: 0px;
 }
 
+
 #configurationPanel>select{
     margin: 10px;
+}
+
+#foldButton {
+    width: 20px;
+    height: 60px;
+    position: absolute;
+    right: 350px;
+    top: calc(50% - 30px);
+    background-color: var(--color-dark);
+    border-radius: 15px 0px 0px 15px;
+    display: flex;
+}
+
+.hidden {
+    transform: translateX(350px);
+}
+
+.hidden svg {
+    transform: rotate(180deg);
+}
+
+#foldButton svg {
+    color: var(--color-light);
+}
+
+#foldButton:hover {
+    cursor: pointer;
 }
 
 .configurationItem {
