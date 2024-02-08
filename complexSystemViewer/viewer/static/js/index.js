@@ -9,7 +9,7 @@ async function main(){
     console.log(canvas)
     
     let viewer = new Viewer("c");
-    let nbInstances = 200 * 200;
+    let nbInstances = 20 * 20;
     await viewer.initialization("/static/shaders/simple.vert", "/static/shaders/simple.frag", nbInstances);
 
     const url = 

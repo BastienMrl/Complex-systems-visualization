@@ -11,7 +11,7 @@
     right: 0px;
 }
 
-#configurationPanel select{
+#configurationPanel>select{
     margin: 10px;
 }
 
@@ -42,6 +42,7 @@
 
 .parameterItem {
     display: flex;
+    margin-left: 10px;
 }
 
 .parameterItem h4 {
@@ -64,8 +65,16 @@ input[type=number]:focus {
 
 }
 
-.IR div{
+.NR div{
     display: flex;
     align-items: baseline;
-    margin: 0px 10px 0px 10px;
+    margin: 0px 10px 0px 0px;  
+}
+
+.CV input {
+    margin: 10px 0px 10px 0px;
+}
+
+.SV select {
+    margin: 10px 0px;
 }
