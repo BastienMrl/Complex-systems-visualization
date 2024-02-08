@@ -22,6 +22,7 @@ Ce projet a pour but d'implémenter un visualisateur de système complexes tel q
 git clone https://github.com/BastienMrl/Complex-systems-visualization.git
 cd Complex-systems-visualization
 pip install -r requirements.txt
+npm install -g typescript
 ```
 
 ## Utilisation

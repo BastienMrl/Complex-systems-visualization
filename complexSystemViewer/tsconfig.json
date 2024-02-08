@@ -1,0 +1,10 @@
+{
+    "compilerOptions": {
+      "module": "ESNext",
+      "target": "ESNext",
+      "preserveConstEnums": true,
+      "lib": ["esnext", "DOM"],
+      "outDir": "viewer/static/js/"
+    },
+    "include": ["viewer/static/ts/**/*"],
+}
