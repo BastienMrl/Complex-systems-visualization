@@ -1,5 +1,6 @@
 import { Viewer } from "./viewer.js"
 import { SocketHandler } from "./socketHandler.js";
+import { UserEventHandler } from "./userEventHandler.js"
 
 async function main(){
     let canvas = document.getElementById("c");
@@ -8,6 +9,8 @@ async function main(){
     
     
     let viewer = new Viewer("c");
+    let userEventHandler = new UserEventHandler(viewer, window);
+    userEventHandler.initHandlers();
     let nbInstances = 200 * 200;
     await viewer.initialization("/static/shaders/simple.vert", "/static/shaders/simple.frag", nbInstances);
 
@@ -26,42 +29,19 @@ async function main(){
 
     socketHandler.connectSocket(url);
 
-    document.querySelector('#button').onclick = function(e) {
-        if (socketHandler.isRunning()){
-            socketHandler.stop();
-            document.querySelector('#button').value = "Start";
-        }
-        else{
-            document.querySelector('#button').value = "Stop"
+    document.querySelector('#buttonPlay').onclick = function(e) {
+        if (!socketHandler.isRunning()){
             socketHandler.start(nbInstances);
+            console.log("START")
         }
     }
 
-
-    // camera commands 
-    viewer.canvas.addEventListener('wheel', (e) =>{
-        let delta = e.deltaY * 0.001;
-        viewer.camera.moveForward(-delta);
-    });
-
-    
-    let mousePressed = false;
-    viewer.canvas.addEventListener('mousedown', (e) =>{
-        if (e.button == 1)
-            mousePressed = true;
-    });
-
-    viewer.canvas.addEventListener('mouseup', (e) => {
-        if (e.button == 1)
-            mousePressed = false;
-    });
-
-    viewer.canvas.addEventListener('mousemove', (e) => {
-        if (mousePressed)
-            viewer.camera.rotateCamera(e.movementY * 0.005, e.movementX * 0.005);
-    })
-    //....................................................
-
+    document.querySelector('#buttonPause').onclick = function(e) {
+        if (socketHandler.isRunning()){
+            socketHandler.stop();
+            console.log(socketHandler)
+        }
+    }
 
     
     function loop(time){
@@ -71,5 +51,6 @@ async function main(){
     requestAnimationFrame(loop);
 }
 
-
-main()
+window.onload = function () {
+    main()
+}
