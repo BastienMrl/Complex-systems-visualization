@@ -1,6 +1,10 @@
 from django.contrib import admin
-from .models import ConfigurationItem, IntRangeParameter
+from .models import ConfigurationItem, ColorParameter, NumberParameter, SelectionParameter, NumberRangeParameter, ALifeModel
 
 # Register your models here.
 admin.site.register(ConfigurationItem)
-admin.site.register(IntRangeParameter)
+admin.site.register(ColorParameter)
+admin.site.register(NumberParameter)
+admin.site.register(SelectionParameter)
+admin.site.register(NumberRangeParameter)
+admin.site.register(ALifeModel)

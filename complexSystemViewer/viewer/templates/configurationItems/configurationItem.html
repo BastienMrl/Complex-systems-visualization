@@ -3,7 +3,7 @@
 <div class="configurationItem" id="{{config.id}}">
     <h2>{{ config.name }}</h2>
         <div class="parametersList">
-            {% for param in paramConfig %}
+            {% for param in parameters %}
                 {% if param.type == "NR" %}
                     {% include "configurationItems/parameterItems/rangeParameter.html"%}
                 {% elif param.type == "NV" %}
