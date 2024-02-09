@@ -44,6 +44,7 @@ export class Viewer {
                                 document.getElementById("renderingMs") as HTMLElement);
     }
     
+    // initialization methods
     public async initialization(srcVs : string, srcFs : string, nbInstances : number){
         this.shaderProgram = await shaderUtils.initShaders(this.context, srcVs, srcFs);
         this.context.useProgram(this.shaderProgram);
@@ -123,6 +124,8 @@ export class Viewer {
         this.context.bindFramebuffer(gl.FRAMEBUFFER, null);
     }
 
+
+    // private methods
     private onCanvasResize(){
         this.canvas.width = this.canvas.clientWidth;
         this.canvas.height = this.canvas.clientHeight;
@@ -135,19 +138,69 @@ export class Viewer {
         this.context.bindRenderbuffer(gl.RENDERBUFFER, this._selectionDepthBuffer);
         this.context.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, this.canvas.width, this.canvas.height);
     }
+    
+    private updateScene(delta){
+       //
+    }
+
+    private clear(){
+        this.context.clear(this.context.COLOR_BUFFER_BIT | this.context.DEPTH_BUFFER_BIT);
+    }
+
+    private getSelection(){
+        this.context.useProgram(this._selectionProgram);
+        this.context.bindFramebuffer(gl.FRAMEBUFFER, this._frameBuffer);
+        this.clear();
+
+        var projLoc = this.context.getUniformLocation(this._selectionProgram, "u_proj");
+        var viewLoc = this.context.getUniformLocation(this._selectionProgram, "u_view")
 
 
+        this.context.uniformMatrix4fv(projLoc, false, this.camera.projectionMatrix);
+        this.context.uniformMatrix4fv(viewLoc, false, this.camera.viewMatrix);
+
+        this._multipleInstances.drawSelection();
+        
+        let data = new Uint8Array(4);
+        this.context.readPixels(this.mouseX, this.canvas.height - this.mouseY, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, data)
+        
+        this.context.bindFramebuffer(gl.FRAMEBUFFER, null);
+        return data[0] + (data[1] << 8) + (data[2] << 16) + (data[3] << 24) - 1;
+    }
+
+    private draw(){
+        this.context.useProgram(this.shaderProgram);
+
+        var projLoc = this.context.getUniformLocation(this.shaderProgram, "u_proj");
+        var viewLoc = this.context.getUniformLocation(this.shaderProgram, "u_view")
+        var lightLoc = this.context.getUniformLocation(this.shaderProgram, "u_light_loc");
+
+        var lightPos = Vec3.fromValues(0.0, 100.0, 10.0);
+        Vec3.transformMat4(lightPos, lightPos, this.camera.viewMatrix);
+
+
+        this.context.uniformMatrix4fv(projLoc, false, this.camera.projectionMatrix);
+        this.context.uniformMatrix4fv(viewLoc, false, this.camera.viewMatrix);
+
+        this.context.uniform3fv(lightLoc, lightPos);
+
+        
+        this._multipleInstances.draw();
+    }
+    
+
+    // public methods
     public render(time : number){
         time *= 0.001;
         let delta = this._lastTime = 0 ? 0 : time - this._lastTime;
         this._lastTime = time
-
+        
         this._stats.startRenderingTimer(delta);
         this.clear();
         this.updateScene(delta);
         let selection = this.getSelection();
         if (selection != this._selectedId){
-            this._selectedId = (selection - 1) >= 0 ? (selection - 1) : null; 
+            this._selectedId = selection >= 0 ? selection : null; 
             this._multipleInstances.setMouseOver(this._selectedId);
         }
         this.draw();
@@ -174,54 +227,6 @@ export class Viewer {
         this._stats.stopUpdateTimer();
     }
 
-    private updateScene(delta){
-       //
-    }
-
-    private clear(){
-        this.context.clear(this.context.COLOR_BUFFER_BIT | this.context.DEPTH_BUFFER_BIT);
-    }
-
-    private getSelection(){
-        this.context.useProgram(this._selectionProgram);
-        this.context.bindFramebuffer(gl.FRAMEBUFFER, this._frameBuffer);
-        this.clear();
-
-        var projLoc = this.context.getUniformLocation(this._selectionProgram, "u_proj");
-        var viewLoc = this.context.getUniformLocation(this._selectionProgram, "u_view")
-
-
-        this.context.uniformMatrix4fv(projLoc, false, this.camera.projectionMatrix);
-        this.context.uniformMatrix4fv(viewLoc, false, this.camera.viewMatrix);
-
-        this._multipleInstances.drawSelection();
-        
-        let data = new Uint8Array(4);
-        this.context.readPixels(this.mouseX, this.context.canvas.height - this.mouseY, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, data)
-        
-        this.context.bindFramebuffer(gl.FRAMEBUFFER, null);
-        return data[0] + (data[1] << 8) + (data[2] << 16) + (data[3] << 24);
-    }
-
-    private draw(){
-        this.context.useProgram(this.shaderProgram);
-
-        var projLoc = this.context.getUniformLocation(this.shaderProgram, "u_proj");
-        var viewLoc = this.context.getUniformLocation(this.shaderProgram, "u_view")
-        var lightLoc = this.context.getUniformLocation(this.shaderProgram, "u_light_loc");
-
-        var lightPos = Vec3.fromValues(0.0, 100.0, 10.0);
-        Vec3.transformMat4(lightPos, lightPos, this.camera.viewMatrix);
-
-
-        this.context.uniformMatrix4fv(projLoc, false, this.camera.projectionMatrix);
-        this.context.uniformMatrix4fv(viewLoc, false, this.camera.viewMatrix);
-
-        this.context.uniform3fv(lightLoc, lightPos);
-
-        
-        this._multipleInstances.draw();
-    }
 
 
 

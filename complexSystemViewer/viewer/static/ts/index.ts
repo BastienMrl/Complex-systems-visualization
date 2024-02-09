@@ -14,7 +14,7 @@ async function main(){
     let viewer = new Viewer("c");
     let userEventHandler = UserEventHandler.getInstance();
     userEventHandler.initHandlers(viewer);
-    let nbInstances = 200 * 200;
+    let nbInstances = 10 * 10;
     await viewer.initialization("/static/shaders/simple.vert", "/static/shaders/simple.frag", nbInstances);
 
     const url = 
