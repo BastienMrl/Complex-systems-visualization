@@ -80,19 +80,21 @@
 
 }
 
-
 input,button,select {
     border: solid var(--color-action) 2px;
     border-radius: 4px;
 }
 
 input[type=number] {
-    width: 40px;
+    width: 50px;
     height: 20px;
     text-align: center;
 }
 
 input[type=number]:focus {
     outline: none;
+}
 
+h3, h4 {
+    font-family: Inria-Light;
 }
