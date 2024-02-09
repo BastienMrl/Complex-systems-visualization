@@ -40,7 +40,7 @@
 }
 
 #foldButton svg {
-    color: var(--color-light);
+    color: var(--color-lighter);
 }
 
 #foldButton:hover {
@@ -48,7 +48,7 @@
 }
 
 .configurationItem {
-    background-color: var(--color-light);
+    background-color: var(--color-lighter);
     margin: 10px;
     margin-bottom: 0px;
     padding: 10px;
@@ -59,27 +59,27 @@
     margin-bottom: 10px;
 }
 
-.configurationItem h2 {
+.configurationItem * {
     margin: 0px;
 }
 
 .parametersList {
-    padding: 10px;
-}
-
-.parametersList h3 {
-
-    margin: 0px;
+    margin: 10px;
+    padding-left: 10px;
+    border-left: solid var(--color-light) 1px;
 }
 
 .parameterItem {
     display: flex;
-    margin-left: 10px;
+    margin: 10px;
 }
 
-.parameterItem h4 {
-    padding-right: 10px;
+.parameterItem * {
+    margin-right: 10px;
+    display: flex;
+
 }
+
 
 input,button,select {
     border: solid var(--color-action) 2px;
@@ -95,18 +95,4 @@ input[type=number] {
 input[type=number]:focus {
     outline: none;
 
-}
-
-.NR div{
-    display: flex;
-    align-items: baseline;
-    margin: 0px 10px 0px 0px;  
-}
-
-.CV input {
-    margin: 10px 0px 10px 0px;
-}
-
-.SV select {
-    margin: 10px 0px;
 }

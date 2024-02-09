@@ -7,7 +7,8 @@
     font-family: Inria;
     --color-dark: #062d38;
     --color-midDark: #0a3b49;
-    --color-light: #f3f6f8;
+    --color-light: #bcccd1;
+    --color-lighter: #f3f6f8;
     --color-action: #ff9d2d;
 }
 
