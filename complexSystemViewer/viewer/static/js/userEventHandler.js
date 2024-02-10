@@ -28,13 +28,13 @@ class UserEventHandler {
         });
         // KeyDown
         window.addEventListener('keydown', (e) => {
-            if (e.key == "Control") {
+            if (e.key == "Shift") {
                 this._ctrlPressed = true;
             }
         });
         // KeyUp
         window.addEventListener('keyup', (e) => {
-            if (e.key == "Control") {
+            if (e.key == "Shift") {
                 this._ctrlPressed = false;
             }
         });
