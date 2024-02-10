@@ -77,6 +77,6 @@ class ViewerConsumer(AsyncWebsocketConsumer):
             while True:
                 await self.send(text_data=json.dumps(jnp.reshape(grid, (grid.size)).tolist()))
                 grid = update(grid, kernel)
-                await asyncio.sleep(0.15)  # Contrôle la vitesse de la simulation
+                await asyncio.sleep(0.5)  # Contrôle la vitesse de la simulation
         except asyncio.CancelledError:
             pass  # La tâche a été annulée, arrêter la simulation proprement

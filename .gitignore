@@ -2,6 +2,5 @@
 *.log
 *.pot
 *.pyc
-**/*.js
 **/.vscode
 __pycache__
