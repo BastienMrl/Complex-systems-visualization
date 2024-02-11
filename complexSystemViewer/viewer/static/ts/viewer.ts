@@ -53,7 +53,7 @@ export class Viewer {
                                 document.getElementById("updateMs") as HTMLElement,
                                 document.getElementById("renderingMs") as HTMLElement);
 
-        this._animationTimer = new AnimationTimer(2., true);
+        this._animationTimer = new AnimationTimer(1.5, true);
         this._selectionHandler = SelectionHandler.getInstance(context);
         this._animationIds = [null, null];
     }
@@ -219,6 +219,10 @@ export class Viewer {
         if (id == null)
             return this._animationTimer.getAnimationTime();
         return this._animationTimer.getAnimationTime(id);
+    }
+
+    public get statesBuffer() : StatesBuffer {
+        return this._statesBuffer;
     }
 
 }

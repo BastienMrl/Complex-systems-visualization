@@ -48,7 +48,9 @@ async function main(){
 
     // ease out expo from https://easings.net/
     let easeOut = function(time : number){ return time == 1 ? 1 : 1 - Math.pow(2, -10 * time); };
-    viewer.bindAnimationCurve(AnimableValue.COLOR, easeOut);
+    let fc0 = function(time : number){ return 1 };
+    viewer.bindAnimationCurve(AnimableValue.COLOR, fc0);
+    viewer.bindAnimationCurve(AnimableValue.TRANSLATION, easeOut);
 
 
     //.........................
@@ -65,9 +67,8 @@ async function main(){
 
     // for instance, data is an array of bool
     socketHandler.onDataReceived = function(data) {
-        viewer.updateState(data);
+        viewer.statesBuffer.onStateReceived(data);
     }
-
 
     socketHandler.connectSocket(url);
 

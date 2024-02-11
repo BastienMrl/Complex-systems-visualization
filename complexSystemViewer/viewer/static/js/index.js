@@ -33,7 +33,9 @@ async function main() {
     // default animation curve is linear
     // ease out expo from https://easings.net/
     let easeOut = function (time) { return time == 1 ? 1 : 1 - Math.pow(2, -10 * time); };
-    viewer.bindAnimationCurve(AnimableValue.COLOR, easeOut);
+    let fc0 = function (time) { return 1; };
+    viewer.bindAnimationCurve(AnimableValue.COLOR, fc0);
+    viewer.bindAnimationCurve(AnimableValue.TRANSLATION, easeOut);
     //.........................
     const url = 'ws://'
         + window.location.host
@@ -41,7 +43,7 @@ async function main() {
     let socketHandler = SocketHandler.getInstance();
     // for instance, data is an array of bool
     socketHandler.onDataReceived = function (data) {
-        viewer.updateState(data);
+        viewer.statesBuffer.onStateReceived(data);
     };
     socketHandler.connectSocket(url);
     document.querySelector('#buttonPlay').onclick = function (e) {

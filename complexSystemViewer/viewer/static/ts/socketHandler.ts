@@ -4,6 +4,7 @@ export class SocketHandler {
 
     private _startMesssage : string = "Start";
     private _stopMessage : string = "Stop";
+    private _requestDataMessage : string = "RequestData";
 
     // These functions must be defined by the owner
     private _onDataReceived : (data : any) => void;
@@ -81,7 +82,7 @@ export class SocketHandler {
     public async connectSocket(url : string | URL){
         this._socket = new WebSocket(url);
         this._isRunning = false;
-        this.connectSocketEvents()
+        this.connectSocketEvents();
     }
 
     // params could be "Model" + "instance parameters"
@@ -102,6 +103,13 @@ export class SocketHandler {
         }));
         this._isRunning = false;
         this._onStop();
+    }
+
+    public requestData(){
+        if (!this._isRunning) return;
+        this._socket.send(JSON.stringify({
+            'message' : this._requestDataMessage
+        }));
     }
     
 }

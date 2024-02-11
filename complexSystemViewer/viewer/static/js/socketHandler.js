@@ -3,6 +3,7 @@ export class SocketHandler {
     static _instance;
     _startMesssage = "Start";
     _stopMessage = "Stop";
+    _requestDataMessage = "RequestData";
     // These functions must be defined by the owner
     _onDataReceived;
     _onStart;
@@ -84,5 +85,12 @@ export class SocketHandler {
         }));
         this._isRunning = false;
         this._onStop();
+    }
+    requestData() {
+        if (!this._isRunning)
+            return;
+        this._socket.send(JSON.stringify({
+            'message': this._requestDataMessage
+        }));
     }
 }

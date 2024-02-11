@@ -1,5 +1,6 @@
 import { Vec3 } from "./glMatrix/index.js";
 import { TransformableValues } from "./statesTransformer.js";
+import { SocketHandler } from "./socketHandler.js";
 export class StatesBuffer {
     _states;
     _transformedValues;
@@ -10,20 +11,20 @@ export class StatesBuffer {
         this._nbElements = nbElements;
         this._transformedValues = new TransformableValues(this._nbElements);
         this.transformer = transformer;
-        this.requestRandomState();
     }
     ;
     get values() {
         let values = this._transformedValues;
-        this.transformState();
+        this.requestState();
         return values;
     }
     // TODO : use this request instead of requestRandomState, when transmission is operational
     requestState() {
-        //
+        SocketHandler.getInstance().requestData();
     }
     onStateReceived(data) {
-        // TODO : push data in _states, launch transformState
+        this._states.push(data);
+        this.transformState();
     }
     requestRandomState() {
         const offset = 2.05;
@@ -53,6 +54,6 @@ export class StatesBuffer {
     }
     transformState() {
         this.transformer.applyTransformers(this._states.shift(), this._transformedValues);
-        this.requestRandomState();
+        //this.requestRandomState();
     }
 }

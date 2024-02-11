@@ -35,7 +35,7 @@ export class Viewer {
         }
         this.context = context;
         this._stats = new Stats(document.getElementById("renderingFps"), document.getElementById("updateMs"), document.getElementById("renderingMs"));
-        this._animationTimer = new AnimationTimer(2., true);
+        this._animationTimer = new AnimationTimer(1.5, true);
         this._selectionHandler = SelectionHandler.getInstance(context);
         this._animationIds = [null, null];
     }
@@ -155,5 +155,8 @@ export class Viewer {
         if (id == null)
             return this._animationTimer.getAnimationTime();
         return this._animationTimer.getAnimationTime(id);
+    }
+    get statesBuffer() {
+        return this._statesBuffer;
     }
 }
