@@ -15,12 +15,26 @@ export enum TransformType {
 }
 
 export class TransformableValues{
+    private _nbElement : number
 
     public colors : Float32Array;
     public translations : Float32Array;
 
     
-    public constructor(nbElements : number){
+    public constructor(nbElements : number = 0){
+        this.reshape(nbElements);
+    }
+    
+    public get nbElements() : number{
+        return this._nbElement;
+    }
+    
+    public set nbElements(nbElement : number){
+        this.reshape(nbElement);
+    }
+    
+    private reshape(nbElements : number){
+        this._nbElement = nbElements
         this.colors = new Float32Array(nbElements * sizePerColor).fill(0);
         this.translations = new Float32Array(nbElements * sizePerTranslation).fill(0);
     }

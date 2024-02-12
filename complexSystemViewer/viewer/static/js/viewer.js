@@ -35,9 +35,10 @@ export class Viewer {
         }
         this.context = context;
         this._stats = new Stats(document.getElementById("renderingFps"), document.getElementById("updateMs"), document.getElementById("renderingMs"));
-        this._animationTimer = new AnimationTimer(0.3, true);
-        this._selectionHandler = SelectionHandler.getInstance(context);
+        this._animationTimer = new AnimationTimer(0.15, false);
         this._animationIds = [null, null];
+        this._selectionHandler = SelectionHandler.getInstance(context);
+        this._statesBuffer = new StatesBuffer(new StatesTransformer());
     }
     // initialization methods
     async initialization(srcVs, srcFs, nbInstances) {
@@ -47,9 +48,9 @@ export class Viewer {
         this.context.clearColor(0.2, 0.2, 0.2, 1.0);
         this.context.enable(gl.CULL_FACE);
         this.context.enable(gl.DEPTH_TEST);
+        await this.initMesh(nbInstances);
         await this._selectionHandler.initialization("/static/shaders/selection.vert", "/static/shaders/selection.frag");
         this.initCamera();
-        await this.initMesh(nbInstances);
         let self = this;
         this.resizeObserver = new ResizeObserver(function () { self.onCanvasResize(); });
         this.resizeObserver.observe(this.canvas);
@@ -57,7 +58,7 @@ export class Viewer {
             this.updateScene();
         }.bind(this);
         this._animationTimer.play();
-        this._statesBuffer = new StatesBuffer(nbInstances, new StatesTransformer);
+        this._statesBuffer.nbElements = nbInstances;
     }
     async initMesh(nbInstances) {
         this._multipleInstances = new MultipleMeshInstances(this.context, nbInstances);
@@ -130,6 +131,12 @@ export class Viewer {
         this.context.finish();
         this._stats.stopRenderingTimer();
     }
+    getAnimationTime(type) {
+        let id = this._animationIds[type];
+        if (id == null)
+            return this._animationTimer.getAnimationTime();
+        return this._animationTimer.getAnimationTime(id);
+    }
     updateState(data) {
         this._stats.startUpdateTimer();
         let colors = new Float32Array(data.length * 3);
@@ -151,11 +158,13 @@ export class Viewer {
         let id = this._animationTimer.addAnimationCurve(fct);
         this._animationIds[type] = id;
     }
-    getAnimationTime(type) {
-        let id = this._animationIds[type];
-        if (id == null)
-            return this._animationTimer.getAnimationTime();
-        return this._animationTimer.getAnimationTime(id);
+    startVisualizationAnimation() {
+        this._animationTimer.loop = true;
+        this._animationTimer.play();
+    }
+    stopVisualizationAnimation() {
+        this._animationTimer.loop = false;
+        this._animationTimer.stop();
     }
     get statesBuffer() {
         return this._statesBuffer;

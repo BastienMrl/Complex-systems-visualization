@@ -116,6 +116,22 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
             case "RequestData":
                 if self.isConnected and self.isRunning:
                     await self.sendOneStepGOL()
+            case "EmptyGrid":
+                if self.isConnected:
+                    await self.emptyGrid(text_data_json["params"])
+
+    async def emptyGrid(self, nbInstances):
+        row = int(math.sqrt(nbInstances))
+        grid = jnp.zeros((row, row)).tolist()
+        xy = jnp.indices([row, row], dtype=jnp.float32)
+        offset = -(row - 1) / 2.
+        x = ((xy[1].reshape(row * row) + offset) * 2).tolist()
+        y = ((xy[0].reshape(row * row) + offset) * 2).tolist()
+        data = [x, y, grid]
+        await self.send(text_data=json.dumps(data))
+
+
+
 
     async def initGOL(self, nbInstances):
         key = jax.random.PRNGKey(1701)

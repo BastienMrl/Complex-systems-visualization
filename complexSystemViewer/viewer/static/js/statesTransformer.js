@@ -12,9 +12,20 @@ export var TransformType;
     TransformType[TransformType["POSITION_Z"] = 6] = "POSITION_Z";
 })(TransformType || (TransformType = {}));
 export class TransformableValues {
+    _nbElement;
     colors;
     translations;
-    constructor(nbElements) {
+    constructor(nbElements = 0) {
+        this.reshape(nbElements);
+    }
+    get nbElements() {
+        return this._nbElement;
+    }
+    set nbElements(nbElement) {
+        this.reshape(nbElement);
+    }
+    reshape(nbElements) {
+        this._nbElement = nbElements;
         this.colors = new Float32Array(nbElements * sizePerColor).fill(0);
         this.translations = new Float32Array(nbElements * sizePerTranslation).fill(0);
     }

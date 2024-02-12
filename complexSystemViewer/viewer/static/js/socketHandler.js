@@ -4,6 +4,7 @@ export class SocketHandler {
     _startMesssage = "Start";
     _stopMessage = "Stop";
     _requestDataMessage = "RequestData";
+    _requestEmptyGridMessage = "EmptyGrid";
     // These functions must be defined by the owner
     _onDataReceived;
     _onStart;
@@ -91,6 +92,12 @@ export class SocketHandler {
             return;
         this._socket.send(JSON.stringify({
             'message': this._requestDataMessage
+        }));
+    }
+    requestEmptyInstance(params) {
+        this._socket.send(JSON.stringify({
+            'message': this._requestEmptyGridMessage,
+            'params': params
         }));
     }
 }

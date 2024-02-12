@@ -29,6 +29,10 @@ export class AnimationTimer{
         this._callback = callback;
     }
 
+    public set duration(duration : number){
+        this._duration = duration;
+    }
+
     private onTimeout(){
         if (!this._isRunning)
             return;

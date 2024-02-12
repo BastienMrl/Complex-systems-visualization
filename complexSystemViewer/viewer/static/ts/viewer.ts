@@ -53,36 +53,41 @@ export class Viewer {
                                 document.getElementById("updateMs") as HTMLElement,
                                 document.getElementById("renderingMs") as HTMLElement);
 
-        this._animationTimer = new AnimationTimer(0.3, true);
-        this._selectionHandler = SelectionHandler.getInstance(context);
+        this._animationTimer = new AnimationTimer(0.15, false);
         this._animationIds = [null, null];
+
+        this._selectionHandler = SelectionHandler.getInstance(context);
+        
+        
+        this._statesBuffer = new StatesBuffer(new StatesTransformer());
     }
     
     // initialization methods
     public async initialization(srcVs : string, srcFs : string, nbInstances : number){
         this.shaderProgram = await shaderUtils.initShaders(this.context, srcVs, srcFs);
         this.context.useProgram(this.shaderProgram);
-
+        
         this.context.viewport(0, 0, this.canvas.width, this.canvas.height);
         this.context.clearColor(0.2, 0.2, 0.2, 1.0);
         this.context.enable(gl.CULL_FACE);
         this.context.enable(gl.DEPTH_TEST);
-
         
+        
+        await this.initMesh(nbInstances);
         await this._selectionHandler.initialization("/static/shaders/selection.vert", "/static/shaders/selection.frag");
         this.initCamera();
-        await this.initMesh(nbInstances);
-        
         let self = this;
         this.resizeObserver = new ResizeObserver(function() {self.onCanvasResize();});
         this.resizeObserver.observe(this.canvas);
-
+        
+        
         this._animationTimer.callback = function(){
             this.updateScene();
         }.bind(this);
         this._animationTimer.play();
 
-        this._statesBuffer = new StatesBuffer(nbInstances, new StatesTransformer);
+        this._statesBuffer.nbElements = nbInstances;
+        
     }
 
     private async initMesh(nbInstances : number){
@@ -186,6 +191,13 @@ export class Viewer {
        this._stats.stopRenderingTimer();
     }
 
+    private getAnimationTime(type : AnimableValue){
+        let id = this._animationIds[type]
+        if (id == null)
+            return this._animationTimer.getAnimationTime();
+        return this._animationTimer.getAnimationTime(id);
+    }
+
     public updateState(data : any){
         this._stats.startUpdateTimer();
         
@@ -215,12 +227,16 @@ export class Viewer {
         this._animationIds[type] = id;
     }
 
-    public getAnimationTime(type : AnimableValue){
-        let id = this._animationIds[type]
-        if (id == null)
-            return this._animationTimer.getAnimationTime();
-        return this._animationTimer.getAnimationTime(id);
+    public startVisualizationAnimation() {
+        this._animationTimer.loop = true;
+        this._animationTimer.play();
     }
+
+    public stopVisualizationAnimation() {
+        this._animationTimer.loop = false
+        this._animationTimer.stop();
+    }
+
 
     public get statesBuffer() : StatesBuffer {
         return this._statesBuffer;
