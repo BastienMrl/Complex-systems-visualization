@@ -4,31 +4,37 @@ export class StatesBuffer {
     _states;
     _transformedValues;
     _socketHandler;
+    _isInitialized;
     transformer;
     constructor(transformer) {
         this._states = [];
         this._transformedValues = new TransformableValues();
         this.transformer = transformer;
         this._socketHandler = SocketHandler.getInstance();
+        this._isInitialized = false;
     }
     ;
+    get isReady() {
+        return this._isInitialized;
+    }
     get values() {
         let values = this._transformedValues;
         this.requestState();
         return values;
     }
-    set nbElements(nbElements) {
-        this._transformedValues.nbElements = nbElements;
+    initializeElements(nbElements) {
+        this._isInitialized = false;
+        this._transformedValues.reshape(nbElements);
         this._socketHandler.requestEmptyInstance(nbElements);
     }
     // TODO : use this request instead of requestRandomState, when transmission is operational
     requestState() {
-        console.log("request");
         this._socketHandler.requestData();
     }
     onStateReceived(data) {
         this._states.push(data);
         this.transformState();
+        this._isInitialized = true;
     }
     // public requestRandomState(){
     //     const offset = 2.05;

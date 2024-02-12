@@ -21,24 +21,20 @@ export class TransformableValues{
     public translations : Float32Array;
 
     
-    public constructor(nbElements : number = 0){
+    public constructor(nbElements : number = 1){
         this.reshape(nbElements);
     }
     
     public get nbElements() : number{
         return this._nbElement;
     }
-    
-    public set nbElements(nbElement : number){
-        this.reshape(nbElement);
-    }
-    
-    private reshape(nbElements : number){
+
+    public reshape(nbElements : number){
         this._nbElement = nbElements
-        this.colors = new Float32Array(nbElements * sizePerColor).fill(0);
+        this.colors = new Float32Array(nbElements * sizePerColor).fill(0.);
         this.translations = new Float32Array(nbElements * sizePerTranslation).fill(0);
     }
-}   
+}
 
 
 export class StatesTransformer{

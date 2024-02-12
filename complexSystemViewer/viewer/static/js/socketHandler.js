@@ -11,13 +11,17 @@ export class SocketHandler {
     _onStop;
     //..............................................
     _isRunning;
+    _isConnected;
     _socket;
+    _awaitingRequests;
     constructor() {
         this._onDataReceived = function (data) {
             console.log("Data received");
         };
         this._onStart = function () { };
         this._onStop = function () { };
+        this._isConnected = false;
+        this._awaitingRequests = [];
     }
     static getInstance() {
         if (!SocketHandler._instance)
@@ -44,22 +48,32 @@ export class SocketHandler {
         this._socket.onmessage = function (e) {
             self.onMessage(e);
         };
-        this._socket.onopen = this.onOpen;
-        this._socket.onerror = this.onError;
-        this._socket.onclose = this.onClose;
+        this._socket.onopen = function (e) {
+            self.onOpen(e);
+        };
+        this._socket.onerror = function (e) {
+            self.onError(e);
+        };
+        this._socket.onclose = function (e) {
+            self.onClose(e);
+        };
     }
     onMessage(e) {
         const data = JSON.parse(e.data);
         this._onDataReceived(data);
     }
     onClose(e) {
+        this._isConnected = false;
         console.debug('Socket closed unexpectedly', e);
     }
     onError(e) {
+        this._isConnected = false;
         console.error('Socket closed unexpectedly', e);
     }
     onOpen(e) {
+        this._isConnected = true;
         console.debug('Socket opened');
+        this._awaitingRequests.forEach(fct => { fct(); });
     }
     // public methods
     async connectSocket(url) {
@@ -95,6 +109,13 @@ export class SocketHandler {
         }));
     }
     requestEmptyInstance(params) {
+        if (!this._isConnected) {
+            this._awaitingRequests.push(this.requestEmptyInstance.bind(this, params));
+            return;
+        }
+        ;
+        if (this._isRunning)
+            return;
         this._socket.send(JSON.stringify({
             'message': this._requestEmptyGridMessage,
             'params': params

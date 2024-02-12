@@ -27,6 +27,7 @@ export class Viewer {
     _animationTimer;
     _animationIds;
     _statesBuffer;
+    _drawable;
     constructor(canvasId) {
         this.canvas = document.getElementById(canvasId);
         let context = this.canvas.getContext("webgl2");
@@ -39,6 +40,7 @@ export class Viewer {
         this._animationIds = [null, null];
         this._selectionHandler = SelectionHandler.getInstance(context);
         this._statesBuffer = new StatesBuffer(new StatesTransformer());
+        this._drawable = false;
     }
     // initialization methods
     async initialization(srcVs, srcFs, nbInstances) {
@@ -48,7 +50,6 @@ export class Viewer {
         this.context.clearColor(0.2, 0.2, 0.2, 1.0);
         this.context.enable(gl.CULL_FACE);
         this.context.enable(gl.DEPTH_TEST);
-        await this.initMesh(nbInstances);
         await this._selectionHandler.initialization("/static/shaders/selection.vert", "/static/shaders/selection.frag");
         this.initCamera();
         let self = this;
@@ -57,20 +58,25 @@ export class Viewer {
         this._animationTimer.callback = function () {
             this.updateScene();
         }.bind(this);
-        this._animationTimer.play();
-        this._statesBuffer.nbElements = nbInstances;
+        await this.initCurrentVisu(nbInstances);
+        this._drawable = true;
     }
-    async initMesh(nbInstances) {
-        this._multipleInstances = new MultipleMeshInstances(this.context, nbInstances);
+    async initCurrentVisu(nbElements) {
+        this._drawable = false;
+        this._statesBuffer.initializeElements(nbElements);
+        while (!this._statesBuffer.isReady) {
+            await new Promise(resolve => setTimeout(resolve, 1));
+        }
+        ;
+        let values = this._statesBuffer.values;
+        await this.initMesh(values);
+        this._drawable = true;
+    }
+    async initMesh(values) {
+        if (this._multipleInstances != null)
+            delete this._multipleInstances;
+        this._multipleInstances = new MultipleMeshInstances(this.context, values);
         await this._multipleInstances.loadMesh("/static/models/cube_div_1.obj");
-        let sqrtInstances = Math.sqrt(nbInstances);
-        let offset = 2.05;
-        let nbRow = sqrtInstances;
-        let offsetRow = Vec3.fromValues(0, 0, offset);
-        let offsetCol = Vec3.fromValues(offset, 0, 0);
-        let center = -(nbRow - 1) * offset / 2.;
-        let firstPos = Vec3.fromValues(center, 0, center);
-        this._multipleInstances.applyGridLayout(firstPos, sqrtInstances, sqrtInstances, offsetRow, offsetCol);
     }
     initCamera() {
         const cameraPos = Vec3.fromValues(0., 80., 100.);
@@ -127,7 +133,8 @@ export class Viewer {
         // if (this._selectionHandler.hasCurrentSelection() && currentSelection != prevSelection){
         //     this._multipleInstances.setMouseOver(currentSelection);
         // }
-        this.draw();
+        if (this._drawable)
+            this.draw();
         this.context.finish();
         this._stats.stopRenderingTimer();
     }

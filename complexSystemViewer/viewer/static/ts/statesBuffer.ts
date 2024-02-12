@@ -9,6 +9,9 @@ export class StatesBuffer{
     private _states : Float32Array[][];
     private _transformedValues : TransformableValues;
     private _socketHandler : SocketHandler;
+
+    private _isInitialized : boolean;
+
     
 
 
@@ -20,7 +23,12 @@ export class StatesBuffer{
         this._transformedValues = new TransformableValues();
         this.transformer = transformer;
         this._socketHandler = SocketHandler.getInstance();
+        this._isInitialized = false;
     };
+
+    public get isReady() : boolean{
+        return this._isInitialized;
+    }
 
     public get values() : TransformableValues{
         let values = this._transformedValues;
@@ -28,21 +36,23 @@ export class StatesBuffer{
         return values;
     }
 
-    public set nbElements(nbElements : number){
-        this._transformedValues.nbElements = nbElements;
+    public initializeElements(nbElements: number){
+        this._isInitialized = false;
+        this._transformedValues.reshape(nbElements);
         this._socketHandler.requestEmptyInstance(nbElements);
     }
 
 
+
     // TODO : use this request instead of requestRandomState, when transmission is operational
     public requestState(){
-        console.log("request")
         this._socketHandler.requestData();
     }
 
     public onStateReceived(data : any){
         this._states.push(data);
         this.transformState();
+        this._isInitialized = true;
     }
 
     // public requestRandomState(){

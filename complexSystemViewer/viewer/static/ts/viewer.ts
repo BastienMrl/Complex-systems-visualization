@@ -5,7 +5,7 @@ import { MultipleMeshInstances } from "./mesh.js";
 import { Stats } from "./stats.js";
 import { AnimationTimer } from "./animationTimer.js";
 import { StatesBuffer } from "./statesBuffer.js";
-import { StatesTransformer, TransformType } from "./statesTransformer.js";
+import { StatesTransformer, TransformType, TransformableValues } from "./statesTransformer.js";
 import { SelectionHandler } from "./selectionHandler.js";
 
 // provides access to gl constants
@@ -40,6 +40,8 @@ export class Viewer {
 
 
     private _statesBuffer : StatesBuffer;
+
+    private _drawable : boolean;
     
     constructor(canvasId : string){
         this.canvas = document.getElementById(canvasId) as HTMLCanvasElement;
@@ -60,6 +62,7 @@ export class Viewer {
         
         
         this._statesBuffer = new StatesBuffer(new StatesTransformer());
+        this._drawable = false;
     }
     
     // initialization methods
@@ -73,37 +76,38 @@ export class Viewer {
         this.context.enable(gl.DEPTH_TEST);
         
         
-        await this.initMesh(nbInstances);
         await this._selectionHandler.initialization("/static/shaders/selection.vert", "/static/shaders/selection.frag");
         this.initCamera();
         let self = this;
         this.resizeObserver = new ResizeObserver(function() {self.onCanvasResize();});
         this.resizeObserver.observe(this.canvas);
         
-        
         this._animationTimer.callback = function(){
             this.updateScene();
         }.bind(this);
-        this._animationTimer.play();
-
-        this._statesBuffer.nbElements = nbInstances;
         
+        await this.initCurrentVisu(nbInstances);
+        this._drawable = true;
     }
 
-    private async initMesh(nbInstances : number){
+    public async initCurrentVisu(nbElements : number){
+        this._drawable = false;
+        this._statesBuffer.initializeElements(nbElements);
         
-        this._multipleInstances = new MultipleMeshInstances(this.context, nbInstances);
+        while (!this._statesBuffer.isReady){
+            await new Promise(resolve => setTimeout(resolve, 1));
+        };
+
+        let values = this._statesBuffer.values;
+        await this.initMesh(values);
+        this._drawable = true;
+    }
+
+    private async initMesh(values : TransformableValues){
+        if (this._multipleInstances != null)
+            delete this._multipleInstances;
+        this._multipleInstances = new MultipleMeshInstances(this.context, values);
         await this._multipleInstances.loadMesh("/static/models/cube_div_1.obj");
-
-        let sqrtInstances = Math.sqrt(nbInstances);
-
-        let offset = 2.05;
-        let nbRow = sqrtInstances
-        let offsetRow = Vec3.fromValues(0, 0, offset);
-        let offsetCol = Vec3.fromValues(offset, 0, 0);
-        let center = -(nbRow - 1) * offset / 2.;
-        let firstPos = Vec3.fromValues(center, 0, center);
-        this._multipleInstances.applyGridLayout(firstPos, sqrtInstances, sqrtInstances, offsetRow, offsetCol);
     }
 
     private initCamera(){
@@ -184,8 +188,8 @@ export class Viewer {
         // if (this._selectionHandler.hasCurrentSelection() && currentSelection != prevSelection){
         //     this._multipleInstances.setMouseOver(currentSelection);
         // }
-        
-        this.draw();
+        if (this._drawable)
+            this.draw();
         this.context.finish();
 
        this._stats.stopRenderingTimer();

@@ -122,7 +122,7 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
 
     async def emptyGrid(self, nbInstances):
         row = int(math.sqrt(nbInstances))
-        grid = jnp.zeros((row, row)).tolist()
+        grid = [0] * row * row
         xy = jnp.indices([row, row], dtype=jnp.float32)
         offset = -(row - 1) / 2.
         x = ((xy[1].reshape(row * row) + offset) * 2).tolist()

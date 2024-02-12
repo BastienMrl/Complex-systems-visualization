@@ -24,19 +24,11 @@ export class MultipleMeshInstances {
     _vao;
     _selectionVao;
     _mouseOverBuffer;
-    constructor(context, nbInstances) {
+    constructor(context, values) {
         this._context = context;
-        this._nbInstances = nbInstances;
-        this._translation = new Float32Array(nbInstances * 3);
-        this._colors = new Float32Array(nbInstances * 3);
-        this._colors[0] = 1.;
-        this._colors[1] = 1.;
-        this._colors[2] = 1.;
-        for (let i = 3; i < nbInstances * 3; i += 3) {
-            this._colors[i] = 0;
-            this._colors[i + 1] = 0.5;
-            this._colors[i + 2] = 0.5;
-        }
+        this._nbInstances = values.nbElements;
+        this._translation = values.translations;
+        this._colors = values.colors;
         this._vao = this._context.createVertexArray();
         this._selectionVao = this._context.createVertexArray();
         this._translationBuffer = new InstanceAttribBuffer(context);
@@ -118,23 +110,6 @@ export class MultipleMeshInstances {
         this._context.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._context.createBuffer());
         this._context.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint32Array(this._vertIndices), gl.STATIC_DRAW);
         this._context.bindVertexArray(null);
-    }
-    // public methods
-    applyGridLayout(firstPos, nbRow, nbCol, offsetRow, offsetCol) {
-        let rowPos = firstPos;
-        for (let i = 0; i < nbRow; i++) {
-            let colPos = new Vec3().copy(rowPos);
-            for (let j = 0; j < nbCol; j++) {
-                for (let k = 0; k < 3; k++) {
-                    let index = this.getIndexFromCoords(i, j, nbCol) * 3 + k;
-                    this._translation[index] = colPos[k];
-                }
-                colPos.add(offsetCol);
-            }
-            rowPos.add(offsetRow);
-        }
-        this._translationBuffer.updateAttribs(this._translation);
-        this._colorBuffer.updateAttribs(this._colors);
     }
     updateTranslations(translations) {
         this._translationBuffer.updateAttribs(translations);

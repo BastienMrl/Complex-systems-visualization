@@ -1,3 +1,6 @@
+
+
+
 export class SocketHandler {
     // Singleton
     private static _instance : SocketHandler;
@@ -14,7 +17,10 @@ export class SocketHandler {
     //..............................................
 
     private _isRunning : boolean;
+    private _isConnected : boolean;
     private _socket : WebSocket;
+
+    private _awaitingRequests : ((param? : any) => void)[];
 
 
     private constructor() {
@@ -23,6 +29,8 @@ export class SocketHandler {
         }
         this._onStart = function() {};
         this._onStop = function() {};
+        this._isConnected = false;
+        this._awaitingRequests = [];
     }
     
     public static getInstance() : SocketHandler {
@@ -55,10 +63,16 @@ export class SocketHandler {
         let self : this = this;
         this._socket.onmessage = function(e : MessageEvent<any>){
             self.onMessage(e);
-        }
-        this._socket.onopen = this.onOpen;
-        this._socket.onerror = this.onError;
-        this._socket.onclose = this.onClose;
+        };
+        this._socket.onopen = function(e : Event){
+            self.onOpen(e);
+        };
+        this._socket.onerror = function(e : Event){
+            self.onError(e);
+        };
+        this._socket.onclose = function(e : CloseEvent){
+            self.onClose(e);
+        };
     }
 
     private onMessage(e : MessageEvent<any>) {
@@ -67,15 +81,19 @@ export class SocketHandler {
     }
 
     private onClose(e : CloseEvent) {
+        this._isConnected = false;
         console.debug('Socket closed unexpectedly', e);
     }
 
     private onError(e : Event){
+        this._isConnected = false;
         console.error('Socket closed unexpectedly', e)
     }
 
     private onOpen(e : Event) {
+        this._isConnected = true;
         console.debug('Socket opened');
+        this._awaitingRequests.forEach(fct => { fct(); });
     }
 
 
@@ -114,6 +132,11 @@ export class SocketHandler {
     }
 
     public requestEmptyInstance(params : any){
+        if (!this._isConnected){
+            this._awaitingRequests.push(this.requestEmptyInstance.bind(this, params));
+            return;
+        };
+        if (this._isRunning) return;
         this._socket.send(JSON.stringify({
             'message' : this._requestEmptyGridMessage,
             'params' : params

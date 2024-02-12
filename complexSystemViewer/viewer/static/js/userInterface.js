@@ -9,7 +9,7 @@ export class UserInterface {
     _wheelPressed;
     constructor() {
         this._socketHandler = SocketHandler.getInstance();
-        this._nbInstances = 200 * 200;
+        this._nbInstances = 10 * 10;
     }
     static getInstance() {
         if (!UserInterface._instance)
@@ -61,8 +61,8 @@ export class UserInterface {
     initInterfaceHandlers() {
         let playButton = document.querySelector('#buttonPlay');
         let pauseButton = document.querySelector('#buttonPause');
+        let restartButton = document.querySelector('#buttonRestart');
         playButton.addEventListener('click', (e) => {
-            console.log(this._socketHandler);
             if (!this._socketHandler.isRunning) {
                 this._socketHandler.start(this._nbInstances);
                 console.log("START");
@@ -71,8 +71,14 @@ export class UserInterface {
         pauseButton.addEventListener('click', (e) => {
             if (this._socketHandler.isRunning) {
                 this._socketHandler.stop();
-                console.log(this._socketHandler);
+                console.log("STOP");
             }
+        });
+        restartButton.addEventListener('click', (e) => {
+            if (this._socketHandler.isRunning)
+                this._socketHandler.stop();
+            this._viewer.initCurrentVisu(this._nbInstances);
+            console.log("RESTART");
         });
     }
     get nbInstances() {

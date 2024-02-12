@@ -15,7 +15,7 @@ export class UserInterface {
 
     private constructor() {
         this._socketHandler = SocketHandler.getInstance();
-        this._nbInstances = 200*200;
+        this._nbInstances = 10 * 10;
     }
 
     public static getInstance() : UserInterface {
@@ -80,10 +80,10 @@ export class UserInterface {
     {
         let playButton = (document.querySelector('#buttonPlay') as HTMLButtonElement);
         let pauseButton = (document.querySelector('#buttonPause') as HTMLButtonElement);
+        let restartButton = (document.querySelector('#buttonRestart') as HTMLButtonElement);
 
 
         playButton.addEventListener('click', (e : MouseEvent) => {
-            console.log(this._socketHandler);
             if (!this._socketHandler.isRunning){
                 this._socketHandler.start(this._nbInstances);
                 console.log("START");
@@ -93,9 +93,16 @@ export class UserInterface {
         pauseButton.addEventListener('click', (e : MouseEvent) => {
             if (this._socketHandler.isRunning){
                 this._socketHandler.stop();
-                console.log(this._socketHandler);
+                console.log("STOP");
             }
         });
+
+        restartButton.addEventListener('click', (e : MouseEvent) => {
+            if (this._socketHandler.isRunning)
+                this._socketHandler.stop();
+            this._viewer.initCurrentVisu(this._nbInstances);
+            console.log("RESTART");
+        })
     }
 
 

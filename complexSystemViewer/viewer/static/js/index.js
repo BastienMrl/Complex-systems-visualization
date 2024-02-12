@@ -9,26 +9,10 @@ async function main() {
     }
     canvas.height = canvas.clientHeight;
     canvas.width = canvas.clientWidth;
-    // socket init before viewer init
-    let socketHandler = SocketHandler.getInstance();
-    // for instance, data is an array of bool
-    socketHandler.onDataReceived = function (data) {
-        viewer.statesBuffer.onStateReceived(data);
-    };
-    socketHandler.onStart = function () {
-        viewer.startVisualizationAnimation();
-    };
-    socketHandler.onStop = function () {
-        viewer.stopVisualizationAnimation();
-    };
     const url = 'ws://'
         + window.location.host
         + '/ws/viewer/';
-    await socketHandler.connectSocket(url);
     let viewer = new Viewer("c");
-    let userInterface = UserInterface.getInstance();
-    userInterface.initHandlers(viewer);
-    await viewer.initialization("/static/shaders/simple.vert", "/static/shaders/simple.frag", userInterface.nbInstances);
     //.... Transformer : backend data -> visualization ....
     let transformer = new StatesTransformer();
     // returned id is used to update Transformer params
@@ -52,6 +36,22 @@ async function main() {
     viewer.bindAnimationCurve(AnimableValue.COLOR, easeOut);
     viewer.bindAnimationCurve(AnimableValue.TRANSLATION, easeOut);
     //.........................
+    // socket init before viewer init
+    let socketHandler = SocketHandler.getInstance();
+    // for instance, data is an array of bool
+    socketHandler.onDataReceived = function (data) {
+        viewer.statesBuffer.onStateReceived(data);
+    };
+    socketHandler.onStart = function () {
+        viewer.startVisualizationAnimation();
+    };
+    socketHandler.onStop = function () {
+        viewer.stopVisualizationAnimation();
+    };
+    await socketHandler.connectSocket(url);
+    let userInterface = UserInterface.getInstance();
+    userInterface.initHandlers(viewer);
+    await viewer.initialization("/static/shaders/simple.vert", "/static/shaders/simple.frag", userInterface.nbInstances);
     function loop(time) {
         viewer.render(time);
         requestAnimationFrame(loop);
