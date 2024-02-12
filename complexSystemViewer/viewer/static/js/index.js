@@ -1,6 +1,6 @@
 import { Viewer, AnimableValue } from "./viewer.js";
 import { SocketHandler } from "./socketHandler.js";
-import { UserEventHandler } from "./userEventHandler.js";
+import { UserInterface } from "./userInterface.js";
 import { StatesTransformer, TransformType } from "./statesTransformer.js";
 async function main() {
     let canvas = document.getElementById("c");
@@ -10,10 +10,9 @@ async function main() {
     canvas.height = canvas.clientHeight;
     canvas.width = canvas.clientWidth;
     let viewer = new Viewer("c");
-    let userEventHandler = UserEventHandler.getInstance();
-    userEventHandler.initHandlers(viewer);
-    let nbInstances = 200 * 200;
-    await viewer.initialization("/static/shaders/simple.vert", "/static/shaders/simple.frag", nbInstances);
+    let userInterface = UserInterface.getInstance();
+    userInterface.initHandlers(viewer);
+    await viewer.initialization("/static/shaders/simple.vert", "/static/shaders/simple.frag", userInterface.nbInstances);
     //.... Transformer : backend data -> visualization ....
     let transformer = new StatesTransformer();
     // returned id is used to update Transformer params
@@ -46,18 +45,6 @@ async function main() {
         viewer.statesBuffer.onStateReceived(data);
     };
     socketHandler.connectSocket(url);
-    document.querySelector('#buttonPlay').onclick = function (e) {
-        if (!socketHandler.isRunning) {
-            socketHandler.start(nbInstances);
-            console.log("START");
-        }
-    };
-    document.querySelector('#buttonPause').onclick = function (e) {
-        if (socketHandler.isRunning) {
-            socketHandler.stop();
-            console.log(socketHandler);
-        }
-    };
     function loop(time) {
         viewer.render(time);
         requestAnimationFrame(loop);
