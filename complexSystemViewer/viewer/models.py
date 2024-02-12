@@ -49,3 +49,10 @@ class SelectionParameter(Parameter):
     
     def getoptionsList(self):
         return self.options.split(sep='/')
+    
+class Tool(models.Model):
+    name = models.CharField(max_length=128)
+    description = models.CharField(max_length=256, null=True, blank=True)
+    aLifeModel = models.ForeignKey(ALifeModel, on_delete=models.CASCADE)
+    def __str__(self):
+         return self.name + " of " + self.aLifeModel.name

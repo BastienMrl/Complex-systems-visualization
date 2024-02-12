@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from .models import ALifeModel, ConfigurationItem, Parameter
+from .models import ALifeModel, ConfigurationItem, Parameter, Tool
 
 # Create your views here.
 def index(request):
@@ -11,4 +11,6 @@ def index(request):
         parameters = Parameter.objects.filter(configuration=config.pk).select_subclasses()
         paramByConfig[config] = parameters
         
-    return render(request, "index.html", {"models":models, "configurations":paramByConfig})
+    toolsList = Tool.objects.filter(aLifeModel=models.first().pk)
+        
+    return render(request, "index.html", {"models":models, "configurations":paramByConfig, "toolsList":toolsList})
