@@ -1,18 +1,20 @@
 import { SocketHandler } from "./socketHandler.js";
-class UserEventHandler {
+export class UserInterface {
     // Singleton
     static _instance;
+    _nbInstances;
     _viewer;
     _socketHandler;
     _ctrlPressed;
     _wheelPressed;
     constructor() {
         this._socketHandler = SocketHandler.getInstance();
+        this._nbInstances = 200 * 200;
     }
     static getInstance() {
-        if (!UserEventHandler._instance)
-            UserEventHandler._instance = new UserEventHandler();
-        return UserEventHandler._instance;
+        if (!UserInterface._instance)
+            UserInterface._instance = new UserInterface();
+        return UserInterface._instance;
     }
     initHandlers(viewer) {
         this._viewer = viewer;
@@ -60,8 +62,9 @@ class UserEventHandler {
         let playButton = document.querySelector('#buttonPlay');
         let pauseButton = document.querySelector('#buttonPause');
         playButton.addEventListener('click', (e) => {
-            if (this._socketHandler.isRunning) {
-                this._socketHandler.start(200 * 200);
+            console.log(this._socketHandler);
+            if (!this._socketHandler.isRunning) {
+                this._socketHandler.start(this._nbInstances);
                 console.log("START");
             }
         });
@@ -72,5 +75,7 @@ class UserEventHandler {
             }
         });
     }
+    get nbInstances() {
+        return this._nbInstances;
+    }
 }
-export { UserEventHandler };
