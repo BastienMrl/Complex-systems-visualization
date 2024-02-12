@@ -1,4 +1,4 @@
-import { Vec3 } from "./glMatrix/index.js";
+import { Vec3 } from "./ext/glMatrix/index.js";
 
 const sizePerColor = 3;
 const sizePerTranslation = 3;

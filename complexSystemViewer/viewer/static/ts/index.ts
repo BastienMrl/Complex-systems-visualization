@@ -25,8 +25,8 @@ async function main(){
 
     // returned id is used to update Transformer params
     // second parameter defines states used from backend data
-    let idX = transformer.addTransformer(TransformType.POSITION_X, 0);
-    let idY = transformer.addTransformer(TransformType.POSITION_Z, 1);
+    let idX = transformer.addTransformer(TransformType.POSITION_X, 0, 0.95);
+    let idY = transformer.addTransformer(TransformType.POSITION_Z, 1, 0.95);
     // third parameter defines here the elevation
     let idZ = transformer.addTransformer(TransformType.POSITION_Y, 2, 1.);
     const c1 = [0.0392156862745098, 0.23137254901960785, 0.28627450980392155];

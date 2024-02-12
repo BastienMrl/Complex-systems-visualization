@@ -1,4 +1,5 @@
-import { Vec3, Mat4 } from "./glMatrix/index.js";
+import { Vec3, Mat4 } from "./ext/glMatrix/index.js";
+import OBJFile from "./ext/objFileParser/OBJFile.js";
 
 // provides access to gl constants
 const gl = WebGL2RenderingContext;
@@ -23,6 +24,7 @@ export class MultipleMeshInstances{
     private _vertPositions : Float32Array;
     private _vertNormals : Float32Array;
     private _vertUVs : Float32Array;
+    private _vertIndices : Float32Array;
     private _nbFaces : number;
 
     private _colorBuffer : InstanceAttribBuffer;
@@ -111,6 +113,11 @@ export class MultipleMeshInstances{
         this._translationBuffer.bindAttribs(translationLoc, 1, 3, gl.FLOAT, false, 0);
         
         this._context.bindBuffer(gl.ARRAY_BUFFER, null);
+
+        this._context.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._context.createBuffer());
+        this._context.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint32Array(this._vertIndices), gl.STATIC_DRAW);
+
+
         this._context.bindVertexArray(null);
     }
 
@@ -143,9 +150,12 @@ export class MultipleMeshInstances{
         this._context.vertexAttribPointer(selectionLoc, 1, gl.FLOAT, false, 0, 0);
         this._context.vertexAttribDivisor(selectionLoc, 1);
         this._context.enableVertexAttribArray(selectionLoc);
-        
-        
+
         this._context.bindBuffer(gl.ARRAY_BUFFER, null);
+        
+        this._context.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._context.createBuffer());
+        this._context.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint32Array(this._vertIndices), gl.STATIC_DRAW);
+        
         this._context.bindVertexArray(null);
     }
 
@@ -181,93 +191,93 @@ export class MultipleMeshInstances{
 
     public draw(){
         this._context.bindVertexArray(this._vao);
-        this._context.drawArraysInstanced(gl.TRIANGLES, 0, this._nbFaces, this._nbInstances);
+        this._context.drawElementsInstanced(gl.TRIANGLES, this._vertIndices.length, gl.UNSIGNED_INT, 0, this._nbInstances)
         this._context.bindVertexArray(null);
     }
 
     public drawSelection(){
         this._context.bindVertexArray(this._selectionVao);
-        this._context.drawArraysInstanced(gl.TRIANGLES, 0, this._nbFaces, this._nbInstances);
+        this._context.drawElementsInstanced(gl.TRIANGLES, this._vertIndices.length, gl.UNSIGNED_INT, 0, this._nbInstances)
         this._context.bindVertexArray(null);
     }
 
-    public loadCube(){
-        this._vertPositions = new Float32Array([
-            // Front face
-            -1.0, -1.0,  1.0,
-            1.0, -1.0,  1.0,
-            1.0,  1.0,  1.0,
-            
-            -1.0, -1.0,  1.0,
-            1.0,  1.0,  1.0,
-            -1.0,  1.0,  1.0,
-            
-            // Back face
-            -1.0, -1.0, -1.0,
-            -1.0,  1.0, -1.0,
-            1.0,  1.0, -1.0,
-            
-            -1.0, -1.0, -1.0,
-            1.0,  1.0, -1.0,
-            1.0, -1.0, -1.0,
-            
-            // Top face
-            -1.0,  1.0, -1.0,
-            -1.0,  1.0,  1.0,
-            1.0,  1.0,  1.0,
 
-            -1.0,  1.0, -1.0,
-            1.0,  1.0,  1.0,
-            1.0,  1.0, -1.0,
-        
-            // Bottom face
-            -1.0, -1.0, -1.0,
-            1.0, -1.0, -1.0,
-            1.0, -1.0,  1.0,
 
-            -1.0, -1.0, -1.0,
-            1.0, -1.0,  1.0,
-            -1.0, -1.0,  1.0,
+    public async loadMesh(src : string){
+        const response : Response = await fetch(src);
+        const text : string = await response.text();
+        const objFile = new OBJFile(text);
+        const output = objFile.parse();
+
+       
+        const vertIndices : number[] = [];
+
+
+        const vertices : Vec3[] = new Array(output.models[0].vertices.length);
+        output.models[0].vertices.forEach((e, idx) => {
+            vertices[idx] = Vec3.fromValues(e.x, e.y, e.z);
+        })
+        const normals : Vec3[] = new Array(vertices.length);
+        for (let i = 0; i < normals.length; ++i){
+            normals[i] = Vec3.fromValues(0, 0, 0);
+        }
+        const nbFaces : number[] = new Array(vertices.length).fill(0);
+
+        output.models[0].faces.forEach((element) => {
+            for (let i = 1; i < element.vertices.length - 1; i++){
+                const v0 = element.vertices[0].vertexIndex - 1;
+                const v1 = element.vertices[i].vertexIndex - 1;
+                const v2 = element.vertices[i + 1].vertexIndex - 1;
+                vertIndices.push(v0, v1, v2);
+
+                let e1 : Vec3 = Vec3.create();
+                let e2 : Vec3 = Vec3.create();
+
+                Vec3.sub(e1, vertices[v1], vertices[v0]);
+                Vec3.sub(e2, vertices[v2], vertices[v0]);
+
+
+                let n = Vec3.create();
+                Vec3.cross(n, e1, e2);
+
+                
+                normals[v0].add(n);
+                normals[v1].add(n);
+                normals[v2].add(n);
             
-            // Right face
-            1.0, -1.0, -1.0,
-            1.0,  1.0, -1.0,
-            1.0,  1.0,  1.0,
-
-            1.0, -1.0, -1.0,
-            1.0,  1.0,  1.0,
-            1.0, -1.0,  1.0,
-        
-            // Left face
-            -1.0, -1.0, -1.0,
-            -1.0, -1.0,  1.0,
-            -1.0,  1.0,  1.0,
-
-            -1.0, -1.0, -1.0,
-            -1.0,  1.0,  1.0,
-            -1.0,  1.0, -1.0
-        ]);
-
-        this._vertNormals = new Float32Array(this._vertPositions.length);
-        let normals : Vec3[] = [
-            Vec3.fromValues(0., 0, 1.),
-            Vec3.fromValues(0., 0., -1.),
-            Vec3.fromValues(0., 1, 0.),
-            Vec3.fromValues(0., -1.0, 0.),
-            Vec3.fromValues(1.0, 0., 0.),
-            Vec3.fromValues(-1., 0, 0),
-        ]
-        let cpt : number = 0;
-        normals.forEach(element => {
-            for (let i = 0; i < 6; i++)
-                for(let j = 0; j < 3; j++)
-                    this._vertNormals[cpt++] = element[j];
+                nbFaces[v0] += 1;
+                nbFaces[v1] += 1;
+                nbFaces[v2] += 1;
+            }
         });
+        
+        for (let i = 0; i < vertices.length; ++i){
+            normals[i].scale(1. / nbFaces[i]);
+            normals[i].normalize();
+        }
+        
 
-        this._nbFaces = this._vertPositions.length / 3;
-        this.initDrawVAO();
+        this._vertPositions = new Float32Array(vertices.length * 3);
+        for(let i = 0; i < vertices.length; i++){
+            this._vertPositions[i * 3] = vertices[i].x;
+            this._vertPositions[i * 3 + 1] = vertices[i].y;
+            this._vertPositions[i * 3 + 2] = vertices[i].z;
+        }
+
+        this._vertNormals = new Float32Array(normals.length * 3);
+        for(let i = 0; i < normals.length; i++){
+            this._vertNormals[i * 3] = normals[i].x;
+            this._vertNormals[i * 3 + 1] = normals[i].y;
+            this._vertNormals[i * 3 + 2] = normals[i].z;
+        }
+
+        this._vertIndices = new Float32Array(vertIndices);
+        this._nbFaces = this._vertIndices.length / 3;
+
         this.initSelectionVAO();
+        this.initDrawVAO();
     }
+
 }
 
 

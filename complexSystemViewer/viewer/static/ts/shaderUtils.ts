@@ -1,5 +1,5 @@
 async function getShaderFromFile(src : string, type : number, gl : WebGL2RenderingContext) : Promise<WebGLShader> {
-    const response : Response = await fetch(src);
+    const response : Response = await fetch(src, { cache: "no-cache"});
     const text : string = await response.text();
 
     const shader : WebGLShader | null = gl.createShader(type);

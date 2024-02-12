@@ -1,4 +1,4 @@
-import { Mat4, Vec3 } from "./glMatrix/index.js";
+import { Mat4, Vec3 } from "./ext/glMatrix/index.js";
 export class Camera {
     // projection parameters
     _fovy;

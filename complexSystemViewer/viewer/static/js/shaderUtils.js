@@ -1,5 +1,5 @@
 async function getShaderFromFile(src, type, gl) {
-    const response = await fetch(src);
+    const response = await fetch(src, { cache: "no-cache" });
     const text = await response.text();
     const shader = gl.createShader(type);
     if (shader == null) {

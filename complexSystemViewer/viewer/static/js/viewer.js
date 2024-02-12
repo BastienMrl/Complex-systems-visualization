@@ -1,5 +1,5 @@
 import * as shaderUtils from "./shaderUtils.js";
-import { Vec3 } from "./glMatrix/index.js";
+import { Vec3 } from "./ext/glMatrix/index.js";
 import { Camera } from "./camera.js";
 import { MultipleMeshInstances } from "./mesh.js";
 import { Stats } from "./stats.js";
@@ -35,7 +35,7 @@ export class Viewer {
         }
         this.context = context;
         this._stats = new Stats(document.getElementById("renderingFps"), document.getElementById("updateMs"), document.getElementById("renderingMs"));
-        this._animationTimer = new AnimationTimer(1.5, true);
+        this._animationTimer = new AnimationTimer(0.3, true);
         this._selectionHandler = SelectionHandler.getInstance(context);
         this._animationIds = [null, null];
     }
@@ -49,7 +49,7 @@ export class Viewer {
         this.context.enable(gl.DEPTH_TEST);
         await this._selectionHandler.initialization("/static/shaders/selection.vert", "/static/shaders/selection.frag");
         this.initCamera();
-        this.initMesh(nbInstances);
+        await this.initMesh(nbInstances);
         let self = this;
         this.resizeObserver = new ResizeObserver(function () { self.onCanvasResize(); });
         this.resizeObserver.observe(this.canvas);
@@ -61,7 +61,7 @@ export class Viewer {
     }
     async initMesh(nbInstances) {
         this._multipleInstances = new MultipleMeshInstances(this.context, nbInstances);
-        this._multipleInstances.loadCube();
+        await this._multipleInstances.loadMesh("/static/models/cube_div_1.obj");
         let sqrtInstances = Math.sqrt(nbInstances);
         let offset = 2.05;
         let nbRow = sqrtInstances;
@@ -127,6 +127,7 @@ export class Viewer {
         //     this._multipleInstances.setMouseOver(currentSelection);
         // }
         this.draw();
+        this.context.finish();
         this._stats.stopRenderingTimer();
     }
     updateState(data) {

@@ -1,4 +1,4 @@
-import { Vec3 } from "./glMatrix/index.js";
+import { Vec3 } from "./ext/glMatrix/index.js";
 import { StatesTransformer, TransformableValues } from "./statesTransformer.js";
 import { SocketHandler } from "./socketHandler.js";
 
