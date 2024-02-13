@@ -1,10 +1,16 @@
-{% regroup parameters by configuration as param_list %}
-
-<div id="configurationPanel">
+{% load static %}
+<div id="configurationPanel" class="withTransition">
     <select name="model" id="modelSelector">
-        <option value="GOL">Jeu de la vie</option>
+        {% for model in models %}
+        <option value="{{model.id}}">{{model.name}}</option>
+        {% endfor %}
     </select>
-    {% for configurationTuple in param_list %}
-        {% include "configurationItems/configurationItem.html" with config=configurationTuple.grouper paramConfig=configurationTuple.list %}
+    {% for config, parameters in configurations.items %}
+        {% include "configurationItems/configurationItem.html"%}
     {% endfor %}
+</div>
+<div id="foldButton" class="withTransition">
+    <svg class="w-6 h-6 text-gray-800 dark:text-white withTransition" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="m9 5 7 7-7 7"/>
+  </svg>
 </div>

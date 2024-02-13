@@ -3,10 +3,15 @@
 <div class="configurationItem" id="{{config.id}}">
     <h2>{{ config.name }}</h2>
         <div class="parametersList">
-            {% for param in paramConfig %}
-                <h3>{{param.name}}</h3>
-                {% if param.type == "IR" %}
-                    {% include "configurationItems/parameterItems/intRangeParameter.html" with param=param %}
+            {% for param in parameters %}
+                {% if param.type == "NR" %}
+                    {% include "configurationItems/parameterItems/rangeParameter.html"%}
+                {% elif param.type == "NV" %}
+                    {% include "configurationItems/parameterItems/numberParameter.html"%}
+                {% elif param.type == "SV" %}
+                    {% include "configurationItems/parameterItems/selectionParameter.html"%}
+                {% elif param.type == "CV" %}
+                    {% include "configurationItems/parameterItems/colorParameter.html"%}
                 {% endif %}
             {% endfor %}
         </div>

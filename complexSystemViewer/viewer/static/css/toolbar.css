@@ -1,4 +1,24 @@
 #toolbar {
-    width: 60px;
+    width: var(--toolBar-width);
     background-color: var(--color-dark);
+    display: flex;
+    flex-direction: column;
+}
+
+.tool {
+    margin: 5px;
+    width: calc(var(--toolBar-width) - 10px);
+    height: calc(var(--toolBar-width) - 10px);
+    background-color: var(--color-light);
+    border-radius: 3px;
+    transition: background-color 0.1s ease-in-out;
+}
+
+.tool:hover, .tool.active {
+    background-color: var(--color-lighter);
+}
+
+
+.tool img {
+    width: 100%;
 }

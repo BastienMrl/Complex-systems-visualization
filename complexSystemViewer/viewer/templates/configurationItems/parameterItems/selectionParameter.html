@@ -1,0 +1,13 @@
+{% extends "configurationItems/parameterItems/baseParameter.html" %}
+
+{% load static %}
+
+{% block valueControl %}
+
+<select name="{{param.name}}" id="{{param.id}}">
+    {% for option in param.getoptionsList %}
+        <option value="{{option}}">{{option}}</option>
+    {% endfor %}
+</select>
+
+{% endblock valueControl %}
