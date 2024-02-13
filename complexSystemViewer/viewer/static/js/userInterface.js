@@ -62,6 +62,7 @@ export class UserInterface {
         let playButton = document.querySelector('#buttonPlay');
         let pauseButton = document.querySelector('#buttonPause');
         let restartButton = document.querySelector('#buttonRestart');
+        let foldButton = document.getElementById("foldButton");
         playButton.addEventListener('click', (e) => {
             if (!this._socketHandler.isRunning) {
                 this._socketHandler.start(this._nbInstances);
@@ -79,6 +80,10 @@ export class UserInterface {
                 this._socketHandler.stop();
             this._viewer.initCurrentVisu(this._nbInstances);
             console.log("RESTART");
+        });
+        foldButton.addEventListener("click", () => {
+            document.getElementById("configurationPanel").classList.toggle("hidden");
+            document.getElementById("foldButton").classList.toggle("hidden");
         });
     }
     get nbInstances() {

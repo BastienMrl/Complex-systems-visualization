@@ -81,6 +81,7 @@ export class UserInterface {
         let playButton = (document.querySelector('#buttonPlay') as HTMLButtonElement);
         let pauseButton = (document.querySelector('#buttonPause') as HTMLButtonElement);
         let restartButton = (document.querySelector('#buttonRestart') as HTMLButtonElement);
+        let foldButton = (document.getElementById("foldButton") as HTMLDivElement);
 
 
         playButton.addEventListener('click', (e : MouseEvent) => {
@@ -103,6 +104,11 @@ export class UserInterface {
             this._viewer.initCurrentVisu(this._nbInstances);
             console.log("RESTART");
         })
+
+        foldButton.addEventListener("click", () => {
+            document.getElementById("configurationPanel").classList.toggle("hidden")
+            document.getElementById("foldButton").classList.toggle("hidden")
+        });
     }
 
 
