@@ -6,7 +6,7 @@ class Particle():
     particle_class : int = None
     is_aligned_grid : bool = False
 
-    def __init__(self, p_id, x,y,values : tuple,particle_class = 0, is_aligned_grid = false):
+    def __init__(self, p_id, x,y,values : tuple,particle_class = 0, is_aligned_grid = False):
         self.p_id = p_id
         self.pos_x = x
         self.pos_y = y

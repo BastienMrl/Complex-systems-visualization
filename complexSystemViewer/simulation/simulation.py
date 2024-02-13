@@ -2,6 +2,8 @@ from abc import ABC, abstractmethod
 import jax.numpy as jnp
 import jax.lax as lax
 import jax.random
+from .parameter import *
+import numpy as np
 class Simulation(ABC): 
     
     s_id = None
@@ -28,42 +30,47 @@ class Simulation(ABC):
         if init_params != None :
             self.parameter = init_params
         else :
-            raise ValueError("Initial parameters can't be None")
+            pass
+            #raise ValueError("Initial parameters can't be None")
     
     @abstractmethod
     def step(self) : 
         pass
 
     def to_JSON_object(self) :
-      
-        json_particles = list()
-        id_arr = jnp.empty( shape=(0) )
-        pos_arr = jnp.empty( shape=(0) )
-        values_arr = jnp.empty( shape=(0) )
-        class_arr = jnp.empty( shape=(0) )
-        for state in current_states :
+        print("to json")
+        
+        id_arr = np.array([])
+        pos_arr_x = np.empty( shape=(0) )
+        pos_arr_y= np.empty( shape=(0) )
+        values_arr = np.empty( shape=(0) )
+        class_arr = np.empty( shape=(0) )
+        print("to json2")
+        print(len(self.current_states))
+        for state in self.current_states :
+          
             particules = state.particles
-
-            id_arr = jnp.append(
-                jnp.fromiter((p.p_id for p in particules), dtype=int)
-            )
-
-            pos_arr = jnp.append(
-                jnp.fromiter(((p.pos_x, p.pos_y) for p in particules), dtype=tuple)
-            )
-
-            values_arr = jnp.append(
-                jnp.fromiter((p.values for p in particules), dtype=tuple)
-            )
-
-            class_arr = jnp.append(
-                jnp.fromiter((p.particle_class for p in particules), dtype=int)
-            )
+            v_id = np.vectorize(lambda p: p.p_id)
+            id_arr= v_id(particules)
             
+            v_pos_x = np.vectorize(lambda p: p.pos_x)
+            pos_arr_x = v_pos_x(particules)
+
+            v_pos_y = np.vectorize(lambda p: p.pos_y)
+            pos_arr_y = v_pos_y(particules)
+
+            v_val = np.vectorize(lambda p: p.values)
+            values_arr=v_val(particules)
+
+            v_cla = np.vectorize(lambda p: p.particle_class)
+            class_arr=v_cla(particules)
+            
+            print("to json3")
         return {
-            ids : id_arr.tolist(),
-            positions : pos_arr.tolist(),
-            values : values_arr.tolist(),
-            classes : class_arr.tolist()  
+            #'ids' : id_arr.tolist(),
+            'x' : pos_arr_x.tolist(),
+            'y' : pos_arr_y.tolist(),
+            'values' : values_arr.tolist(),
+            #'classes' : class_arr.tolist()  
         }
     
