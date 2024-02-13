@@ -3,7 +3,8 @@ import { SocketHandler } from "./socketHandler.js";
 import { UserInterface } from "./userInterface.js"
 import { StatesTransformer, TransformType } from "./statesTransformer.js";
 
-
+export var idColor;
+export var transformer;
 
 async function main(){
     let canvas : HTMLCanvasElement | null = document.getElementById("c") as HTMLCanvasElement | null;
@@ -24,7 +25,7 @@ async function main(){
     let viewer = new Viewer("c");
     //.... Transformer : backend data -> visualization ....
     
-    let transformer = new StatesTransformer();
+    transformer = new StatesTransformer();
     
     // returned id is used to update Transformer params
     // second parameter defines states used from backend data
@@ -34,7 +35,7 @@ async function main(){
     let idZ = transformer.addTransformer(TransformType.POSITION_Y, 2, 1.5);
     const c1 = [0.0392156862745098, 0.23137254901960785, 0.28627450980392155];
     const c2 = [0.8705882352941177, 0.8901960784313725, 0.9294117647058824];
-    let idColor = transformer.addTransformer(TransformType.COLOR, 2, c2, c1);
+    idColor = transformer.addTransformer(TransformType.COLOR, 2, c2, c1);
     
     viewer.setCurrentTransformer(transformer);
     

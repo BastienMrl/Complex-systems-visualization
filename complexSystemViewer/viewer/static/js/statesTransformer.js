@@ -93,8 +93,12 @@ class ColorTransformer extends Transformer {
         });
     }
     setParameters(...args) {
-        this._colorMin = Vec3.fromValues(args[0][0], args[0][1], args[0][2]);
-        this._colorMax = Vec3.fromValues(args[1][0], args[1][1], args[1][2]);
+        if (args[0][0] !== null) {
+            this._colorMin = Vec3.fromValues(args[0][0][0], args[0][0][1], args[0][0][2]);
+        }
+        if (args[0][1] !== null) {
+            this._colorMax = Vec3.fromValues(args[0][1][0], args[0][1][1], args[0][1][2]);
+        }
     }
 }
 class PositionTransformer extends Transformer {
