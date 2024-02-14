@@ -10,8 +10,8 @@ export class UserInterface {
     _wheelPressed;
     constructor() {
         this._socketHandler = SocketHandler.getInstance();
-        let input = document.getElementById("13");
-        this._nbInstances = input.value ** 2;
+        let GridSizeInput = document.getElementById("13");
+        this._nbInstances = GridSizeInput.value ** 2;
     }
     static getInstance() {
         if (!UserInterface._instance)

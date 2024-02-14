@@ -34,10 +34,9 @@ export class Viewer {
         if (context == null) {
             throw "Could not create WebGL2 context";
         }
-        this.context = context;
-        this._stats = new Stats(document.getElementById("renderingFps"), document.getElementById("updateMs"), document.getElementById("renderingMs"));
         this._animationTimer = new AnimationTimer(0.15, false);
         this._animationIds = [null, null];
+        this.context = context;
         this._selectionHandler = SelectionHandler.getInstance(context);
         this._statesBuffer = new StatesBuffer(new StatesTransformer());
         this._drawable = false;
@@ -50,6 +49,7 @@ export class Viewer {
         this.context.clearColor(0.2, 0.2, 0.2, 1.0);
         this.context.enable(gl.CULL_FACE);
         this.context.enable(gl.DEPTH_TEST);
+        this._stats = new Stats(document.getElementById("renderingFps"), document.getElementById("updateMs"), document.getElementById("renderingMs"));
         await this._selectionHandler.initialization("/static/shaders/selection.vert", "/static/shaders/selection.frag");
         this.initCamera();
         let self = this;

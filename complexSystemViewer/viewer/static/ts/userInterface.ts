@@ -17,8 +17,8 @@ export class UserInterface {
     private constructor() {
         this._socketHandler = SocketHandler.getInstance();
 
-        let input = (document.getElementById("13") as HTMLInputElement);
-        this._nbInstances = (input.value as unknown as number) ** 2;
+        let GridSizeInput = (document.getElementById("13") as HTMLInputElement);
+        this._nbInstances = (GridSizeInput.value as unknown as number) ** 2;
     }
 
     public static getInstance() : UserInterface {

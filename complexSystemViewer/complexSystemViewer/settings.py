@@ -22,7 +22,7 @@ if DEBUG:
 
 
 #allowed hosts to launch server
-ALLOWED_HOSTS = ["localhost", "192.168.1.151"]
+ALLOWED_HOSTS = []
 
 
 # Application definition
