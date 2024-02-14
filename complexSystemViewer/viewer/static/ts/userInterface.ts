@@ -141,7 +141,7 @@ export class UserInterface {
 
         gridSizeInput.addEventListener("change", async () => {
             this._nbInstances = (gridSizeInput.value as unknown as number)**2;
-            await this._viewer.initCurrentVisu(this._nbInstances);
+            this._viewer.initCurrentVisu(this._nbInstances);
         });
 
         for(let i=0; i<toolButtons.length; i++){
