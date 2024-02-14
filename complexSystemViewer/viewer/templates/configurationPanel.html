@@ -1,10 +1,11 @@
 {% load static %}
 <div id="configurationPanel" class="withTransition">
     <select name="model" id="modelSelector">
-        {% for model in models %}
-        <option value="{{model.id}}">{{model.name}}</option>
+        {% for name in modelsName %}
+        <option value="{{name}}">{{name}}</option>
         {% endfor %}
     </select>
+    {% include "configurationItems/visualizationConfigItem.html" %}
     {% for config, parameters in configurations.items %}
         {% include "configurationItems/configurationItem.html"%}
     {% endfor %}

@@ -1,0 +1,5 @@
+<div class="configurationItem" id="{{config.id}}">
+    {% for outType in model.getSimOutType %}
+        {% include "configurationItems/transformerItem.html" %}
+    {% endfor %}
+</div>

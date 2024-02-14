@@ -80,19 +80,20 @@ export class UserInterface {
         let colorAliveInput = document.getElementById("aliveColor");
         let colorDeadInput = document.getElementById("deadColor");
         let gridSizeInput = document.getElementById("gridSize");
-        playButton.addEventListener('click', (e) => {
+        let toolButtons = document.getElementsByClassName("tool");
+        playButton.addEventListener('click', () => {
             if (!this._socketHandler.isRunning) {
                 this._socketHandler.start(this._nbInstances);
                 console.log("START");
             }
         });
-        pauseButton.addEventListener('click', (e) => {
+        pauseButton.addEventListener('click', () => {
             if (this._socketHandler.isRunning) {
                 this._socketHandler.stop();
                 console.log("STOP");
             }
         });
-        restartButton.addEventListener('click', (e) => {
+        restartButton.addEventListener('click', () => {
             if (this._socketHandler.isRunning)
                 this._socketHandler.stop();
             this._viewer.initCurrentVisu(this._nbInstances);
@@ -102,19 +103,28 @@ export class UserInterface {
             document.getElementById("configurationPanel").classList.toggle("hidden");
             document.getElementById("foldButton").classList.toggle("hidden");
         });
-        colorAliveInput.addEventListener("change", (event) => {
+        colorAliveInput.addEventListener("change", () => {
             let color = this.hexToRgbA(colorAliveInput.value);
             transformer.setParams(idColor, null, color);
         });
-        colorDeadInput.addEventListener("change", (event) => {
+        colorDeadInput.addEventListener("change", () => {
             let color = this.hexToRgbA(colorDeadInput.value);
             transformer.setParams(idColor, color, null);
         });
-        gridSizeInput.addEventListener("change", async (event) => {
+        gridSizeInput.addEventListener("change", async () => {
             this._nbInstances = gridSizeInput.value ** 2;
             await this._viewer.initialization("/static/shaders/simple.vert", "/static/shaders/simple.frag", this.nbInstances);
             this._viewer.loopAnimation();
         });
+        for (let i = 0; i < toolButtons.length; i++) {
+            toolButtons.item(i).addEventListener("click", () => {
+                let activeTool = document.getElementsByClassName("tool active");
+                if (activeTool.length > 0) {
+                    activeTool[0].classList.remove("active");
+                }
+                toolButtons.item(i).classList.toggle("active");
+            });
+        }
     }
     get nbInstances() {
         return this._nbInstances;

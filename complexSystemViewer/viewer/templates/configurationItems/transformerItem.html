@@ -1,0 +1,8 @@
+<div class="transformerItem">
+    <h4>{{outType}}</h4>
+    <select>
+        {% for transformer in model.getTransformerType %}
+            <option value="{{transformer}}">{{transformer}}</option>
+        {% endfor %}
+    </select>
+</div>

@@ -34,3 +34,8 @@ div#simulator {
   overflow: hidden;
 }
 
+.transformerItem {
+  display: flex;
+  justify-content: space-evenly;
+  margin: 10px 0px !important;
+}
