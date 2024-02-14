@@ -16,7 +16,9 @@ export class UserInterface {
 
     private constructor() {
         this._socketHandler = SocketHandler.getInstance();
-        this._nbInstances = 10 * 10;
+
+        let input = (document.getElementById("13") as HTMLInputElement);
+        this._nbInstances = (input.value as unknown as number) ** 2;
     }
 
     public static getInstance() : UserInterface {
@@ -96,6 +98,10 @@ export class UserInterface {
         let pauseButton = (document.querySelector('#buttonPause') as HTMLButtonElement);
         let restartButton = (document.querySelector('#buttonRestart') as HTMLButtonElement);
         let foldButton = (document.getElementById("foldButton") as HTMLDivElement);
+        let colorAliveInput = (document.getElementById("3") as HTMLInputElement);
+        let colorDeadInput = (document.getElementById("4") as HTMLInputElement);
+        let gridSizeInput = (document.getElementById("13") as HTMLInputElement);
+
 
 
         playButton.addEventListener('click', (e : MouseEvent) => {
@@ -124,15 +130,24 @@ export class UserInterface {
             document.getElementById("foldButton").classList.toggle("hidden")
         });
 
-        document.getElementById("3").addEventListener("change", (event : Event) => {
-            let color = this.hexToRgbA((event.target as HTMLInputElement).value);
+        colorAliveInput.addEventListener("change", (event : Event) => {
+            let color = this.hexToRgbA(colorAliveInput.value);
             transformer.setParams(idColor, null, color);
         });
 
-        document.getElementById("4").addEventListener("change", (event : Event) => {
-            let color = this.hexToRgbA((event.target as HTMLInputElement).value);
+       colorDeadInput.addEventListener("change", (event : Event) => {
+            let color = this.hexToRgbA(colorDeadInput.value);
             transformer.setParams(idColor, color, null);
         });
+
+        gridSizeInput.addEventListener("change", async (event : Event) => {
+            this._nbInstances = (gridSizeInput.value as unknown as number)**2;
+            await this._viewer.initialization("/static/shaders/simple.vert", "/static/shaders/simple.frag", this.nbInstances);
+            this._viewer.loopAnimation();
+        })
+
+
+
     }
 
 

@@ -169,6 +169,14 @@ export class Viewer {
         
         this._multipleInstances.draw();
     }
+
+    public loopAnimation(){
+        const loop = (time: number) => {
+            this.render(time);
+            requestAnimationFrame(loop);
+        };
+        requestAnimationFrame(loop);
+    }
     
 
     // public methods

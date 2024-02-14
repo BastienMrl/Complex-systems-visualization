@@ -10,7 +10,8 @@ export class UserInterface {
     _wheelPressed;
     constructor() {
         this._socketHandler = SocketHandler.getInstance();
-        this._nbInstances = 10 * 10;
+        let input = document.getElementById("13");
+        this._nbInstances = input.value ** 2;
     }
     static getInstance() {
         if (!UserInterface._instance)
@@ -76,6 +77,9 @@ export class UserInterface {
         let pauseButton = document.querySelector('#buttonPause');
         let restartButton = document.querySelector('#buttonRestart');
         let foldButton = document.getElementById("foldButton");
+        let colorAliveInput = document.getElementById("3");
+        let colorDeadInput = document.getElementById("4");
+        let gridSizeInput = document.getElementById("13");
         playButton.addEventListener('click', (e) => {
             if (!this._socketHandler.isRunning) {
                 this._socketHandler.start(this._nbInstances);
@@ -98,13 +102,18 @@ export class UserInterface {
             document.getElementById("configurationPanel").classList.toggle("hidden");
             document.getElementById("foldButton").classList.toggle("hidden");
         });
-        document.getElementById("3").addEventListener("change", (event) => {
-            let color = this.hexToRgbA(event.target.value);
+        colorAliveInput.addEventListener("change", (event) => {
+            let color = this.hexToRgbA(colorAliveInput.value);
             transformer.setParams(idColor, null, color);
         });
-        document.getElementById("4").addEventListener("change", (event) => {
-            let color = this.hexToRgbA(event.target.value);
+        colorDeadInput.addEventListener("change", (event) => {
+            let color = this.hexToRgbA(colorDeadInput.value);
             transformer.setParams(idColor, color, null);
+        });
+        gridSizeInput.addEventListener("change", async (event) => {
+            this._nbInstances = gridSizeInput.value ** 2;
+            await this._viewer.initialization("/static/shaders/simple.vert", "/static/shaders/simple.frag", this.nbInstances);
+            this._viewer.loopAnimation();
         });
     }
     get nbInstances() {

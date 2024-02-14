@@ -120,6 +120,13 @@ export class Viewer {
         this.context.uniform1f(timeTranslationLoc, this.getAnimationTime(AnimableValue.TRANSLATION));
         this._multipleInstances.draw();
     }
+    loopAnimation() {
+        const loop = (time) => {
+            this.render(time);
+            requestAnimationFrame(loop);
+        };
+        requestAnimationFrame(loop);
+    }
     // public methods
     render(time) {
         time *= 0.001;

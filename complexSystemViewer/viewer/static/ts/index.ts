@@ -85,16 +85,7 @@ async function main(){
 
 
     await viewer.initialization("/static/shaders/simple.vert", "/static/shaders/simple.frag", userInterface.nbInstances);
-    
-    
-    
-    
-
-    function loop(time : number){
-        viewer.render(time);
-        requestAnimationFrame(loop);
-    }
-    requestAnimationFrame(loop);
+    viewer.loopAnimation();
 }
 
 window.onload = function () {

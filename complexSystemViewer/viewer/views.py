@@ -8,8 +8,8 @@ def index(request):
     
     paramByConfig = {}
     for config in configurations:
-        parameters = Parameter.objects.filter(configuration=config.pk).select_subclasses()
-        paramByConfig[config] = parameters
+        parameters = Parameter.objects.filter(configuration=config.pk).select_subclasses().order_by("pk")
+        paramByConfig[config] = parameters.reverse()
         
     toolsList = Tool.objects.filter(aLifeModel=models.first().pk)
         
