@@ -17,7 +17,7 @@ export class UserInterface {
     private constructor() {
         this._socketHandler = SocketHandler.getInstance();
 
-        let GridSizeInput = (document.getElementById("13") as HTMLInputElement);
+        let GridSizeInput = (document.getElementById("gridSize") as HTMLInputElement);
         this._nbInstances = (GridSizeInput.value as unknown as number) ** 2;
     }
 
@@ -98,9 +98,9 @@ export class UserInterface {
         let pauseButton = (document.querySelector('#buttonPause') as HTMLButtonElement);
         let restartButton = (document.querySelector('#buttonRestart') as HTMLButtonElement);
         let foldButton = (document.getElementById("foldButton") as HTMLDivElement);
-        let colorAliveInput = (document.getElementById("3") as HTMLInputElement);
-        let colorDeadInput = (document.getElementById("4") as HTMLInputElement);
-        let gridSizeInput = (document.getElementById("13") as HTMLInputElement);
+        let colorAliveInput = (document.getElementById("aliveColor") as HTMLInputElement);
+        let colorDeadInput = (document.getElementById("deadColor") as HTMLInputElement);
+        let gridSizeInput = (document.getElementById("gridSize") as HTMLInputElement);
 
 
 

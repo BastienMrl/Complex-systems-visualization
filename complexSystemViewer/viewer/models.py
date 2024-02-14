@@ -22,6 +22,7 @@ class ParamType(models.TextChoices):
         SELECTIONVALUE = "SV"
     
 class Parameter(models.Model):
+    idHtml = models.CharField(max_length=128, null=True)
     name = models.CharField(max_length=128)
     configuration = models.ForeignKey(ConfigurationItem, on_delete=models.CASCADE)
     objects = InheritanceManager()
@@ -37,6 +38,8 @@ class NumberRangeParameter(Parameter):
     
 class NumberParameter(Parameter):
     defaultValue = models.FloatField()
+    minValue = models.FloatField(null=True, blank=True)
+    maxValue = models.FloatField(null=True, blank=True)
     type = ParamType.NUMBERVALUE
     
 class ColorParameter(Parameter):

@@ -4,7 +4,7 @@
 
 {% block valueControl %}
 
-<select name="{{param.name}}" id="{{param.id}}">
+<select name="{{param.name}}" id="{{param.idHtml}}">
     {% for option in param.getoptionsList %}
         <option value="{{option}}">{{option}}</option>
     {% endfor %}

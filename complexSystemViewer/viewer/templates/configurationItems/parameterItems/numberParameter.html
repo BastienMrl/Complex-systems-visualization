@@ -4,6 +4,6 @@
 
 {% block valueControl %}
 
-<input type="number" id="{{param.id}}" name="{{param.name}}" step="{{param.step}}" value="{{param.defaultValue}}" />
+<input type="number" id="{{param.idHtml}}" name="{{param.name}}" step="{{param.step}}" value="{{param.defaultValue}}" min="{{param.minValue}}" max="{{param.maxValue}}" />
 
 {% endblock valueControl %}

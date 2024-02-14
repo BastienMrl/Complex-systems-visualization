@@ -10,7 +10,7 @@ export class UserInterface {
     _wheelPressed;
     constructor() {
         this._socketHandler = SocketHandler.getInstance();
-        let GridSizeInput = document.getElementById("13");
+        let GridSizeInput = document.getElementById("gridSize");
         this._nbInstances = GridSizeInput.value ** 2;
     }
     static getInstance() {
@@ -77,9 +77,9 @@ export class UserInterface {
         let pauseButton = document.querySelector('#buttonPause');
         let restartButton = document.querySelector('#buttonRestart');
         let foldButton = document.getElementById("foldButton");
-        let colorAliveInput = document.getElementById("3");
-        let colorDeadInput = document.getElementById("4");
-        let gridSizeInput = document.getElementById("13");
+        let colorAliveInput = document.getElementById("aliveColor");
+        let colorDeadInput = document.getElementById("deadColor");
+        let gridSizeInput = document.getElementById("gridSize");
         playButton.addEventListener('click', (e) => {
             if (!this._socketHandler.isRunning) {
                 this._socketHandler.start(this._nbInstances);
