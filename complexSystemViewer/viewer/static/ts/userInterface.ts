@@ -129,17 +129,17 @@ export class UserInterface {
             document.getElementById("foldButton").classList.toggle("hidden")
         });
 
-        colorAliveInput.addEventListener("change", () => {
+        colorAliveInput.addEventListener("input", () => {
             let color = this.hexToRgbA(colorAliveInput.value);
             transformer.setParams(idColor, null, color);
         });
 
-       colorDeadInput.addEventListener("change", () => {
+       colorDeadInput.addEventListener("input", () => {
             let color = this.hexToRgbA(colorDeadInput.value);
             transformer.setParams(idColor, color, null);
         });
 
-        gridSizeInput.addEventListener("change", async () => {
+        gridSizeInput.addEventListener("input", async () => {
             this._nbInstances = (gridSizeInput.value as unknown as number)**2;
             this._viewer.initCurrentVisu(this._nbInstances);
         });
