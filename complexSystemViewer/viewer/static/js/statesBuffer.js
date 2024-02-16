@@ -32,8 +32,11 @@ export class StatesBuffer {
         this._socketHandler.requestData();
     }
     onStateReceived(data) {
-        this._states.push(data);
+        this._states = data;
+        let time = performance.now();
         this.transformState();
+        time = performance.now() - time;
+        console.log("Time = ", time, "ms");
         this._isInitialized = true;
     }
     // public requestRandomState(){
@@ -63,6 +66,14 @@ export class StatesBuffer {
     //     this._states.push([x, y, state]);
     // }
     transformState() {
-        this.transformer.applyTransformers(this._states.shift(), this._transformedValues);
+        // this.transformer.applyTransformers(this._states.shift(), this._transformedValues);
+        this._transformedValues.states = new Float32Array(this._states[2]);
+        // this._transformedValues.translations = new Float32Array(result);
+        this._states[0].forEach((e, i) => {
+            this._transformedValues.translations[i * 3] = e;
+        });
+        this._states[1].forEach((e, i) => {
+            this._transformedValues.translations[i * 3 + 2] = e;
+        });
     }
 }

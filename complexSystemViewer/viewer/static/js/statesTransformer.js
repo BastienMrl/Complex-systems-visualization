@@ -1,5 +1,5 @@
 import { Vec3 } from "./ext/glMatrix/index.js";
-const sizePerColor = 3;
+const sizePerState = 1;
 const sizePerTranslation = 3;
 export var TransformType;
 (function (TransformType) {
@@ -13,7 +13,7 @@ export var TransformType;
 })(TransformType || (TransformType = {}));
 export class TransformableValues {
     _nbElement;
-    colors;
+    states;
     translations;
     constructor(nbElements = 1) {
         this.reshape(nbElements);
@@ -23,8 +23,8 @@ export class TransformableValues {
     }
     reshape(nbElements) {
         this._nbElement = nbElements;
-        this.colors = new Float32Array(nbElements * sizePerColor).fill(0.);
-        this.translations = new Float32Array(nbElements * sizePerTranslation).fill(0);
+        this.states = new Float32Array(nbElements * sizePerState).fill(0.);
+        this.translations = new Float32Array(nbElements * sizePerTranslation).fill(0.);
     }
 }
 export class StatesTransformer {
@@ -89,7 +89,8 @@ class ColorTransformer extends Transformer {
             let color = new Vec3().copy(this._colorMin).scale(1 - alpha);
             color.add(new Vec3().copy(this._colorMax).scale(alpha));
             for (let i = 0; i < 3; ++i)
-                values.colors[idx * 3 + i] = color[i];
+                ;
+            // values.colors[idx * 3 + i] = color[i];
         });
     }
     setParameters(...args) {

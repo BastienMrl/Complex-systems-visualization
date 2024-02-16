@@ -73,6 +73,7 @@ export class Viewer {
         this.context.viewport(0, 0, this.canvas.width, this.canvas.height);
         this.context.clearColor(0.2, 0.2, 0.2, 1.0);
         this.context.enable(gl.CULL_FACE);
+        this.context.cullFace(gl.BACK)
         this.context.enable(gl.DEPTH_TEST);
         
         
@@ -137,8 +138,7 @@ export class Viewer {
     
     private updateScene(){
         let values = this._statesBuffer.values;
-        this._multipleInstances.updateColors(values.colors);
-        this._multipleInstances.updateTranslations(values.translations);
+        this._multipleInstances.updateStates(values)
     }
 
     private clear(){
@@ -199,8 +199,8 @@ export class Viewer {
         if (this._drawable)
             this.draw();
         this.context.finish();
+        this._stats.stopRenderingTimer();
 
-       this._stats.stopRenderingTimer();
     }
 
     private getAnimationTime(type : AnimableValue){
@@ -208,25 +208,6 @@ export class Viewer {
         if (id == null)
             return this._animationTimer.getAnimationTime();
         return this._animationTimer.getAnimationTime(id);
-    }
-
-    public updateState(data : any){
-        this._stats.startUpdateTimer();
-        
-        let colors = new Float32Array(data.length * 3);
-        const c1 = [0.0392156862745098, 0.23137254901960785, 0.28627450980392155];
-        const c2 = [0.8705882352941177, 0.8901960784313725, 0.9294117647058824];
-
-        for (let i = 0; i < data.length; i++){
-            for (let k = 0; k < 3; k++){
-                colors[i * 3 + k] = c1[k] * data[i] + c2[k] * (1. - data[i]);
-            }
-        }
-        this._multipleInstances.updateColors(colors);
-
-        // this._multipleInstances.updateTranslations(data);
-
-        this._stats.stopUpdateTimer();
     }
 
 

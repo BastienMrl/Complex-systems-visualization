@@ -6,18 +6,18 @@ import { SocketHandler } from "./socketHandler.js";
 
 export class StatesBuffer{
 
-    private _states : Float32Array[][];
+    private _states : Float32Array[];
     private _transformedValues : TransformableValues;
     private _socketHandler : SocketHandler;
 
     private _isInitialized : boolean;
 
-    
+
 
 
     public transformer : StatesTransformer;
 
-    
+
     constructor(transformer : StatesTransformer){
         this._states = [];
         this._transformedValues = new TransformableValues();
@@ -50,8 +50,11 @@ export class StatesBuffer{
     }
 
     public onStateReceived(data : any){
-        this._states.push(data);
+        this._states = data;
+        let time = performance.now();
         this.transformState();
+        time = performance.now() - time;
+        console.log("Time = ", time, "ms")
         this._isInitialized = true;
     }
 
@@ -68,7 +71,7 @@ export class StatesBuffer{
     //     let x = new Float32Array(this._nbElements);
     //     let y = new Float32Array(this._nbElements);
     //     let state = new Float32Array(this._nbElements);
-        
+
     //     let rowPos = firstPos;
     //     for (let i = 0; i < nbRow; i++) {
     //         let colPos = new Vec3().copy(rowPos);
@@ -86,6 +89,15 @@ export class StatesBuffer{
     // }
 
     public transformState(){
-        this.transformer.applyTransformers(this._states.shift(), this._transformedValues);
+        // this.transformer.applyTransformers(this._states.shift(), this._transformedValues);
+        this._transformedValues.states = new Float32Array(this._states[2])
+
+        // this._transformedValues.translations = new Float32Array(result);
+        this._states[0].forEach((e, i) =>{
+            this._transformedValues.translations[i * 3] = e;
+        });
+        this._states[1].forEach((e, i) =>{
+            this._transformedValues.translations[i * 3 + 2] = e;
+        })
     }
 }

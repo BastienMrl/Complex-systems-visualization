@@ -1,6 +1,6 @@
 import { Vec3 } from "./ext/glMatrix/index.js";
 
-const sizePerColor = 3;
+const sizePerState = 1;
 const sizePerTranslation = 3;
 
 export enum TransformType {
@@ -17,7 +17,7 @@ export enum TransformType {
 export class TransformableValues{
     private _nbElement : number
 
-    public colors : Float32Array;
+    public states : Float32Array;
     public translations : Float32Array;
 
     
@@ -31,8 +31,8 @@ export class TransformableValues{
 
     public reshape(nbElements : number){
         this._nbElement = nbElements
-        this.colors = new Float32Array(nbElements * sizePerColor).fill(0.);
-        this.translations = new Float32Array(nbElements * sizePerTranslation).fill(0);
+        this.states = new Float32Array(nbElements * sizePerState).fill(0.);
+        this.translations = new Float32Array(nbElements * sizePerTranslation).fill(0.);
     }
 }
 
@@ -117,7 +117,7 @@ class ColorTransformer extends Transformer{
             let color = new Vec3().copy(this._colorMin).scale(1 - alpha);
             color.add(new Vec3().copy(this._colorMax).scale(alpha));
             for (let i = 0; i < 3; ++i)
-                values.colors[idx * 3 + i] = color[i];
+                // values.colors[idx * 3 + i] = color[i];
         });
     }
 
