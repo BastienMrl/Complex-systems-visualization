@@ -189,7 +189,6 @@ class InstanceAttribBuffer {
         this._bufferT1 = this._context.createBuffer();
     }
     initialize(data) {
-        console.log("initialization data = ", data);
         this._context.bindBuffer(gl.ARRAY_BUFFER, this._bufferT0);
         this._context.bufferData(gl.ARRAY_BUFFER, data, gl.DYNAMIC_DRAW);
         this._context.bindBuffer(gl.ARRAY_BUFFER, this._bufferT1);

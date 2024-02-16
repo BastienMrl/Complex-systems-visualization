@@ -20,7 +20,7 @@ export enum AnimableValue {
 export class Viewer {
     public context : WebGL2RenderingContext;
     public canvas : HTMLCanvasElement;
-    public shaderProgram : WebGLProgram;
+    public shaderProgram : shaderUtils.ProgramWithTransformer;
     public resizeObserver : ResizeObserver;
 
 
@@ -63,12 +63,14 @@ export class Viewer {
         
         this._statesBuffer = new StatesBuffer(new StatesTransformer());
         this._drawable = false;
+
+        this.shaderProgram = new shaderUtils.ProgramWithTransformer(context);
     }
     
     // initialization methods
     public async initialization(srcVs : string, srcFs : string, nbInstances : number){
-        this.shaderProgram = await shaderUtils.initShaders(this.context, srcVs, srcFs);
-        this.context.useProgram(this.shaderProgram);
+        await this.shaderProgram.generateProgram(srcVs, srcFs);
+        this.context.useProgram(this.shaderProgram.program);
         
         this.context.viewport(0, 0, this.canvas.width, this.canvas.height);
         this.context.clearColor(0.2, 0.2, 0.2, 1.0);
@@ -147,13 +149,13 @@ export class Viewer {
 
 
     private draw(){
-        this.context.useProgram(this.shaderProgram);
+        this.context.useProgram(this.shaderProgram.program);
 
-        let projLoc = this.context.getUniformLocation(this.shaderProgram, "u_proj");
-        let viewLoc = this.context.getUniformLocation(this.shaderProgram, "u_view")
-        let lightLoc = this.context.getUniformLocation(this.shaderProgram, "u_light_loc");
-        let timeColorLoc = this.context.getUniformLocation(this.shaderProgram, "u_time_color");
-        let timeTranslationLoc = this.context.getUniformLocation(this.shaderProgram, "u_time_translation");
+        let projLoc = this.context.getUniformLocation(this.shaderProgram.program, "u_proj");
+        let viewLoc = this.context.getUniformLocation(this.shaderProgram.program, "u_view")
+        let lightLoc = this.context.getUniformLocation(this.shaderProgram.program, "u_light_loc");
+        let timeColorLoc = this.context.getUniformLocation(this.shaderProgram.program, "u_time_color");
+        let timeTranslationLoc = this.context.getUniformLocation(this.shaderProgram.program, "u_time_translation");
 
         let lightPos = Vec3.fromValues(0.0, 100.0, 10.0);
         Vec3.transformMat4(lightPos, lightPos, this.camera.viewMatrix);

@@ -1,5 +1,5 @@
 import { SocketHandler } from "./socketHandler.js";
-import { idColor, transformer } from "./index.js";
+import { idColor, transformer, viewer } from "./index.js";
 export class UserInterface {
     // Singleton
     static _instance;
@@ -81,6 +81,10 @@ export class UserInterface {
         let colorDeadInput = document.getElementById("deadColor");
         let gridSizeInput = document.getElementById("gridSize");
         let toolButtons = document.getElementsByClassName("tool");
+        let color = this.hexToRgbA(colorAliveInput.value);
+        transformer.setParams(idColor, null, color);
+        color = this.hexToRgbA(colorDeadInput.value);
+        transformer.setParams(idColor, color, null);
         playButton.addEventListener('click', () => {
             if (!this._socketHandler.isRunning) {
                 this._socketHandler.start(this._nbInstances);
@@ -106,10 +110,12 @@ export class UserInterface {
         colorAliveInput.addEventListener("input", () => {
             let color = this.hexToRgbA(colorAliveInput.value);
             transformer.setParams(idColor, null, color);
+            viewer.shaderProgram.updateProgramTransformers(transformer.generateTransformersBlock());
         });
         colorDeadInput.addEventListener("input", () => {
             let color = this.hexToRgbA(colorDeadInput.value);
             transformer.setParams(idColor, color, null);
+            viewer.shaderProgram.updateProgramTransformers(transformer.generateTransformersBlock());
         });
         gridSizeInput.addEventListener("input", async () => {
             this._nbInstances = gridSizeInput.value ** 2;

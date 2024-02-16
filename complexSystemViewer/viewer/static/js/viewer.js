@@ -41,11 +41,12 @@ export class Viewer {
         this._selectionHandler = SelectionHandler.getInstance(context);
         this._statesBuffer = new StatesBuffer(new StatesTransformer());
         this._drawable = false;
+        this.shaderProgram = new shaderUtils.ProgramWithTransformer(context);
     }
     // initialization methods
     async initialization(srcVs, srcFs, nbInstances) {
-        this.shaderProgram = await shaderUtils.initShaders(this.context, srcVs, srcFs);
-        this.context.useProgram(this.shaderProgram);
+        await this.shaderProgram.generateProgram(srcVs, srcFs);
+        this.context.useProgram(this.shaderProgram.program);
         this.context.viewport(0, 0, this.canvas.width, this.canvas.height);
         this.context.clearColor(0.2, 0.2, 0.2, 1.0);
         this.context.enable(gl.CULL_FACE);
@@ -105,12 +106,12 @@ export class Viewer {
         this.context.clear(this.context.COLOR_BUFFER_BIT | this.context.DEPTH_BUFFER_BIT);
     }
     draw() {
-        this.context.useProgram(this.shaderProgram);
-        let projLoc = this.context.getUniformLocation(this.shaderProgram, "u_proj");
-        let viewLoc = this.context.getUniformLocation(this.shaderProgram, "u_view");
-        let lightLoc = this.context.getUniformLocation(this.shaderProgram, "u_light_loc");
-        let timeColorLoc = this.context.getUniformLocation(this.shaderProgram, "u_time_color");
-        let timeTranslationLoc = this.context.getUniformLocation(this.shaderProgram, "u_time_translation");
+        this.context.useProgram(this.shaderProgram.program);
+        let projLoc = this.context.getUniformLocation(this.shaderProgram.program, "u_proj");
+        let viewLoc = this.context.getUniformLocation(this.shaderProgram.program, "u_view");
+        let lightLoc = this.context.getUniformLocation(this.shaderProgram.program, "u_light_loc");
+        let timeColorLoc = this.context.getUniformLocation(this.shaderProgram.program, "u_time_color");
+        let timeTranslationLoc = this.context.getUniformLocation(this.shaderProgram.program, "u_time_translation");
         let lightPos = Vec3.fromValues(0.0, 100.0, 10.0);
         Vec3.transformMat4(lightPos, lightPos, this.camera.viewMatrix);
         this.context.uniformMatrix4fv(projLoc, false, this.camera.projectionMatrix);

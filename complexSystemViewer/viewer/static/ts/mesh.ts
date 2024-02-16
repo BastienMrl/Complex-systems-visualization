@@ -262,7 +262,6 @@ class InstanceAttribBuffer{
     }
 
     public initialize(data : Float32Array){
-        console.log("initialization data = ", data)
         this._context.bindBuffer(gl.ARRAY_BUFFER, this._bufferT0);
         this._context.bufferData(gl.ARRAY_BUFFER, data, gl.DYNAMIC_DRAW);
         

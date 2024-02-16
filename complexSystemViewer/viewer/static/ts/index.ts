@@ -1,10 +1,11 @@
 import { Viewer, AnimableValue } from "./viewer.js";
 import { SocketHandler } from "./socketHandler.js";
 import { UserInterface } from "./userInterface.js"
-import { StatesTransformer, TransformType } from "./statesTransformer.js";
+import { InputType, StatesTransformer, TransformType } from "./statesTransformer.js";
 
 export var idColor;
-export var transformer;
+export var transformer : StatesTransformer;
+export var viewer : Viewer;
 
 async function main(){
     let canvas : HTMLCanvasElement | null = document.getElementById("c") as HTMLCanvasElement | null;
@@ -22,22 +23,24 @@ async function main(){
     + '/ws/viewer/';
     
     
-    let viewer = new Viewer("c");
+    viewer = new Viewer("c");
     //.... Transformer : backend data -> visualization ....
     
     transformer = new StatesTransformer();
     
     // returned id is used to update Transformer params
     // second parameter defines states used from backend data
-    let idX = transformer.addTransformer(TransformType.POSITION_X, 0, 0.95);
-    let idY = transformer.addTransformer(TransformType.POSITION_Z, 1, 0.95);
+    let idX = transformer.addTransformer(TransformType.POSITION_X, InputType.POSITION_X, 0.95);
+    let idY = transformer.addTransformer(TransformType.POSITION_Z, InputType.POSITION_Y, 0.95);
     // third parameter defines here the elevation
-    let idZ = transformer.addTransformer(TransformType.POSITION_Y, 2, 1.5);
+    let idZ = transformer.addTransformer(TransformType.POSITION_Y, InputType.STATE_0, 1.5);
     const c1 = [0.0392156862745098, 0.23137254901960785, 0.28627450980392155];
     const c2 = [0.8705882352941177, 0.8901960784313725, 0.9294117647058824];
-    idColor = transformer.addTransformer(TransformType.COLOR, 2, c2, c1);
+    idColor = transformer.addTransformer(TransformType.COLOR, InputType.STATE_0, c2, c1);
     
     viewer.setCurrentTransformer(transformer);
+
+
     
     // example, increase elevation:
     
@@ -85,6 +88,7 @@ async function main(){
 
 
     await viewer.initialization("/static/shaders/simple.vert", "/static/shaders/simple.frag", userInterface.nbInstances);
+    await viewer.shaderProgram.updateProgramTransformers(transformer.generateTransformersBlock());
     viewer.loopAnimation();
 }
 
