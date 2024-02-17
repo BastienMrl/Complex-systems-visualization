@@ -4,9 +4,9 @@ import { Camera } from "./camera.js";
 import { MultipleMeshInstances } from "./mesh.js";
 import { Stats } from "./stats.js";
 import { AnimationTimer } from "./animationTimer.js";
-import { StatesBuffer } from "./statesBuffer.js";
-import { StatesTransformer } from "./statesTransformer.js";
+import { TransformableValues } from "./statesTransformer.js";
 import { SelectionHandler } from "./selectionHandler.js";
+import { WorkerMessage, getMessageBody, getMessageHeader, sendMessageToWorker } from "./workerInterface.js";
 // provides access to gl constants
 const gl = WebGL2RenderingContext;
 export var AnimableValue;
@@ -26,7 +26,9 @@ export class Viewer {
     _stats;
     _animationTimer;
     _animationIds;
-    _statesBuffer;
+    _transmissionWorker;
+    _transmissionIsReady;
+    _currentValue;
     _drawable;
     constructor(canvasId) {
         this.canvas = document.getElementById(canvasId);
@@ -39,7 +41,10 @@ export class Viewer {
         this._animationTimer = new AnimationTimer(0.15, false);
         this._animationIds = [null, null];
         this._selectionHandler = SelectionHandler.getInstance(context);
-        this._statesBuffer = new StatesBuffer(new StatesTransformer());
+        this._currentValue = null;
+        this._transmissionIsReady = false;
+        this._transmissionWorker = new Worker("/static/js/workers/transmissionWorker.js", { type: "module" });
+        this._transmissionWorker.onmessage = this.onTransmissionWorkerMessage.bind(this);
         this._drawable = false;
         this.shaderProgram = new shaderUtils.ProgramWithTransformer(context);
     }
@@ -65,12 +70,13 @@ export class Viewer {
     }
     async initCurrentVisu(nbElements) {
         this._drawable = false;
-        this._statesBuffer.initializeElements(nbElements);
-        while (!this._statesBuffer.isReady) {
+        this._currentValue = null;
+        sendMessageToWorker(this._transmissionWorker, WorkerMessage.RESET, nbElements);
+        while (this._currentValue == null) {
             await new Promise(resolve => setTimeout(resolve, 1));
         }
         ;
-        let values = this._statesBuffer.values;
+        let values = this._currentValue;
         await this.initMesh(values);
         this._drawable = true;
     }
@@ -99,8 +105,13 @@ export class Viewer {
         this._selectionHandler.resizeBuffers();
     }
     updateScene() {
-        let values = this._statesBuffer.values;
-        this._multipleInstances.updateStates(values);
+        if (this._currentValue == null)
+            return;
+        this._stats.startUpdateTimer();
+        this._multipleInstances.updateStates(this._currentValue);
+        this.context.finish();
+        this._stats.stopUpdateTimer();
+        sendMessageToWorker(this._transmissionWorker, WorkerMessage.GET_VALUES);
     }
     clear() {
         this.context.clear(this.context.COLOR_BUFFER_BIT | this.context.DEPTH_BUFFER_BIT);
@@ -152,8 +163,16 @@ export class Viewer {
             return this._animationTimer.getAnimationTime();
         return this._animationTimer.getAnimationTime(id);
     }
-    setCurrentTransformer(transformer) {
-        this._statesBuffer.transformer = transformer;
+    onTransmissionWorkerMessage(e) {
+        switch (getMessageHeader(e.data)) {
+            case WorkerMessage.READY:
+                this._transmissionIsReady = true;
+                break;
+            case WorkerMessage.VALUES:
+                let data = getMessageBody(e.data);
+                this._currentValue = TransformableValues.fromValues(data[0], data[1]);
+                break;
+        }
     }
     bindAnimationCurve(type, fct) {
         let id = this._animationTimer.addAnimationCurve(fct);
@@ -166,8 +185,5 @@ export class Viewer {
     stopVisualizationAnimation() {
         this._animationTimer.loop = false;
         this._animationTimer.stop();
-    }
-    get statesBuffer() {
-        return this._statesBuffer;
     }
 }

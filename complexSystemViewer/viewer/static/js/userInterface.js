@@ -86,21 +86,16 @@ export class UserInterface {
         color = this.hexToRgbA(colorDeadInput.value);
         transformer.setParams(idColor, color, null);
         playButton.addEventListener('click', () => {
-            if (!this._socketHandler.isRunning) {
-                this._socketHandler.start(this._nbInstances);
-                console.log("START");
-            }
+            viewer.startVisualizationAnimation();
+            console.log("START");
         });
         pauseButton.addEventListener('click', () => {
-            if (this._socketHandler.isRunning) {
-                this._socketHandler.stop();
-                console.log("STOP");
-            }
+            viewer.stopVisualizationAnimation();
+            console.log("STOP");
         });
         restartButton.addEventListener('click', () => {
-            if (this._socketHandler.isRunning)
-                this._socketHandler.stop();
-            this._viewer.initCurrentVisu(this._nbInstances);
+            viewer.stopVisualizationAnimation();
+            viewer.initCurrentVisu(this._nbInstances);
             console.log("RESTART");
         });
         foldButton.addEventListener("click", () => {

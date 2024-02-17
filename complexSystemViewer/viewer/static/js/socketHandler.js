@@ -32,6 +32,9 @@ export class SocketHandler {
     get isRunning() {
         return this._isRunning;
     }
+    get isConnected() {
+        return this._isConnected;
+    }
     // setters
     set onDataReceived(fct) {
         this._onDataReceived = fct;

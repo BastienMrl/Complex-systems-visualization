@@ -17,10 +17,6 @@ async function main(){
     
 
     
-    const url = 
-    'ws://'
-    + window.location.host
-    + '/ws/viewer/';
     
     
     viewer = new Viewer("c");
@@ -38,8 +34,6 @@ async function main(){
     const c2 = [0.8705882352941177, 0.8901960784313725, 0.9294117647058824];
     idColor = transformer.addTransformer(TransformType.COLOR, InputType.STATE_0, c2, c1);
     
-    viewer.setCurrentTransformer(transformer);
-
 
     
     // example, increase elevation:
@@ -62,25 +56,6 @@ async function main(){
     
     //.........................
 
-
-    // socket init before viewer init
-    let socketHandler = SocketHandler.getInstance();
-
-    // for instance, data is an array of bool
-    socketHandler.onDataReceived = function(data) {
-        viewer.statesBuffer.onStateReceived(data);
-    }
-
-    socketHandler.onStart = function(){
-        viewer.startVisualizationAnimation();
-    }
-
-    socketHandler.onStop = function(){
-        viewer.stopVisualizationAnimation();
-    }
-    
-
-    await socketHandler.connectSocket(url);
 
 
     let userInterface = UserInterface.getInstance();

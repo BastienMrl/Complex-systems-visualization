@@ -7,6 +7,7 @@ import { AnimationTimer } from "./animationTimer.js";
 import { StatesBuffer } from "./statesBuffer.js";
 import { StatesTransformer, TransformType, TransformableValues } from "./statesTransformer.js";
 import { SelectionHandler } from "./selectionHandler.js";
+import { WorkerMessage, getMessageBody, getMessageHeader, sendMessageToWorker } from "./workerInterface.js";
 
 // provides access to gl constants
 const gl = WebGL2RenderingContext
@@ -39,7 +40,9 @@ export class Viewer {
     private _animationIds : [number, number];
 
 
-    private _statesBuffer : StatesBuffer;
+    private _transmissionWorker : Worker;
+    private _transmissionIsReady : boolean;
+    private _currentValue : TransformableValues | null;
 
     private _drawable : boolean;
     
@@ -60,8 +63,11 @@ export class Viewer {
 
         this._selectionHandler = SelectionHandler.getInstance(context);
         
-        
-        this._statesBuffer = new StatesBuffer(new StatesTransformer());
+        this._currentValue = null;
+        this._transmissionIsReady = false;
+        this._transmissionWorker = new Worker("/static/js/workers/transmissionWorker.js", {type : "module"});
+        this._transmissionWorker.onmessage = this.onTransmissionWorkerMessage.bind(this);
+
         this._drawable = false;
 
         this.shaderProgram = new shaderUtils.ProgramWithTransformer(context);
@@ -95,13 +101,14 @@ export class Viewer {
 
     public async initCurrentVisu(nbElements : number){
         this._drawable = false;
-        this._statesBuffer.initializeElements(nbElements);
+        this._currentValue = null;
+        sendMessageToWorker(this._transmissionWorker, WorkerMessage.RESET, nbElements);
         
-        while (!this._statesBuffer.isReady){
+        while (this._currentValue == null){
             await new Promise(resolve => setTimeout(resolve, 1));
         };
 
-        let values = this._statesBuffer.values;
+        let values = this._currentValue;
         await this.initMesh(values);
         this._drawable = true;
     }
@@ -139,8 +146,13 @@ export class Viewer {
     }
     
     private updateScene(){
-        let values = this._statesBuffer.values;
-        this._multipleInstances.updateStates(values)
+        if (this._currentValue == null)
+            return;
+        this._stats.startUpdateTimer();
+        this._multipleInstances.updateStates(this._currentValue)
+        this.context.finish();
+        this._stats.stopUpdateTimer();
+        sendMessageToWorker(this._transmissionWorker, WorkerMessage.GET_VALUES);
     }
 
     private clear(){
@@ -189,12 +201,12 @@ export class Viewer {
         
         this._stats.startRenderingTimer(delta);
         this.clear();
-
-
+        
+        
         // let prevSelection = this._selectionHandler.selectedId;
         // this._selectionHandler.updateCurrentSelection(this.camera, this._multipleInstances, this.getAnimationTime(AnimableValue.TRANSLATION));
         // let currentSelection = this._selectionHandler.selectedId;
-
+        
         // if (this._selectionHandler.hasCurrentSelection() && currentSelection != prevSelection){
         //     this._multipleInstances.setMouseOver(currentSelection);
         // }
@@ -202,7 +214,6 @@ export class Viewer {
             this.draw();
         this.context.finish();
         this._stats.stopRenderingTimer();
-
     }
 
     private getAnimationTime(type : AnimableValue){
@@ -212,9 +223,16 @@ export class Viewer {
         return this._animationTimer.getAnimationTime(id);
     }
 
-
-    public setCurrentTransformer(transformer : StatesTransformer){
-        this._statesBuffer.transformer = transformer;
+    private onTransmissionWorkerMessage(e : MessageEvent<any>){
+        switch(getMessageHeader(e.data)){
+            case WorkerMessage.READY:
+                this._transmissionIsReady = true;
+                break;
+            case WorkerMessage.VALUES:
+                let data = getMessageBody(e.data)
+                this._currentValue = TransformableValues.fromValues(data[0], data[1]);
+                break;
+        }
     }
 
     public bindAnimationCurve(type : AnimableValue, fct : (time : number) => number){
@@ -230,11 +248,6 @@ export class Viewer {
     public stopVisualizationAnimation() {
         this._animationTimer.loop = false
         this._animationTimer.stop();
-    }
-
-
-    public get statesBuffer() : StatesBuffer {
-        return this._statesBuffer;
     }
 
 }

@@ -1,5 +1,4 @@
 import { Viewer, AnimableValue } from "./viewer.js";
-import { SocketHandler } from "./socketHandler.js";
 import { UserInterface } from "./userInterface.js";
 import { InputType, StatesTransformer, TransformType } from "./statesTransformer.js";
 export var idColor;
@@ -12,9 +11,6 @@ async function main() {
     }
     canvas.height = canvas.clientHeight;
     canvas.width = canvas.clientWidth;
-    const url = 'ws://'
-        + window.location.host
-        + '/ws/viewer/';
     viewer = new Viewer("c");
     //.... Transformer : backend data -> visualization ....
     transformer = new StatesTransformer();
@@ -27,7 +23,6 @@ async function main() {
     const c1 = [0.0392156862745098, 0.23137254901960785, 0.28627450980392155];
     const c2 = [0.8705882352941177, 0.8901960784313725, 0.9294117647058824];
     idColor = transformer.addTransformer(TransformType.COLOR, InputType.STATE_0, c2, c1);
-    viewer.setCurrentTransformer(transformer);
     // example, increase elevation:
     // transformer.setParams(idZ, 3.);
     //......................................................
@@ -39,19 +34,6 @@ async function main() {
     viewer.bindAnimationCurve(AnimableValue.COLOR, easeOut);
     viewer.bindAnimationCurve(AnimableValue.TRANSLATION, easeOut);
     //.........................
-    // socket init before viewer init
-    let socketHandler = SocketHandler.getInstance();
-    // for instance, data is an array of bool
-    socketHandler.onDataReceived = function (data) {
-        viewer.statesBuffer.onStateReceived(data);
-    };
-    socketHandler.onStart = function () {
-        viewer.startVisualizationAnimation();
-    };
-    socketHandler.onStop = function () {
-        viewer.stopVisualizationAnimation();
-    };
-    await socketHandler.connectSocket(url);
     let userInterface = UserInterface.getInstance();
     userInterface.initHandlers(viewer);
     await viewer.initialization("/static/shaders/simple.vert", "/static/shaders/simple.frag", userInterface.nbInstances);

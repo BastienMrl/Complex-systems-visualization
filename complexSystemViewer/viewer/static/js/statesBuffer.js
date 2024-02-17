@@ -5,12 +5,13 @@ export class StatesBuffer {
     _transformedValues;
     _socketHandler;
     _isInitialized;
-    transformer;
-    constructor(transformer) {
+    constructor() {
         this._states = [];
         this._transformedValues = new TransformableValues();
-        this.transformer = transformer;
         this._socketHandler = SocketHandler.getInstance();
+        this._socketHandler.onDataReceived = function (data) {
+            this.onStateReceived(data);
+        }.bind(this);
         this._isInitialized = false;
     }
     ;
@@ -19,15 +20,17 @@ export class StatesBuffer {
     }
     get values() {
         let values = this._transformedValues;
+        this._transformedValues = TransformableValues.fromInstance(values);
         this.requestState();
         return values;
     }
     initializeElements(nbElements) {
+        this._socketHandler.stop();
         this._isInitialized = false;
         this._transformedValues.reshape(nbElements);
         this._socketHandler.requestEmptyInstance(nbElements);
+        this._socketHandler.start(nbElements);
     }
-    // TODO : use this request instead of requestRandomState, when transmission is operational
     requestState() {
         this._socketHandler.requestData();
     }
@@ -37,9 +40,7 @@ export class StatesBuffer {
         this._isInitialized = true;
     }
     transformState() {
-        // this.transformer.applyTransformers(this._states.shift(), this._transformedValues);
         this._transformedValues.states = new Float32Array(this._states[2]);
-        // this._transformedValues.translations = new Float32Array(result);
         this._states[0].forEach((e, i) => {
             this._transformedValues.translations[i * 3] = e;
         });
