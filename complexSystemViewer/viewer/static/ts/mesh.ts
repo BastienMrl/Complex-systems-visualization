@@ -1,6 +1,6 @@
 import { Vec3, Mat4 } from "./ext/glMatrix/index.js";
 import OBJFile from "./ext/objFileParser/OBJFile.js";
-import { TransformableValues } from "./statesTransformer.js";
+import { TransformableValues } from "./transformableValues.js";
 
 // provides access to gl constants
 const gl = WebGL2RenderingContext;

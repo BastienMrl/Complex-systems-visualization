@@ -1,6 +1,4 @@
 import { ShaderVariable, ShaderFunction, ShaderMeshInputs, ShaderUniforms } from "./shaderUtils.js";
-const sizePerState = 1;
-const sizePerTranslation = 3;
 export var TransformType;
 (function (TransformType) {
     TransformType[TransformType["COLOR"] = 0] = "COLOR";
@@ -27,37 +25,6 @@ export var InputType;
     InputType[InputType["STATE_8"] = 11] = "STATE_8";
     InputType[InputType["STATE_9"] = 12] = "STATE_9";
 })(InputType || (InputType = {}));
-export class TransformableValues {
-    _nbElement;
-    states;
-    translations;
-    constructor(nbElements = 1) {
-        this.reshape(nbElements);
-    }
-    static fromValues(states, translations) {
-        let instance = new TransformableValues(states.length);
-        instance.states = states;
-        instance.translations = translations;
-        return instance;
-    }
-    static fromInstance(values) {
-        let instance = new TransformableValues(values.nbElements);
-        instance.states = new Float32Array(values.states);
-        instance.translations = new Float32Array(values.translations);
-        return instance;
-    }
-    get nbElements() {
-        return this._nbElement;
-    }
-    reshape(nbElements) {
-        this._nbElement = nbElements;
-        this.states = new Float32Array(nbElements * sizePerState).fill(0.);
-        this.translations = new Float32Array(nbElements * sizePerTranslation).fill(0.);
-    }
-    reinitTranslation() {
-        this.translations = new Float32Array(this.nbElements * sizePerTranslation).fill(0.);
-    }
-}
 export class StatesTransformer {
     _transformers;
     _dataIndices;
@@ -223,12 +190,12 @@ export class StatesTransformer {
         }
         return s;
     }
-    addTransformer(type, dataIndex, ...args) {
+    addTransformer(type, dataIndex, params) {
         let inputVariable = this.getInputVariableName(type, dataIndex);
         let id = this._idCpt++;
         switch (type) {
             case TransformType.COLOR:
-                this._transformers.push(new ColorTransformer(id, inputVariable, args[0], args[1]));
+                this._transformers.push(new ColorTransformer(id, inputVariable, params));
                 this._dataIndices.push(dataIndex);
                 break;
             case TransformType.COLOR_R:
@@ -238,15 +205,15 @@ export class StatesTransformer {
             case TransformType.COLOR_B:
                 break;
             case TransformType.POSITION_X:
-                this._transformers.push(new PositionTransformer(id, inputVariable, 0, args[0] == undefined ? 1. : args[0]));
+                this._transformers.push(new PositionTransformer(id, inputVariable, 0, params == undefined ? 1. : params[0]));
                 this._dataIndices.push(dataIndex);
                 break;
             case TransformType.POSITION_Y:
-                this._transformers.push(new PositionTransformer(id, inputVariable, 1, args[0] == undefined ? 1. : args[0]));
+                this._transformers.push(new PositionTransformer(id, inputVariable, 1, params == undefined ? 1. : params[0]));
                 this._dataIndices.push(dataIndex);
                 break;
             case TransformType.POSITION_Z:
-                this._transformers.push(new PositionTransformer(id, inputVariable, 2, args[0] == undefined ? 1. : args[0]));
+                this._transformers.push(new PositionTransformer(id, inputVariable, 2, params == undefined ? 1. : params[0]));
                 this._dataIndices.push(dataIndex);
                 break;
         }
@@ -267,10 +234,10 @@ export class StatesTransformer {
         });
         return `${inputDeclarations}\n${constants}\n${fctCalls}`;
     }
-    setParams(id, ...args) {
+    setParams(id, params) {
         if (id < 0 || id >= this._transformers.length)
             return;
-        this._transformers[id].setParameters(args);
+        this._transformers[id].setParameters(params);
     }
 }
 class Transformer {
@@ -348,10 +315,28 @@ class ColorTransformer extends Transformer {
     _colorMin;
     _colorMax;
     _nbParams = 2;
-    constructor(id, inputVariable, colorMin, colorMax) {
+    constructor(id, inputVariable, params) {
         super(id, inputVariable);
-        this._colorMin = colorMin;
-        this._colorMax = colorMax;
+        if (typeof params[0] == "string")
+            this._colorMin = this.hexToRgbA(params[0]);
+        else
+            this._colorMin = [0., 0., 0.];
+        if (typeof params[1] == "string")
+            this._colorMax = this.hexToRgbA(params[1]);
+        else
+            this._colorMax = [1., 1., 1.];
+    }
+    hexToRgbA(hex) {
+        let c;
+        if (/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)) {
+            c = hex.substring(1).split('');
+            if (c.length == 3) {
+                c = [c[0], c[0], c[1], c[1], c[2], c[2]];
+            }
+            c = '0x' + c.join('');
+            return [((c >> 16) & 255) / 255, ((c >> 8) & 255) / 255, (c & 255) / 255];
+        }
+        throw new Error('Bad Hex');
     }
     getParamsDeclarationBlock() {
         let s = "";
@@ -362,13 +347,11 @@ class ColorTransformer extends Transformer {
     getTransformationsBlock() {
         return this.getTransformerFunctionCall(ShaderFunction.INTERPOLATION, [0, 1]);
     }
-    setParameters(...args) {
-        if (args[0][0] !== null) {
-            this._colorMin = args[0][0];
-        }
-        if (args[0][1] !== null) {
-            this._colorMax = args[0][1];
-        }
+    setParameters(params) {
+        if (typeof params[0] == "string")
+            this._colorMin = this.hexToRgbA(params[0]);
+        if (typeof params[1] == "string")
+            this._colorMax = this.hexToRgbA(params[1]);
     }
 }
 class PositionTransformer extends Transformer {

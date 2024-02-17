@@ -4,7 +4,7 @@ import { Camera } from "./camera.js";
 import { MultipleMeshInstances } from "./mesh.js";
 import { Stats } from "./stats.js";
 import { AnimationTimer } from "./animationTimer.js";
-import { TransformableValues } from "./statesTransformer.js";
+import { TransformableValues } from "./transformableValues.js";
 import { SelectionHandler } from "./selectionHandler.js";
 import { WorkerMessage, getMessageBody, getMessageHeader, sendMessageToWorker } from "./workerInterface.js";
 // provides access to gl constants
@@ -27,7 +27,6 @@ export class Viewer {
     _animationTimer;
     _animationIds;
     _transmissionWorker;
-    _transmissionIsReady;
     _currentValue;
     _drawable;
     constructor(canvasId) {
@@ -42,7 +41,6 @@ export class Viewer {
         this._animationIds = [null, null];
         this._selectionHandler = SelectionHandler.getInstance(context);
         this._currentValue = null;
-        this._transmissionIsReady = false;
         this._transmissionWorker = new Worker("/static/js/workers/transmissionWorker.js", { type: "module" });
         this._transmissionWorker.onmessage = this.onTransmissionWorkerMessage.bind(this);
         this._drawable = false;
@@ -166,7 +164,6 @@ export class Viewer {
     onTransmissionWorkerMessage(e) {
         switch (getMessageHeader(e.data)) {
             case WorkerMessage.READY:
-                this._transmissionIsReady = true;
                 break;
             case WorkerMessage.VALUES:
                 let data = getMessageBody(e.data);

@@ -34,6 +34,7 @@ async function initShaders(gl, srcVertex, srcFragment) {
 export class ProgramWithTransformer {
     _program;
     _templateVertexShader;
+    _currentTransformers;
     _fragmentShader;
     _vertexShader;
     _context;
@@ -46,14 +47,19 @@ export class ProgramWithTransformer {
     }
     async generateProgram(srcVertex, srcFragment) {
         this._fragmentShader = await fetch(srcFragment, { cache: "no-cache" }).then(response => response.text());
-        this._vertexShader = await fetch(srcVertex, { cache: "no-cache" }).then(response => response.text());
-        this._templateVertexShader = this._vertexShader;
-        this._program = await initShaders(this._context, srcVertex, srcFragment);
-    }
-    async updateProgramTransformers(transformers) {
-        this._vertexShader = this._templateVertexShader.replace(ProgramWithTransformer._transformersKey, transformers);
+        this._templateVertexShader = await fetch(srcVertex, { cache: "no-cache" }).then(response => response.text());
+        if (this._currentTransformers != undefined)
+            this._vertexShader = this._templateVertexShader.replace(ProgramWithTransformer._transformersKey, this._currentTransformers);
+        else
+            this._vertexShader = this._templateVertexShader;
         this.reloadProgram();
-        return this._program;
+    }
+    updateProgramTransformers(transformers) {
+        this._currentTransformers = transformers;
+        if (this._templateVertexShader == undefined)
+            return;
+        this._vertexShader = this._templateVertexShader.replace(ProgramWithTransformer._transformersKey, this._currentTransformers);
+        this.reloadProgram();
     }
     reloadProgram() {
         let vertexShader = getShaderFromString(this._vertexShader, this._context.VERTEX_SHADER, this._context);

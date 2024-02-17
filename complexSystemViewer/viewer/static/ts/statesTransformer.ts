@@ -1,8 +1,4 @@
-import { Vec3 } from "./ext/glMatrix/index.js";
 import { ShaderVariable, ShaderFunction, ShaderMeshInputs, ShaderUniforms } from "./shaderUtils.js";
-
-const sizePerState = 1;
-const sizePerTranslation = 3;
 
 export enum TransformType {
     COLOR,
@@ -31,45 +27,6 @@ export enum InputType {
     STATE_9
 }
 
-export class TransformableValues{
-    private _nbElement : number
-
-    public states : Float32Array;
-    public translations : Float32Array;
-
-    
-    public constructor(nbElements : number = 1){
-        this.reshape(nbElements);
-    }
-
-    public static fromValues(states : Float32Array, translations : Float32Array) : TransformableValues{
-        let instance = new TransformableValues(states.length);
-        instance.states = states;
-        instance.translations = translations;
-        return instance;
-    }
-
-    public static fromInstance(values : TransformableValues) : TransformableValues{
-        let instance = new TransformableValues(values.nbElements);
-        instance.states = new Float32Array(values.states);
-        instance.translations = new Float32Array(values.translations);
-        return instance;
-    }
-    
-    public get nbElements() : number{
-        return this._nbElement;
-    }
-
-    public reshape(nbElements : number){
-        this._nbElement = nbElements
-        this.states = new Float32Array(nbElements * sizePerState).fill(0.);
-        this.translations = new Float32Array(nbElements * sizePerTranslation).fill(0.);
-    }
-
-    public reinitTranslation(){
-        this.translations = new Float32Array(this.nbElements * sizePerTranslation).fill(0.);
-    }
-}
 
 
 export class StatesTransformer{
@@ -243,12 +200,12 @@ export class StatesTransformer{
         return s;
     }
 
-    public addTransformer(type : TransformType, dataIndex : InputType, ...args : any[]) : number{
+    public addTransformer(type : TransformType, dataIndex : InputType, params? : any[]) : number{
         let inputVariable = this.getInputVariableName(type, dataIndex);
         let id = this._idCpt++;
         switch(type){
             case TransformType.COLOR:
-                this._transformers.push(new ColorTransformer(id, inputVariable, args[0], args[1]));
+                this._transformers.push(new ColorTransformer(id, inputVariable, params));
                 this._dataIndices.push(dataIndex);
                 break;
             case TransformType.COLOR_R:
@@ -259,15 +216,15 @@ export class StatesTransformer{
                 break;
             
             case TransformType.POSITION_X:
-                this._transformers.push(new PositionTransformer(id, inputVariable, 0, args[0] == undefined ? 1. : args[0]));
+                this._transformers.push(new PositionTransformer(id, inputVariable, 0, params == undefined ? 1. : params[0]));
                 this._dataIndices.push(dataIndex);
                 break;
             case TransformType.POSITION_Y:
-                this._transformers.push(new PositionTransformer(id, inputVariable, 1, args[0] == undefined ? 1. : args[0]));
+                this._transformers.push(new PositionTransformer(id, inputVariable, 1, params == undefined ? 1. : params[0]));
                 this._dataIndices.push(dataIndex);
                 break;
             case TransformType.POSITION_Z:
-                this._transformers.push(new PositionTransformer(id, inputVariable, 2, args[0] == undefined ? 1. : args[0]));
+                this._transformers.push(new PositionTransformer(id, inputVariable, 2, params == undefined ? 1. : params[0]));
                 this._dataIndices.push(dataIndex);
                 break;
         }
@@ -292,12 +249,11 @@ export class StatesTransformer{
         return `${inputDeclarations}\n${constants}\n${fctCalls}`;
     }
 
-    public setParams(id : number, ...args : any[]){
+    public setParams(id : number, params : any[]){
         if (id < 0 || id >= this._transformers.length)
             return;
-        this._transformers[id].setParameters(args);
+        this._transformers[id].setParameters(params);
     }
-
 
 }
 
@@ -404,10 +360,29 @@ class ColorTransformer extends Transformer{
     private _colorMax : [number, number, number];
     private readonly _nbParams : number = 2;
 
-    public constructor(id : number, inputVariable : string, colorMin : [number, number, number], colorMax : [number, number, number]){
+    public constructor(id : number, inputVariable : string, params : any[]){
         super(id, inputVariable);
-        this._colorMin = colorMin;
-        this._colorMax = colorMax;
+        if (typeof params[0] == "string")
+            this._colorMin = this.hexToRgbA(params[0]);
+        else 
+            this._colorMin = [0., 0., 0.];
+        if (typeof params[1] == "string")
+            this._colorMax = this.hexToRgbA(params[1]);
+        else 
+            this._colorMax = [1., 1., 1.];
+    }
+
+    private hexToRgbA(hex : string) : [number, number, number]{ 
+        let c;
+        if(/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)){
+            c= hex.substring(1).split('');
+            if(c.length== 3){
+                c= [c[0], c[0], c[1], c[1], c[2], c[2]];
+            }
+            c= '0x'+c.join('');
+            return [((c>>16)&255) / 255, ((c>>8)&255) / 255, (c&255) / 255];
+        }
+        throw new Error('Bad Hex');
     }
 
     public getParamsDeclarationBlock(): string {        
@@ -422,13 +397,11 @@ class ColorTransformer extends Transformer{
     }
     
 
-    public setParameters(...args: any[]): void {
-        if (args[0][0] !== null){
-            this._colorMin = args[0][0];
-        }
-        if (args[0][1] !== null){
-            this._colorMax = args[0][1];
-        }
+    public setParameters(params : any[]): void {
+        if (typeof params[0] == "string")
+            this._colorMin = this.hexToRgbA(params[0]);
+        if (typeof params[1] == "string")
+            this._colorMax = this.hexToRgbA(params[1]);
     }
 }
 

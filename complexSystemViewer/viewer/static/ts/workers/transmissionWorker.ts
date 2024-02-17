@@ -1,13 +1,10 @@
 import { SocketHandler } from "../socketHandler.js";
 import { StatesBuffer } from "../statesBuffer.js";
-import { TransformableValues } from "../statesTransformer.js";
 import { WorkerMessage, sendMessageToWindow } from "../workerInterface.js";
 
 class TransmissionWorker{
     private _socketHandler : SocketHandler;
     private _statesBuffer : StatesBuffer;
-
-    private _valuesToSend : TransformableValues | null;
 
     constructor(){
         this._socketHandler = SocketHandler.getInstance();

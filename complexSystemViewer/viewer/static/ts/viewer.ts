@@ -4,8 +4,7 @@ import { Camera } from "./camera.js";
 import { MultipleMeshInstances } from "./mesh.js";
 import { Stats } from "./stats.js";
 import { AnimationTimer } from "./animationTimer.js";
-import { StatesBuffer } from "./statesBuffer.js";
-import { StatesTransformer, TransformType, TransformableValues } from "./statesTransformer.js";
+import { TransformableValues } from "./transformableValues.js";
 import { SelectionHandler } from "./selectionHandler.js";
 import { WorkerMessage, getMessageBody, getMessageHeader, sendMessageToWorker } from "./workerInterface.js";
 
@@ -41,7 +40,6 @@ export class Viewer {
 
 
     private _transmissionWorker : Worker;
-    private _transmissionIsReady : boolean;
     private _currentValue : TransformableValues | null;
 
     private _drawable : boolean;
@@ -64,7 +62,6 @@ export class Viewer {
         this._selectionHandler = SelectionHandler.getInstance(context);
         
         this._currentValue = null;
-        this._transmissionIsReady = false;
         this._transmissionWorker = new Worker("/static/js/workers/transmissionWorker.js", {type : "module"});
         this._transmissionWorker.onmessage = this.onTransmissionWorkerMessage.bind(this);
 
@@ -226,7 +223,6 @@ export class Viewer {
     private onTransmissionWorkerMessage(e : MessageEvent<any>){
         switch(getMessageHeader(e.data)){
             case WorkerMessage.READY:
-                this._transmissionIsReady = true;
                 break;
             case WorkerMessage.VALUES:
                 let data = getMessageBody(e.data)

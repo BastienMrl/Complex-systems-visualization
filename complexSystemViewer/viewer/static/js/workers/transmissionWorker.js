@@ -4,7 +4,6 @@ import { WorkerMessage, sendMessageToWindow } from "../workerInterface.js";
 class TransmissionWorker {
     _socketHandler;
     _statesBuffer;
-    _valuesToSend;
     constructor() {
         this._socketHandler = SocketHandler.getInstance();
         this._statesBuffer = new StatesBuffer();

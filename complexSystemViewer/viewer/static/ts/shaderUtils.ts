@@ -44,6 +44,7 @@ async function initShaders(gl : WebGL2RenderingContext, srcVertex : string, srcF
 export class ProgramWithTransformer {
     private _program : WebGLProgram;
     private _templateVertexShader : string;
+    private _currentTransformers : string;
 
     private _fragmentShader : string;
     private _vertexShader : string;
@@ -62,20 +63,26 @@ export class ProgramWithTransformer {
     
     public async generateProgram(srcVertex : string, srcFragment : string){
         this._fragmentShader = await fetch(srcFragment, { cache: "no-cache"}).then(response => response.text());
-        this._vertexShader = await fetch(srcVertex, { cache: "no-cache"}).then(response => response.text());
-        this._templateVertexShader = this._vertexShader;
-        this._program = await initShaders(this._context, srcVertex, srcFragment);
+        this._templateVertexShader = await fetch(srcVertex, { cache: "no-cache"}).then(response => response.text());
+        if (this._currentTransformers != undefined)
+            this._vertexShader = this._templateVertexShader.replace(ProgramWithTransformer._transformersKey, this._currentTransformers);
+        else
+            this._vertexShader = this._templateVertexShader;
+        this.reloadProgram();
     }
 
-    public async updateProgramTransformers(transformers : string) : Promise<WebGLProgram>{
-        this._vertexShader = this._templateVertexShader.replace(ProgramWithTransformer._transformersKey, transformers);
+    public updateProgramTransformers(transformers : string) : void{
+        this._currentTransformers = transformers;
+        if (this._templateVertexShader == undefined)
+            return;
+        this._vertexShader = this._templateVertexShader.replace(ProgramWithTransformer._transformersKey, this._currentTransformers);
         this.reloadProgram();
-        return this._program;
     }
 
     private reloadProgram(){
         let vertexShader = getShaderFromString(this._vertexShader, this._context.VERTEX_SHADER, this._context);
         let fragmentShader = getShaderFromString(this._fragmentShader, this._context.FRAGMENT_SHADER, this._context);
+
 
         let shaderProgram : WebGLProgram | null = this._context.createProgram(); 
         if (shaderProgram == null){

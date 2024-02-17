@@ -1,9 +1,5 @@
-import { Viewer, AnimableValue } from "./viewer.js";
+import { Viewer } from "./viewer.js";
 import { UserInterface } from "./userInterface.js";
-import { InputType, StatesTransformer, TransformType } from "./statesTransformer.js";
-export var idColor;
-export var transformer;
-export var viewer;
 async function main() {
     let canvas = document.getElementById("c");
     if (canvas == null) {
@@ -11,33 +7,10 @@ async function main() {
     }
     canvas.height = canvas.clientHeight;
     canvas.width = canvas.clientWidth;
-    viewer = new Viewer("c");
-    //.... Transformer : backend data -> visualization ....
-    transformer = new StatesTransformer();
-    // returned id is used to update Transformer params
-    // second parameter defines states used from backend data
-    let idX = transformer.addTransformer(TransformType.POSITION_X, InputType.POSITION_X, 0.95);
-    let idY = transformer.addTransformer(TransformType.POSITION_Z, InputType.POSITION_Y, 0.95);
-    // third parameter defines here the elevation
-    let idZ = transformer.addTransformer(TransformType.POSITION_Y, InputType.STATE_0, 1.5);
-    const c1 = [0.0392156862745098, 0.23137254901960785, 0.28627450980392155];
-    const c2 = [0.8705882352941177, 0.8901960784313725, 0.9294117647058824];
-    idColor = transformer.addTransformer(TransformType.COLOR, InputType.STATE_0, c2, c1);
-    // example, increase elevation:
-    // transformer.setParams(idZ, 3.);
-    //......................................................
-    //.... AnimationCurves ....
-    // default animation curve is linear
-    // ease out expo from https://easings.net/
-    let easeOut = function (time) { return time == 1 ? 1 : 1 - Math.pow(2, -10 * time); };
-    let fc0 = function (time) { return 1; };
-    viewer.bindAnimationCurve(AnimableValue.COLOR, easeOut);
-    viewer.bindAnimationCurve(AnimableValue.TRANSLATION, easeOut);
-    //.........................
+    let viewer = new Viewer("c");
     let userInterface = UserInterface.getInstance();
     userInterface.initHandlers(viewer);
-    await viewer.initialization("/static/shaders/simple.vert", "/static/shaders/simple.frag", userInterface.nbInstances);
-    await viewer.shaderProgram.updateProgramTransformers(transformer.generateTransformersBlock());
+    await viewer.initialization("/static/shaders/simple.vert", "/static/shaders/simple.frag", userInterface.nbElements);
     viewer.loopAnimation();
 }
 window.onload = function () {
