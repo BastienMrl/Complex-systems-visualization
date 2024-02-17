@@ -181,6 +181,5 @@ export class Viewer {
     }
     stopVisualizationAnimation() {
         this._animationTimer.loop = false;
-        this._animationTimer.stop();
     }
 }
