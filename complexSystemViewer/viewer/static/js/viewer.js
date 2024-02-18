@@ -182,4 +182,8 @@ export class Viewer {
     stopVisualizationAnimation() {
         this._animationTimer.loop = false;
     }
+    // in seconds
+    setAnimationDuration(duration) {
+        this._animationTimer.duration = duration;
+    }
 }

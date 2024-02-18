@@ -1,6 +1,11 @@
 import { AnimableValue, Viewer } from "./viewer.js";
 import { InputType, StatesTransformer, TransformType } from "./statesTransformer.js";
 
+const MAX_REFRESH_RATE = 20.;
+const MIN_REFRESH_RATE = 0.5;
+const REFRESH_STEP = 0.5;
+const DEFAULT_REFRESH_RATE = 6.;
+
 export class UserInterface {
     // Singleton
     private static _instance : UserInterface;
@@ -91,6 +96,8 @@ export class UserInterface {
         let restartButton = (document.querySelector('#buttonRestart') as HTMLButtonElement);
         let timerButton = (document.querySelector('#buttonTimer') as HTMLButtonElement);
         
+        let animationTimerEl = (document.querySelector('#animationTimer') as HTMLDivElement);
+        
         let foldButton = (document.getElementById("foldButton") as HTMLDivElement);
         
         let gridSizeInput = (document.getElementById("gridSize") as HTMLInputElement);
@@ -112,7 +119,24 @@ export class UserInterface {
             this._viewer.stopVisualizationAnimation();
             this._viewer.initCurrentVisu(this._nbElements);
             console.log("RESTART");
-        })
+        });
+
+        animationTimerEl.addEventListener('mouseleave', () => {
+            let id = setTimeout(function() {
+                animationTimerEl.style.display = 'none';
+            }, 2000);
+            animationTimerEl.onmouseenter = function(){
+                clearTimeout(id);
+            }
+        });
+
+
+        timerButton.addEventListener('click', () => {
+            if (animationTimerEl.style.display == 'none')
+                animationTimerEl.style.display = 'flex';
+            else
+                animationTimerEl.style.display = 'none';
+        });
 
         foldButton.addEventListener("click", () => {
             document.getElementById("configurationPanel").classList.toggle("hidden")
@@ -146,6 +170,8 @@ export class UserInterface {
 
     private initAnimationCurves(){
         this._animationCurves = new AnimationInterface(this._viewer);
+        let animationTimerEl = (document.querySelector('#animationTimer') as HTMLDivElement);
+        this._animationCurves.setDurationElement(animationTimerEl);
     }
 
 }
@@ -231,6 +257,22 @@ class AnimationInterface{
         
         
         //.........................
+    }
+
+    public setDurationElement(element : HTMLElement){
+        let input = document.getElementById("inputTimer") as HTMLInputElement;
+        let label = document.getElementById("labelTimer") as HTMLLabelElement;
+        input.min = `${MIN_REFRESH_RATE}`;
+        input.max = `${MAX_REFRESH_RATE}`;
+        input.step = `${REFRESH_STEP}`;
+        input.value = `${DEFAULT_REFRESH_RATE}`;
+        label.innerHTML = `<strong>${input.value}</strong> steps per second`;
+        this._viewer.setAnimationDuration(1. / Number(input.value));
+        input.addEventListener("input", () => {
+            label.innerHTML = `<strong>${input.value}</strong> steps per second`;
+            this._viewer.setAnimationDuration(1. / Number(input.value));
+        });
+        element.style.display = 'none';
     }
 
 }

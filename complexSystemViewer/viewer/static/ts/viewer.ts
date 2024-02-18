@@ -245,4 +245,8 @@ export class Viewer {
         this._animationTimer.loop = false
     }
 
+    // in seconds
+    public setAnimationDuration(duration : number){
+        this._animationTimer.duration = duration;
+    }
 }

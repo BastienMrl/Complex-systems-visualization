@@ -21,7 +21,7 @@ export class AnimationTimer {
         this._callback = callback;
     }
     set duration(duration) {
-        this._duration = duration;
+        this._duration = duration * 1000;
     }
     onTimeout() {
         if (!this._isRunning)

@@ -1,5 +1,9 @@
 import { AnimableValue } from "./viewer.js";
 import { InputType, StatesTransformer, TransformType } from "./statesTransformer.js";
+const MAX_REFRESH_RATE = 20.;
+const MIN_REFRESH_RATE = 0.5;
+const REFRESH_STEP = 0.5;
+const DEFAULT_REFRESH_RATE = 6.;
 export class UserInterface {
     // Singleton
     static _instance;
@@ -70,6 +74,7 @@ export class UserInterface {
         let pauseButton = document.querySelector('#buttonPause');
         let restartButton = document.querySelector('#buttonRestart');
         let timerButton = document.querySelector('#buttonTimer');
+        let animationTimerEl = document.querySelector('#animationTimer');
         let foldButton = document.getElementById("foldButton");
         let gridSizeInput = document.getElementById("gridSize");
         let toolButtons = document.getElementsByClassName("tool");
@@ -85,6 +90,20 @@ export class UserInterface {
             this._viewer.stopVisualizationAnimation();
             this._viewer.initCurrentVisu(this._nbElements);
             console.log("RESTART");
+        });
+        animationTimerEl.addEventListener('mouseleave', () => {
+            let id = setTimeout(function () {
+                animationTimerEl.style.display = 'none';
+            }, 2000);
+            animationTimerEl.onmouseenter = function () {
+                clearTimeout(id);
+            };
+        });
+        timerButton.addEventListener('click', () => {
+            if (animationTimerEl.style.display == 'none')
+                animationTimerEl.style.display = 'flex';
+            else
+                animationTimerEl.style.display = 'none';
         });
         foldButton.addEventListener("click", () => {
             document.getElementById("configurationPanel").classList.toggle("hidden");
@@ -112,6 +131,8 @@ export class UserInterface {
     }
     initAnimationCurves() {
         this._animationCurves = new AnimationInterface(this._viewer);
+        let animationTimerEl = document.querySelector('#animationTimer');
+        this._animationCurves.setDurationElement(animationTimerEl);
     }
 }
 export class TransformersInterface {
@@ -182,5 +203,20 @@ class AnimationInterface {
         this._viewer.bindAnimationCurve(AnimableValue.COLOR, easeOut);
         this._viewer.bindAnimationCurve(AnimableValue.TRANSLATION, easeOut);
         //.........................
+    }
+    setDurationElement(element) {
+        let input = document.getElementById("inputTimer");
+        let label = document.getElementById("labelTimer");
+        input.min = `${MIN_REFRESH_RATE}`;
+        input.max = `${MAX_REFRESH_RATE}`;
+        input.step = `${REFRESH_STEP}`;
+        input.value = `${DEFAULT_REFRESH_RATE}`;
+        label.innerHTML = `<strong>${input.value}</strong> steps per second`;
+        this._viewer.setAnimationDuration(1. / Number(input.value));
+        input.addEventListener("input", () => {
+            label.innerHTML = `<strong>${input.value}</strong> steps per second`;
+            this._viewer.setAnimationDuration(1. / Number(input.value));
+        });
+        element.style.display = 'none';
     }
 }

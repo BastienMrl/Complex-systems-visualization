@@ -30,7 +30,7 @@ export class AnimationTimer{
     }
 
     public set duration(duration : number){
-        this._duration = duration;
+        this._duration = duration * 1000;
     }
 
     private onTimeout(){
