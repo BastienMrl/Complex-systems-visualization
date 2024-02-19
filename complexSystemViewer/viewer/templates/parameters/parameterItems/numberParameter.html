@@ -1,0 +1,9 @@
+{% extends "parameters/parameterItems/baseParameter.html" %}
+
+{% load static %}
+
+{% block valueControl %}
+
+<input type="number" paramId="{{param.paramId}}" name="{{param.name}}" step="{{param.step}}" value="{{param.defaultValue}}" min="{{param.minValue}}" max="{{param.maxValue}}" />
+
+{% endblock valueControl %}

@@ -9,7 +9,7 @@
 }
 
 :root {
-    font-family: Inria-Regular;
+    font-family: Inria-Regular !important;
     --color-dark: #062d38;
     --color-midDark: #0a3b49;
     --color-light: #bcccd1;

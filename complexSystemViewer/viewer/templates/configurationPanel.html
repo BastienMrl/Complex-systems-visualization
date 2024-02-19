@@ -5,9 +5,9 @@
         <option value="{{name}}">{{name}}</option>
         {% endfor %}
     </select>
-    {% include "configurationItems/visualizationConfigItem.html" %}
-    {% for config, parameters in configurations.items %}
-        {% include "configurationItems/configurationItem.html"%}
+    {% include "rulesItem.html" %}
+    {% for transformer, parameters in transformers.items %}
+        {% include "transformers/transformerItem.html"%}
     {% endfor %}
 </div>
 <div id="foldButton" class="withTransition">

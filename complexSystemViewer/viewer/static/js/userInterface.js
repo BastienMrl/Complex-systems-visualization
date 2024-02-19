@@ -14,7 +14,7 @@ export class UserInterface {
     _ctrlPressed;
     _wheelPressed;
     constructor() {
-        let GridSizeInput = document.getElementById("gridSize");
+        let GridSizeInput = document.querySelector("input[paramId=gridSize]");
         this._nbElements = GridSizeInput.value ** 2;
     }
     static getInstance() {
@@ -76,7 +76,7 @@ export class UserInterface {
         let timerButton = document.querySelector('#buttonTimer');
         let animationTimerEl = document.querySelector('#animationTimer');
         let foldButton = document.getElementById("foldButton");
-        let gridSizeInput = document.getElementById("gridSize");
+        let gridSizeInput = document.querySelector("input[paramId=gridSize]");
         let toolButtons = document.getElementsByClassName("tool");
         playButton.addEventListener('click', () => {
             this._viewer.startVisualizationAnimation();
@@ -128,8 +128,14 @@ export class UserInterface {
     }
     initTransformers() {
         this._transformers = new TransformersInterface(this._viewer);
-        let colorTransformerElement = document.getElementById("2");
+        let colorTransformerElement = document.getElementById("colorTransformer");
+        let positionXElement = document.getElementById("positionX");
+        let positionYElement = document.getElementById("positionY");
+        let positionZElement = document.getElementById("positionZ");
         this._transformers.addTransformerFromElement(colorTransformerElement);
+        this._transformers.addTransformerFromElement(positionXElement);
+        this._transformers.addTransformerFromElement(positionYElement);
+        this._transformers.addTransformerFromElement(positionZElement);
         this._transformers.updateProgram();
     }
     initAnimationCurves() {
@@ -144,13 +150,11 @@ export class TransformersInterface {
     constructor(viewer) {
         this._viewer = viewer;
         this._currentStatesTransformer = new StatesTransformer();
-        this._currentStatesTransformer.addTransformer(TransformType.POSITION_X, InputType.POSITION_X, [1.95]);
-        this._currentStatesTransformer.addTransformer(TransformType.POSITION_Z, InputType.POSITION_Y, [1.95]);
-        this._currentStatesTransformer.addTransformer(TransformType.POSITION_Y, InputType.STATE_0, [1.5]);
     }
     addTransformerFromElement(element) {
+        const inputElement = this.getInputTypeElement(element);
+        const inputType = this.getInputType(inputElement);
         const transformType = this.getTransformType(element);
-        const inputType = this.getInputType(element);
         const paramsElements = this.getParamsElements(element);
         let params = [];
         paramsElements.forEach(e => {
@@ -165,6 +169,10 @@ export class TransformersInterface {
                 this.updateProgram();
             });
         });
+        inputElement.addEventListener("change", () => {
+            this._currentStatesTransformer.setInputType(id, this.getInputType(inputElement));
+            this.updateProgram();
+        });
         // TODO: add functions to disconnect / delete transformer
     }
     updateProgram() {
@@ -172,25 +180,55 @@ export class TransformersInterface {
     }
     // TODO: return value according to HTMLElement
     getTransformType(element) {
-        return TransformType.COLOR;
+        switch (element.getAttribute("transformer")) {
+            case "COLOR":
+                return TransformType.COLOR;
+            case "COLOR_R":
+                return TransformType.COLOR_R;
+            case "COLOR_G":
+                return TransformType.COLOR_G;
+            case "COLOR_B":
+                return TransformType.COLOR_B;
+            case "POSITION_X":
+                return TransformType.POSITION_X;
+            case "POSITION_Y":
+                return TransformType.POSITION_Y;
+            case "POSITION_Z":
+                return TransformType.POSITION_Z;
+        }
     }
     // TODO: return value accroding to HTMLElement
+    getInputTypeElement(parent) {
+        return parent.getElementsByClassName("visualizationInput")[0].children[0];
+    }
     getInputType(element) {
-        return InputType.STATE_0;
+        switch (element.value) {
+            case "POSITION_X":
+                return InputType.POSITION_X;
+            case "POSITION_Y":
+                return InputType.POSITION_Y;
+            case "POSITION_Z":
+                return InputType.POSITION_Z;
+            case "STATE_0":
+                return InputType.STATE_0;
+        }
     }
     // TODO : fill with right ids
-    getParamsElements(element) {
-        switch (this.getTransformType(element)) {
+    getParamsElements(parent) {
+        switch (this.getTransformType(parent)) {
             case TransformType.COLOR:
-                let colorAliveInput = document.getElementById("aliveColor");
-                let colorDeadInput = document.getElementById("deadColor");
+                let colorAliveInput = parent.querySelector("input[paramId=c1]");
+                let colorDeadInput = parent.querySelector("input[paramId=c0]");
                 return [colorDeadInput, colorAliveInput];
             case TransformType.COLOR_R:
             case TransformType.COLOR_G:
             case TransformType.COLOR_B:
             case TransformType.POSITION_X:
+                return [parent.querySelector("input[paramId=factor]")];
             case TransformType.POSITION_Y:
+                return [parent.querySelector("input[paramId=factor]")];
             case TransformType.POSITION_Z:
+                return [parent.querySelector("input[paramId=factor]")];
         }
     }
 }

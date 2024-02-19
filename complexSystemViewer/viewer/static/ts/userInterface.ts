@@ -21,7 +21,7 @@ export class UserInterface {
     private _wheelPressed : boolean;
 
     private constructor() {
-        let GridSizeInput = (document.getElementById("gridSize") as HTMLInputElement);
+        let GridSizeInput = (document.querySelector("input[paramId=gridSize]") as HTMLInputElement);
         this._nbElements = (GridSizeInput.value as unknown as number) ** 2;
     }
 
@@ -100,7 +100,7 @@ export class UserInterface {
         
         let foldButton = (document.getElementById("foldButton") as HTMLDivElement);
         
-        let gridSizeInput = (document.getElementById("gridSize") as HTMLInputElement);
+        let gridSizeInput = (document.querySelector("input[paramId=gridSize]") as HTMLInputElement);
 
         let toolButtons = (document.getElementsByClassName("tool") as HTMLCollectionOf<HTMLDivElement>);
 
@@ -166,8 +166,16 @@ export class UserInterface {
     private initTransformers(){
         this._transformers = new TransformersInterface(this._viewer);
 
-        let colorTransformerElement = document.getElementById("2") as HTMLElement;
+        let colorTransformerElement = document.getElementById("colorTransformer") as HTMLElement;
+        let positionXElement = document.getElementById("positionX") as HTMLElement;
+        let positionYElement = document.getElementById("positionY") as HTMLElement;
+        let positionZElement = document.getElementById("positionZ") as HTMLElement;
+
         this._transformers.addTransformerFromElement(colorTransformerElement);
+        this._transformers.addTransformerFromElement(positionXElement);
+        this._transformers.addTransformerFromElement(positionYElement);
+        this._transformers.addTransformerFromElement(positionZElement)
+
         this._transformers.updateProgram();
     }
 
@@ -186,14 +194,13 @@ export class TransformersInterface {
     public constructor(viewer : Viewer){
         this._viewer = viewer;
         this._currentStatesTransformer = new StatesTransformer();
-        this._currentStatesTransformer.addTransformer(TransformType.POSITION_X, InputType.POSITION_X, [1.95]);
-        this._currentStatesTransformer.addTransformer(TransformType.POSITION_Z, InputType.POSITION_Y, [1.95]);
-        this._currentStatesTransformer.addTransformer(TransformType.POSITION_Y, InputType.STATE_0, [1.5]);
     }
 
     public addTransformerFromElement(element : HTMLElement){
+        const inputElement = this.getInputTypeElement(element);
+        const inputType = this.getInputType(inputElement);
+        
         const transformType = this.getTransformType(element);
-        const inputType = this.getInputType(element);
         const paramsElements = this.getParamsElements(element);
         let params = [];
         paramsElements.forEach(e => {
@@ -208,7 +215,12 @@ export class TransformersInterface {
                 this.updateProgram();
             });
         });
-
+        
+        
+        inputElement.addEventListener("change", () => {
+            this._currentStatesTransformer.setInputType(id, this.getInputType(inputElement));
+            this.updateProgram();
+        });
         // TODO: add functions to disconnect / delete transformer
     }
 
@@ -217,28 +229,59 @@ export class TransformersInterface {
     }
 
     // TODO: return value according to HTMLElement
-    private getTransformType(element : HTMLElement){        
-        return TransformType.COLOR;
+    private getTransformType(element : HTMLElement) : TransformType{        
+        switch(element.getAttribute("transformer")){
+            case "COLOR":
+                return TransformType.COLOR;
+            case "COLOR_R":
+                return TransformType.COLOR_R;
+            case "COLOR_G":
+                return TransformType.COLOR_G;
+            case "COLOR_B":
+                return TransformType.COLOR_B;
+            case "POSITION_X":
+                return TransformType.POSITION_X;
+            case "POSITION_Y":
+                return TransformType.POSITION_Y;
+            case "POSITION_Z":
+                return TransformType.POSITION_Z;
+        }
     }
 
     // TODO: return value accroding to HTMLElement
-    private getInputType(element : HTMLElement){
-        return InputType.STATE_0;
+    private getInputTypeElement(parent : HTMLElement) : HTMLSelectElement{
+        return parent.getElementsByClassName("visualizationInput")[0].children[0] as HTMLSelectElement;
+    }
+
+    private getInputType(element : HTMLSelectElement) : InputType{
+        switch (element.value) {
+            case "POSITION_X" : 
+                return InputType.POSITION_X;
+            case "POSITION_Y" :
+                return InputType.POSITION_Y;
+            case "POSITION_Z" : 
+                return InputType.POSITION_Z;
+            case "STATE_0":
+                return InputType.STATE_0;
+        }
     }
 
     // TODO : fill with right ids
-    private getParamsElements(element : HTMLElement){
-        switch (this.getTransformType(element)){
+    private getParamsElements(parent : HTMLElement){
+        switch (this.getTransformType(parent)){
             case TransformType.COLOR:
-                let colorAliveInput = (document.getElementById("aliveColor") as HTMLInputElement);
-                let colorDeadInput = (document.getElementById("deadColor") as HTMLInputElement);
+                let colorAliveInput = parent.querySelector("input[paramId=c1]") as HTMLInputElement;
+                let colorDeadInput = parent.querySelector("input[paramId=c0]") as HTMLInputElement;     
                 return [colorDeadInput, colorAliveInput];
             case TransformType.COLOR_R:
             case TransformType.COLOR_G:
             case TransformType.COLOR_B:
             case TransformType.POSITION_X:
+                return [parent.querySelector("input[paramId=factor]") as HTMLInputElement];
             case TransformType.POSITION_Y:
+                return [parent.querySelector("input[paramId=factor]") as HTMLInputElement];
             case TransformType.POSITION_Z:
+                return [parent.querySelector("input[paramId=factor]") as HTMLInputElement];
         }
     }
 }

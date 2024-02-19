@@ -1,0 +1,13 @@
+{% extends "parameters/parameterItems/baseParameter.html" %}
+
+{% load static %}
+
+{% block valueControl %}
+
+<select name="{{param.name}}" paramId="{{param.paramId}}">
+    {% for option in param.getoptionsList %}
+        <option value="{{option}}" {% if forloop.counter0==param.defaultValue %} selected {% endif %}>{{option}}</option>
+    {% endfor %}
+</select>
+
+{% endblock valueControl %}
