@@ -34,10 +34,13 @@ class ViewerConsumer(AsyncWebsocketConsumer):
                 grid = jax.random.uniform(key, (1, row, row, 1))
                 grid = jnp.round(grid)
                 grid = jnp.transpose(grid, [0, 3, 1, 2])
+
                 print("prep state")
                 state = GridState(grid)
+
                 print("prep sim")
                 gol = GOLSimulation(init_states=[state])
+                
                 print("prep sim done")
                 self.simulation_task = asyncio.create_task(self.sendGameOfLife(gol))
         elif message == "Stop":

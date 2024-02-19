@@ -13,7 +13,7 @@ class Simulation(ABC):
     height = None
      
 
-    def __init__(self, id :int, init_states = None, init_params : ParamList = None): 
+    def __init__(self, id :int, init_states = None, init_params  = None): 
         s_id = None
         if init_states != None :
             self.current_states = init_states
