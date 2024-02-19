@@ -14,13 +14,6 @@ layout(location = 4) in vec3 a_translation_t1;
 layout(location = 5) in float a_state_t0;
 layout(location = 6) in float a_state_t1;
 
-// // color
-// layout (location = 3) in vec3 a_color_t0;
-// layout (location = 4) in vec3 a_color_t1;
-
-// // transforms
-// layout (location = 5) in vec3 a_translation_t0;
-// layout (location = 6) in vec3 a_translation_t1;
 
 // selection
 layout (location = 10) in float a_selected;

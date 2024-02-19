@@ -32,12 +32,12 @@ async function initShaders(gl, srcVertex, srcFragment) {
     return shaderProgram;
 }
 export class ProgramWithTransformer {
+    _context;
     _program;
     _templateVertexShader;
     _currentTransformers;
     _fragmentShader;
     _vertexShader;
-    _context;
     static _transformersKey = "//${TRANSFORMERS}";
     constructor(context) {
         this._context = context;

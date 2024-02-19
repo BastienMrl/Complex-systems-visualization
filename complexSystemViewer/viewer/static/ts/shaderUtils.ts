@@ -42,6 +42,7 @@ async function initShaders(gl : WebGL2RenderingContext, srcVertex : string, srcF
 }
 
 export class ProgramWithTransformer {
+    private _context : WebGL2RenderingContext;
     private _program : WebGLProgram;
     private _templateVertexShader : string;
     private _currentTransformers : string;
@@ -49,9 +50,8 @@ export class ProgramWithTransformer {
     private _fragmentShader : string;
     private _vertexShader : string;
 
-    private _context : WebGL2RenderingContext;
-
     private static readonly _transformersKey : string = "//${TRANSFORMERS}";
+
 
     constructor(context : WebGL2RenderingContext){
         this._context = context;

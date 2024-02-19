@@ -7,6 +7,7 @@ import { AnimationTimer } from "./animationTimer.js";
 import { TransformableValues } from "./transformableValues.js";
 import { SelectionHandler } from "./workers/selectionHandler.js";
 import { WorkerMessage, getMessageBody, getMessageHeader, sendMessageToWorker } from "./workers/workerInterface.js";
+import { StatesTransformer } from "./statesTransformer.js";
 
 // provides access to gl constants
 const gl = WebGL2RenderingContext
@@ -54,7 +55,9 @@ export class Viewer {
         this.context = context;
         this._stats = new Stats(document.getElementById("renderingFps") as HTMLElement,
                                 document.getElementById("updateMs") as HTMLElement,
-                                document.getElementById("renderingMs") as HTMLElement);
+                                document.getElementById("renderingMs") as HTMLElement,
+                                document.getElementById("pickingMs") as HTMLElement,
+                                document.getElementById("totalMs") as HTMLElement);
 
         this._animationTimer = new AnimationTimer(0.15, false);
         this._animationIds = [null, null];
@@ -196,17 +199,23 @@ export class Viewer {
         let delta = this._lastTime = 0 ? 0 : time - this._lastTime;
         this._lastTime = time
         
+        
+        // picking
+        if (this._drawable){
+            this._stats.startPickingTimer();
+            let prevSelection = this._selectionHandler.selectedId;
+            this._selectionHandler.updateCurrentSelection(this.camera, this._multipleInstances, this.getAnimationTime(AnimableValue.TRANSLATION));
+            let currentSelection = this._selectionHandler.selectedId;
+            
+            if (this._selectionHandler.hasCurrentSelection() && currentSelection != prevSelection){
+                this._multipleInstances.setMouseOver(currentSelection);
+            }
+            this._stats.stopPickingTimer();
+        }
+        
+        // rendering
         this._stats.startRenderingTimer(delta);
         this.clear();
-        
-        
-        // let prevSelection = this._selectionHandler.selectedId;
-        // this._selectionHandler.updateCurrentSelection(this.camera, this._multipleInstances, this.getAnimationTime(AnimableValue.TRANSLATION));
-        // let currentSelection = this._selectionHandler.selectedId;
-        
-        // if (this._selectionHandler.hasCurrentSelection() && currentSelection != prevSelection){
-        //     this._multipleInstances.setMouseOver(currentSelection);
-        // }
         if (this._drawable)
             this.draw();
         this.context.finish();
@@ -248,5 +257,10 @@ export class Viewer {
     // in seconds
     public setAnimationDuration(duration : number){
         this._animationTimer.duration = duration;
+    }
+
+    public updateProgamsTransformers(transformers : StatesTransformer){
+        this.shaderProgram.updateProgramTransformers(transformers.generateTransformersBlock());
+        this._selectionHandler.updateProgamTransformers(transformers);
     }
 }

@@ -36,7 +36,7 @@ export class Viewer {
             throw "Could not create WebGL2 context";
         }
         this.context = context;
-        this._stats = new Stats(document.getElementById("renderingFps"), document.getElementById("updateMs"), document.getElementById("renderingMs"));
+        this._stats = new Stats(document.getElementById("renderingFps"), document.getElementById("updateMs"), document.getElementById("renderingMs"), document.getElementById("pickingMs"), document.getElementById("totalMs"));
         this._animationTimer = new AnimationTimer(0.15, false);
         this._animationIds = [null, null];
         this._selectionHandler = SelectionHandler.getInstance(context);
@@ -142,14 +142,20 @@ export class Viewer {
         time *= 0.001;
         let delta = this._lastTime = 0 ? 0 : time - this._lastTime;
         this._lastTime = time;
+        // picking
+        if (this._drawable) {
+            this._stats.startPickingTimer();
+            let prevSelection = this._selectionHandler.selectedId;
+            this._selectionHandler.updateCurrentSelection(this.camera, this._multipleInstances, this.getAnimationTime(AnimableValue.TRANSLATION));
+            let currentSelection = this._selectionHandler.selectedId;
+            if (this._selectionHandler.hasCurrentSelection() && currentSelection != prevSelection) {
+                this._multipleInstances.setMouseOver(currentSelection);
+            }
+            this._stats.stopPickingTimer();
+        }
+        // rendering
         this._stats.startRenderingTimer(delta);
         this.clear();
-        // let prevSelection = this._selectionHandler.selectedId;
-        // this._selectionHandler.updateCurrentSelection(this.camera, this._multipleInstances, this.getAnimationTime(AnimableValue.TRANSLATION));
-        // let currentSelection = this._selectionHandler.selectedId;
-        // if (this._selectionHandler.hasCurrentSelection() && currentSelection != prevSelection){
-        //     this._multipleInstances.setMouseOver(currentSelection);
-        // }
         if (this._drawable)
             this.draw();
         this.context.finish();
@@ -185,5 +191,9 @@ export class Viewer {
     // in seconds
     setAnimationDuration(duration) {
         this._animationTimer.duration = duration;
+    }
+    updateProgamsTransformers(transformers) {
+        this.shaderProgram.updateProgramTransformers(transformers.generateTransformersBlock());
+        this._selectionHandler.updateProgamTransformers(transformers);
     }
 }

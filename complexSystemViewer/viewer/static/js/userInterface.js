@@ -165,7 +165,7 @@ export class TransformersInterface {
         // TODO: add functions to disconnect / delete transformer
     }
     updateProgram() {
-        this._viewer.shaderProgram.updateProgramTransformers(this._currentStatesTransformer.generateTransformersBlock());
+        this._viewer.updateProgamsTransformers(this._currentStatesTransformer);
     }
     // TODO: return value according to HTMLElement
     getTransformType(element) {

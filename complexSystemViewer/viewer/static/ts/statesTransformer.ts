@@ -242,9 +242,31 @@ export class StatesTransformer{
         
         let constants = "";
         let fctCalls = "";
-        this._transformers.forEach((transformer, idx) => {
+        this._transformers.forEach((transformer) => {
             constants += transformer.getParamsDeclarationBlock() + "\n";
             fctCalls += transformer.getTransformationsBlock() + "\n";
+        });
+        return `${inputDeclarations}\n${constants}\n${fctCalls}`;
+    }
+
+    public generateTranslationTransformersBlock(){
+        let inputDeclarations = "";
+        let uniques = this._inputDeclarations.filter((value, index, array) => array.indexOf(value) === index);
+        uniques.forEach((e) => {
+            if (e.includes("_t_"))
+                inputDeclarations += e + "\n";
+        });
+        let constants = "";
+        let fctCalls = "";
+        this._transformers.forEach((transformer) => {
+            const t = transformer.type;
+            if (t == TransformType.POSITION_X ||
+                t == TransformType.POSITION_Y ||
+                t == TransformType.POSITION_Z){
+
+                constants += transformer.getParamsDeclarationBlock() + "\n";
+                fctCalls += transformer.getTransformationsBlock() + "\n";
+            }
         });
         return `${inputDeclarations}\n${constants}\n${fctCalls}`;
     }

@@ -17,6 +17,7 @@ export class SelectionHandler {
         this._context = context;
         this._canvas = this._context.canvas;
         this.selectedId = null;
+        this._selectionProgram = new shaderUtils.ProgramWithTransformer(context);
     }
     static getInstance(context) {
         if (!SelectionHandler._instance)
@@ -29,7 +30,7 @@ export class SelectionHandler {
             this.mouseX = e.clientX - rect.left;
             this.mouseY = e.clientY - rect.top;
         });
-        this._selectionProgram = await shaderUtils.initShaders(this._context, srcVs, srcFs);
+        await this._selectionProgram.generateProgram(srcVs, srcFs);
         this._frameBuffer = this._context.createFramebuffer();
         this._context.bindFramebuffer(gl.FRAMEBUFFER, this._frameBuffer);
         this._selectionTargetTexture = this._context.createTexture();
@@ -54,11 +55,11 @@ export class SelectionHandler {
         this._context.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, this._canvas.width, this._canvas.height);
     }
     updateCurrentSelection(camera, meshes, time) {
-        this._context.useProgram(this._selectionProgram);
+        this._context.useProgram(this._selectionProgram.program);
         this._context.bindFramebuffer(gl.FRAMEBUFFER, this._frameBuffer);
         this._context.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-        let projViewLoc = this._context.getUniformLocation(this._selectionProgram, "u_proj_view");
-        let timeLoc = this._context.getUniformLocation(this._selectionProgram, "u_time");
+        let projViewLoc = this._context.getUniformLocation(this._selectionProgram.program, "u_proj_view");
+        let timeLoc = this._context.getUniformLocation(this._selectionProgram.program, "u_time_translation");
         this._context.uniformMatrix4fv(projViewLoc, false, camera.projViewMatrix);
         this._context.uniform1f(timeLoc, time);
         meshes.drawSelection();
@@ -72,5 +73,9 @@ export class SelectionHandler {
     }
     hasCurrentSelection() {
         return this.selectedId != null;
+    }
+    updateProgamTransformers(transformers) {
+        this._selectionProgram.updateProgramTransformers(transformers.generateTranslationTransformersBlock());
+        console.log("here", transformers.generateTranslationTransformersBlock());
     }
 }

@@ -32,3 +32,17 @@ div #renderingFps {
     padding: 5px;
     background-color: #ebeb99;
 }
+
+div #pickingMs {
+    width: 140px;
+    margin: 5px;
+    padding: 5px;
+    background-color: #a7ccf9;
+}
+
+div #totalMs {
+    width: 140px;
+    margin: 5px;
+    padding: 5px;
+    background-color: #a7ccf9;
+}
