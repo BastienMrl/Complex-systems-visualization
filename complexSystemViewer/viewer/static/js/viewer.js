@@ -5,7 +5,7 @@ import { MultipleMeshInstances } from "./mesh.js";
 import { Stats } from "./stats.js";
 import { AnimationTimer } from "./animationTimer.js";
 import { TransformableValues } from "./transformableValues.js";
-import { SelectionHandler } from "./workers/selectionHandler.js";
+import { SelectionHandler } from "./selectionHandler.js";
 import { WorkerMessage, getMessageBody, getMessageHeader, sendMessageToWorker } from "./workers/workerInterface.js";
 // provides access to gl constants
 const gl = WebGL2RenderingContext;
@@ -29,6 +29,7 @@ export class Viewer {
     _transmissionWorker;
     _currentValue;
     _drawable;
+    _usePicking;
     constructor(canvasId) {
         this.canvas = document.getElementById(canvasId);
         let context = this.canvas.getContext("webgl2");
@@ -98,10 +99,16 @@ export class Viewer {
     get selectedId() {
         return this._selectionHandler.selectedId;
     }
+    get usePicking() {
+        return this._usePicking;
+    }
     // setter
     // in seconds
     set animationDuration(duration) {
         this._animationTimer.duration = duration;
+    }
+    set usePicking(value) {
+        this._usePicking = value;
     }
     // private methods
     onCanvasResize() {
@@ -152,7 +159,7 @@ export class Viewer {
         let delta = this._lastTime = 0 ? 0 : time - this._lastTime;
         this._lastTime = time;
         // picking
-        if (this._drawable) {
+        if (this._drawable && this._usePicking) {
             this._stats.startPickingTimer();
             let prevSelection = this._selectionHandler.selectedId;
             this._selectionHandler.updateCurrentSelection(this.camera, this._multipleInstances, this.getAnimationTime(AnimableValue.TRANSLATION));

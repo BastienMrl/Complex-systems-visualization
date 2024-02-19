@@ -1,5 +1,5 @@
 import { TransformableValues } from "../transformableValues.js";
-import { SocketHandler } from "../socketHandler.js";
+import { SocketHandler } from "./socketHandler.js";
 
 
 export class StatesBuffer{

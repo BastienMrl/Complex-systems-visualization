@@ -5,7 +5,7 @@ import { MultipleMeshInstances } from "./mesh.js";
 import { Stats } from "./stats.js";
 import { AnimationTimer } from "./animationTimer.js";
 import { TransformableValues } from "./transformableValues.js";
-import { SelectionHandler } from "./workers/selectionHandler.js";
+import { SelectionHandler } from "./selectionHandler.js";
 import { WorkerMessage, getMessageBody, getMessageHeader, sendMessageToWorker } from "./workers/workerInterface.js";
 import { StatesTransformer } from "./statesTransformer.js";
 
@@ -44,6 +44,7 @@ export class Viewer {
     private _currentValue : TransformableValues | null;
 
     private _drawable : boolean;
+    private _usePicking : boolean;
     
     constructor(canvasId : string){
         this.canvas = document.getElementById(canvasId) as HTMLCanvasElement;
@@ -140,11 +141,19 @@ export class Viewer {
         return this._selectionHandler.selectedId;
     }
 
+    public get usePicking() : boolean {
+        return this._usePicking;
+    }
+
     // setter
 
     // in seconds
     public set animationDuration(duration : number){
         this._animationTimer.duration = duration;
+    }
+
+    public set usePicking(value : boolean){
+        this._usePicking = value;
     }
 
 
@@ -214,7 +223,7 @@ export class Viewer {
         
         
         // picking
-        if (this._drawable){
+        if (this._drawable && this._usePicking){
             this._stats.startPickingTimer();
             let prevSelection = this._selectionHandler.selectedId;
             this._selectionHandler.updateCurrentSelection(this.camera, this._multipleInstances, this.getAnimationTime(AnimableValue.TRANSLATION));

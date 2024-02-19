@@ -1,4 +1,4 @@
-import { SocketHandler } from "../socketHandler.js";
+import { SocketHandler } from "./socketHandler.js";
 import { StatesBuffer } from "./statesBuffer.js";
 import { WorkerMessage, sendMessageToWindow } from "./workerInterface.js";
 class TransmissionWorker {

@@ -120,6 +120,10 @@ export class UserInterface {
                     activeTool[0].classList.remove("active");
                 }
                 toolButtons.item(i).classList.toggle("active");
+                if (i == 0) {
+                    this._viewer.usePicking = !this._viewer.usePicking;
+                    console.log("test");
+                }
             });
         }
     }
