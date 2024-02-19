@@ -94,6 +94,15 @@ export class Viewer {
         const far = 100000;
         this.camera = new Camera(cameraPos, cameraTarget, up, fovy, aspect, near, far);
     }
+    // getter
+    get selectedId() {
+        return this._selectionHandler.selectedId;
+    }
+    // setter
+    // in seconds
+    set animationDuration(duration) {
+        this._animationTimer.duration = duration;
+    }
     // private methods
     onCanvasResize() {
         this.canvas.width = this.canvas.clientWidth;
@@ -148,7 +157,7 @@ export class Viewer {
             let prevSelection = this._selectionHandler.selectedId;
             this._selectionHandler.updateCurrentSelection(this.camera, this._multipleInstances, this.getAnimationTime(AnimableValue.TRANSLATION));
             let currentSelection = this._selectionHandler.selectedId;
-            if (this._selectionHandler.hasCurrentSelection() && currentSelection != prevSelection) {
+            if (currentSelection != prevSelection) {
                 this._multipleInstances.setMouseOver(currentSelection);
             }
             this._stats.stopPickingTimer();
@@ -187,10 +196,6 @@ export class Viewer {
     }
     stopVisualizationAnimation() {
         this._animationTimer.loop = false;
-    }
-    // in seconds
-    setAnimationDuration(duration) {
-        this._animationTimer.duration = duration;
     }
     updateProgamsTransformers(transformers) {
         this.shaderProgram.updateProgramTransformers(transformers.generateTransformersBlock());

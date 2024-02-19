@@ -61,15 +61,10 @@ export class MultipleMeshInstances{
     }
     
 
-    // private methods
-    private getIndexFromCoords(i : number, j : number, nbCol : number) : number {
-        return nbCol * i + j; 
-    }
-
     private updataMouseOverBuffer(idx : number | null){
         let arr = new Float32Array(this._nbInstances).fill(0.);
-        if (idx != null)
-            arr[idx] = 1.;
+        if (idx != null && idx > 0)
+            arr[idx - 1] = 1.;
         this._context.bindBuffer(gl.ARRAY_BUFFER, this._mouseOverBuffer);
         this._context.bufferSubData(gl.ARRAY_BUFFER, 0, arr);
         this._context.bindBuffer(gl.ARRAY_BUFFER, null);
@@ -100,6 +95,9 @@ export class MultipleMeshInstances{
 
         // translation
         this._translationBuffer.bindAttribs(translationLoc, 1, 3, gl.FLOAT, false, 0);
+
+        // states
+        this._stateBuffer.bindAttribs(stateLoc, 1, 1, gl.FLOAT, false, 0);
         
         this._context.bindBuffer(gl.ARRAY_BUFFER, null);
 

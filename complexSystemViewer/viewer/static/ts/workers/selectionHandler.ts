@@ -96,18 +96,13 @@ export class SelectionHandler{
         this._context.readPixels(this.mouseX, this._canvas.height - this.mouseY, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, data)
         
         this._context.bindFramebuffer(gl.FRAMEBUFFER, null);
-        let id = data[0] + (data[1] << 8) + (data[2] << 16) + (data[3] << 24) - 1;
+        let id = data[0] + (data[1] << 8) + (data[2] << 16) + (data[3] << 24);
         if (id != this.selectedId){
-            this.selectedId = id >= 0 ? id : null;
+            this.selectedId = id > 0 ? id : null;
         }
-    }
-
-    public hasCurrentSelection() : boolean {
-        return this.selectedId != null;
     }
 
     public updateProgamTransformers(transformers : StatesTransformer){
         this._selectionProgram.updateProgramTransformers(transformers.generateTranslationTransformersBlock());
-        console.log("here", transformers.generateTranslationTransformersBlock());
     }
 }

@@ -135,6 +135,19 @@ export class Viewer {
     }
 
 
+    // getter
+    public get selectedId() : number {
+        return this._selectionHandler.selectedId;
+    }
+
+    // setter
+
+    // in seconds
+    public set animationDuration(duration : number){
+        this._animationTimer.duration = duration;
+    }
+
+
     // private methods
     private onCanvasResize(){
         this.canvas.width = this.canvas.clientWidth;
@@ -207,7 +220,7 @@ export class Viewer {
             this._selectionHandler.updateCurrentSelection(this.camera, this._multipleInstances, this.getAnimationTime(AnimableValue.TRANSLATION));
             let currentSelection = this._selectionHandler.selectedId;
             
-            if (this._selectionHandler.hasCurrentSelection() && currentSelection != prevSelection){
+            if (currentSelection != prevSelection){
                 this._multipleInstances.setMouseOver(currentSelection);
             }
             this._stats.stopPickingTimer();
@@ -254,13 +267,9 @@ export class Viewer {
         this._animationTimer.loop = false
     }
 
-    // in seconds
-    public setAnimationDuration(duration : number){
-        this._animationTimer.duration = duration;
-    }
-
     public updateProgamsTransformers(transformers : StatesTransformer){
         this.shaderProgram.updateProgramTransformers(transformers.generateTransformersBlock());
         this._selectionHandler.updateProgamTransformers(transformers);
     }
+
 }

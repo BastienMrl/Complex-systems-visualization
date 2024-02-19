@@ -212,10 +212,10 @@ class AnimationInterface {
         input.step = `${REFRESH_STEP}`;
         input.value = `${DEFAULT_REFRESH_RATE}`;
         label.innerHTML = `<strong>${input.value}</strong> steps per second`;
-        this._viewer.setAnimationDuration(1. / Number(input.value));
+        this._viewer.animationDuration = (1. / Number(input.value));
         input.addEventListener("input", () => {
             label.innerHTML = `<strong>${input.value}</strong> steps per second`;
-            this._viewer.setAnimationDuration(1. / Number(input.value));
+            this._viewer.animationDuration = (1. / Number(input.value));
         });
         element.style.display = 'none';
     }
