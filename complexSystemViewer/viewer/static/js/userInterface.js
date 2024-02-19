@@ -1,5 +1,6 @@
 import { AnimableValue } from "./viewer.js";
 import { InputType, StatesTransformer, TransformType } from "./statesTransformer.js";
+import { SocketHandler } from "./socketHandler.js";
 const MAX_REFRESH_RATE = 20.;
 const MIN_REFRESH_RATE = 0.5;
 const REFRESH_STEP = 0.5;
@@ -77,6 +78,8 @@ export class UserInterface {
         let animationTimerEl = document.querySelector('#animationTimer');
         let foldButton = document.getElementById("foldButton");
         let gridSizeInput = document.getElementById("gridSize");
+        let aliveRuleInput = document.getElementById("aliveRule");
+        let surviveRuleInput = document.getElementById("surviveRule");
         let toolButtons = document.getElementsByClassName("tool");
         playButton.addEventListener('click', () => {
             this._viewer.startVisualizationAnimation();
@@ -109,9 +112,15 @@ export class UserInterface {
             document.getElementById("configurationPanel").classList.toggle("hidden");
             document.getElementById("foldButton").classList.toggle("hidden");
         });
-        gridSizeInput.addEventListener("change", async () => {
+        gridSizeInput.addEventListener("change", () => {
             this._nbElements = gridSizeInput.value ** 2;
             this._viewer.initCurrentVisu(this._nbElements);
+        });
+        aliveRuleInput.addEventListener("change", () => {
+            SocketHandler.getInstance();
+        });
+        surviveRuleInput.addEventListener("change", () => {
+            SocketHandler.getInstance();
         });
         for (let i = 0; i < toolButtons.length; i++) {
             toolButtons.item(i).addEventListener("click", () => {

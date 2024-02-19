@@ -1,5 +1,6 @@
 import { AnimableValue, Viewer } from "./viewer.js";
 import { InputType, StatesTransformer, TransformType } from "./statesTransformer.js";
+import { SocketHandler } from "./socketHandler.js";
 
 const MAX_REFRESH_RATE = 20.;
 const MIN_REFRESH_RATE = 0.5;
@@ -101,6 +102,8 @@ export class UserInterface {
         let foldButton = (document.getElementById("foldButton") as HTMLDivElement);
         
         let gridSizeInput = (document.getElementById("gridSize") as HTMLInputElement);
+        let aliveRuleInput = (document.getElementById("aliveRule") as HTMLInputElement);
+        let surviveRuleInput = (document.getElementById("surviveRule") as HTMLInputElement);
 
         let toolButtons = (document.getElementsByClassName("tool") as HTMLCollectionOf<HTMLDivElement>);
 
@@ -143,9 +146,17 @@ export class UserInterface {
             document.getElementById("foldButton").classList.toggle("hidden")
         });
 
-        gridSizeInput.addEventListener("change", async () => {
+        gridSizeInput.addEventListener("change", () => {
             this._nbElements = (gridSizeInput.value as unknown as number)**2;
             this._viewer.initCurrentVisu(this._nbElements);
+        });
+
+        aliveRuleInput.addEventListener("change", () => {
+            SocketHandler.getInstance()
+        });
+
+        surviveRuleInput.addEventListener("change", () => {
+            SocketHandler.getInstance()
         });
 
         for(let i=0; i<toolButtons.length; i++){

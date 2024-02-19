@@ -28,6 +28,7 @@ class ParamType(models.TextChoices):
         NUMBERVALUE = "NV",
         COLORVALUE = "CV",
         SELECTIONVALUE = "SV"
+        TEXTVALUE = "TV"
     
 class Parameter(models.Model):
     idHtml = models.CharField(max_length=128, null=True)
@@ -53,9 +54,16 @@ class NumberParameter(Parameter):
 class ColorParameter(Parameter):
     hexDefaultValue = models.CharField(max_length=7)
     type = ParamType.COLORVALUE
+
+class TextParameter(Parameter):
+    values = models.TextField(max_length=128, help_text="Write options separate with '/'")
+    type = ParamType.TEXTVALUE
+
+    def getValuesList(self):
+        return self.values.split(sep='/')
     
 class SelectionParameter(Parameter):
-    options = models.CharField(max_length=512, help_text="Wrote options separate with '/'")
+    options = models.CharField(max_length=512, help_text="Write options separate with '/'")
     type = ParamType.SELECTIONVALUE
     
     def getoptionsList(self):

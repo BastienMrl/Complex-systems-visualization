@@ -12,6 +12,8 @@
                     {% include "configurationItems/parameterItems/selectionParameter.html"%}
                 {% elif param.type == "CV" %}
                     {% include "configurationItems/parameterItems/colorParameter.html"%}
+                {% elif param.type == "TV" %}
+                    {% include "configurationItems/parameterItems/textParameter.html" %}
                 {% endif %}
             {% endfor %}
         </div>

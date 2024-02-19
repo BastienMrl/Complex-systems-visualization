@@ -152,16 +152,17 @@ export class Viewer {
         let delta = this._lastTime = 0 ? 0 : time - this._lastTime;
         this._lastTime = time;
         // picking
-        if (this._drawable) {
+        /*if (this._drawable){
             this._stats.startPickingTimer();
             let prevSelection = this._selectionHandler.selectedId;
             this._selectionHandler.updateCurrentSelection(this.camera, this._multipleInstances, this.getAnimationTime(AnimableValue.TRANSLATION));
             let currentSelection = this._selectionHandler.selectedId;
-            if (currentSelection != prevSelection) {
+            
+            if (currentSelection != prevSelection){
                 this._multipleInstances.setMouseOver(currentSelection);
             }
             this._stats.stopPickingTimer();
-        }
+        }*/
         // rendering
         this._stats.startRenderingTimer(delta);
         this.clear();
