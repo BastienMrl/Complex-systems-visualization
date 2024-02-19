@@ -5,8 +5,8 @@ import { MultipleMeshInstances } from "./mesh.js";
 import { Stats } from "./stats.js";
 import { AnimationTimer } from "./animationTimer.js";
 import { TransformableValues } from "./transformableValues.js";
-import { SelectionHandler } from "./selectionHandler.js";
-import { WorkerMessage, getMessageBody, getMessageHeader, sendMessageToWorker } from "./workerInterface.js";
+import { SelectionHandler } from "./workers/selectionHandler.js";
+import { WorkerMessage, getMessageBody, getMessageHeader, sendMessageToWorker } from "./workers/workerInterface.js";
 
 // provides access to gl constants
 const gl = WebGL2RenderingContext

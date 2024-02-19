@@ -1,6 +1,6 @@
-import { Camera } from "./camera.js";
-import { MultipleMeshInstances } from "./mesh.js";
-import * as shaderUtils from "./shaderUtils.js";
+import { Camera } from "../camera.js";
+import { MultipleMeshInstances } from "../mesh.js";
+import * as shaderUtils from "../shaderUtils.js";
 
 // provides access to gl constants
 const gl = WebGL2RenderingContext
