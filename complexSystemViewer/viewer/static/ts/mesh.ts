@@ -1,6 +1,6 @@
 import { Vec3, Mat4 } from "./ext/glMatrix/index.js";
 import OBJFile from "./ext/objFileParser/OBJFile.js";
-import { TransformableValues } from "./statesTransformer.js";
+import { TransformableValues } from "./transformableValues.js";
 
 // provides access to gl constants
 const gl = WebGL2RenderingContext;
@@ -9,8 +9,8 @@ const posLoc = 0;
 const normalLoc = 1;
 const uvLoc = 2;
 
-const colorLoc = 3;
-const translationLoc = 5;
+const translationLoc = 3;
+const stateLoc = 5;
 
 const selectionLoc = 10;
 
@@ -26,13 +26,10 @@ export class MultipleMeshInstances{
     private _vertNormals : Float32Array;
     private _vertUVs : Float32Array;
     private _vertIndices : Float32Array;
-    private _nbFaces : number;
 
-    private _colorBuffer : InstanceAttribBuffer;
-    private _colors : Float32Array;
-
+    
     private _translationBuffer : InstanceAttribBuffer;
-    private _translation : Float32Array;
+    private _stateBuffer : InstanceAttribBuffer;
 
     private _vao : WebGLVertexArrayObject | null;
     private _selectionVao : WebGLVertexArrayObject | null;
@@ -40,20 +37,18 @@ export class MultipleMeshInstances{
 
     public constructor(context : WebGL2RenderingContext, values : TransformableValues){
 
+
         this._context = context;
         this._nbInstances = values.nbElements;
 
-        this._translation = values.translations;
-
-        this._colors = values.colors;
         
         this._vao = this._context.createVertexArray();
         this._selectionVao = this._context.createVertexArray();
         this._translationBuffer = new InstanceAttribBuffer(context);
-        this._translationBuffer.initialize(this._translation);
+        this._translationBuffer.initialize(values.translations);
 
-        this._colorBuffer = new InstanceAttribBuffer(context);
-        this._colorBuffer.initialize(this._colors);
+        this._stateBuffer = new InstanceAttribBuffer(context);
+        this._stateBuffer.initialize(values.states);
     }
 
     // getters
@@ -66,15 +61,10 @@ export class MultipleMeshInstances{
     }
     
 
-    // private methods
-    private getIndexFromCoords(i : number, j : number, nbCol : number) : number {
-        return nbCol * i + j; 
-    }
-
     private updataMouseOverBuffer(idx : number | null){
         let arr = new Float32Array(this._nbInstances).fill(0.);
-        if (idx != null)
-            arr[idx] = 1.;
+        if (idx != null && idx > 0)
+            arr[idx - 1] = 1.;
         this._context.bindBuffer(gl.ARRAY_BUFFER, this._mouseOverBuffer);
         this._context.bufferSubData(gl.ARRAY_BUFFER, 0, arr);
         this._context.bindBuffer(gl.ARRAY_BUFFER, null);
@@ -105,6 +95,9 @@ export class MultipleMeshInstances{
 
         // translation
         this._translationBuffer.bindAttribs(translationLoc, 1, 3, gl.FLOAT, false, 0);
+
+        // states
+        this._stateBuffer.bindAttribs(stateLoc, 1, 1, gl.FLOAT, false, 0);
         
         this._context.bindBuffer(gl.ARRAY_BUFFER, null);
 
@@ -130,11 +123,11 @@ export class MultipleMeshInstances{
         this._context.vertexAttribPointer(normalLoc, 3, gl.FLOAT, false, 0, 0);
         this._context.enableVertexAttribArray(1);
         
-        // colors
-        this._colorBuffer.bindAttribs(colorLoc, 1, 3, gl.FLOAT, false, 0);
-
         // translation
         this._translationBuffer.bindAttribs(translationLoc, 1, 3, gl.FLOAT, false, 0);
+        
+        // states
+        this._stateBuffer.bindAttribs(stateLoc, 1, 1, gl.FLOAT, false, 0);
         
         // mouse over
         this._mouseOverBuffer = this._context.createBuffer();
@@ -153,12 +146,9 @@ export class MultipleMeshInstances{
         this._context.bindVertexArray(null);
     }
 
-    public updateTranslations(translations : Float32Array){
-        this._translationBuffer.updateAttribs(translations);
-    }
-    
-    public updateColors(colors : Float32Array){
-        this._colorBuffer.updateAttribs(colors);
+    public updateStates(values : TransformableValues){
+        this._translationBuffer.updateAttribs(values.translations);
+        this._stateBuffer.updateAttribs(values.states);
     }
 
     public setMouseOver(idx : number | null){
@@ -248,7 +238,6 @@ export class MultipleMeshInstances{
         }
 
         this._vertIndices = new Float32Array(vertIndices);
-        this._nbFaces = this._vertIndices.length / 3;
 
         this.initSelectionVAO();
         this.initDrawVAO();

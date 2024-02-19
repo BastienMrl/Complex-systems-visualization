@@ -1,6 +1,7 @@
 import { Camera } from "./camera.js";
 import { MultipleMeshInstances } from "./mesh.js";
 import * as shaderUtils from "./shaderUtils.js";
+import { StatesTransformer } from "./statesTransformer.js";
 
 // provides access to gl constants
 const gl = WebGL2RenderingContext
@@ -15,7 +16,8 @@ export class SelectionHandler{
     private _frameBuffer : WebGLFramebuffer | null;
     private _selectionTargetTexture : WebGLTexture | null;
     private _selectionDepthBuffer : WebGLRenderbuffer | null;
-    private _selectionProgram : WebGLProgram;
+
+    private _selectionProgram : shaderUtils.ProgramWithTransformer;
 
     public mouseX : number;
     public mouseY : number;
@@ -29,6 +31,7 @@ export class SelectionHandler{
         this._context = context;
         this._canvas = this._context.canvas as HTMLCanvasElement;
         this.selectedId = null;
+        this._selectionProgram = new shaderUtils.ProgramWithTransformer(context);
     }
 
     public static getInstance(context : WebGL2RenderingContext) : SelectionHandler{
@@ -44,7 +47,7 @@ export class SelectionHandler{
             this.mouseY = e.clientY - rect.top;
         });
 
-        this._selectionProgram = await shaderUtils.initShaders(this._context, srcVs, srcFs);
+        await this._selectionProgram.generateProgram(srcVs, srcFs);
 
         this._frameBuffer = this._context.createFramebuffer();
         this._context.bindFramebuffer(gl.FRAMEBUFFER, this._frameBuffer);
@@ -76,12 +79,12 @@ export class SelectionHandler{
     }
 
     public updateCurrentSelection(camera : Camera, meshes : MultipleMeshInstances, time : number){
-        this._context.useProgram(this._selectionProgram);
+        this._context.useProgram(this._selectionProgram.program);
         this._context.bindFramebuffer(gl.FRAMEBUFFER, this._frameBuffer);
         this._context.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-        let projViewLoc = this._context.getUniformLocation(this._selectionProgram, "u_proj_view");
-        let timeLoc = this._context.getUniformLocation(this._selectionProgram, "u_time");
+        let projViewLoc = this._context.getUniformLocation(this._selectionProgram.program, "u_proj_view");
+        let timeLoc = this._context.getUniformLocation(this._selectionProgram.program, "u_time_translation");
 
 
         this._context.uniformMatrix4fv(projViewLoc, false, camera.projViewMatrix);
@@ -93,13 +96,13 @@ export class SelectionHandler{
         this._context.readPixels(this.mouseX, this._canvas.height - this.mouseY, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, data)
         
         this._context.bindFramebuffer(gl.FRAMEBUFFER, null);
-        let id = data[0] + (data[1] << 8) + (data[2] << 16) + (data[3] << 24) - 1;
+        let id = data[0] + (data[1] << 8) + (data[2] << 16) + (data[3] << 24);
         if (id != this.selectedId){
-            this.selectedId = id >= 0 ? id : null;
+            this.selectedId = id > 0 ? id : null;
         }
     }
 
-    public hasCurrentSelection() : boolean {
-        return this.selectedId != null;
+    public updateProgamTransformers(transformers : StatesTransformer){
+        this._selectionProgram.updateProgramTransformers(transformers.generateTranslationTransformersBlock());
     }
 }

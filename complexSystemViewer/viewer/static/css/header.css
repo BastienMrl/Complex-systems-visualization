@@ -1,4 +1,5 @@
 header {
+    z-index: 1;
     position: sticky;
     top: 0px;
     padding: 0px 70px;
@@ -33,4 +34,22 @@ header #headerAction {
 
 header h1 {
     margin: 0px;
+}
+
+#animationTimer {
+    background-color: rgba(188, 204, 209, 0.9);
+    position : fixed;
+    top: 60px;
+    right: 15px;
+    width : 300px;
+    height: 40px;
+    text-justify: center;
+    display: none;
+    flex-direction: column;
+    padding: 10px;
+    border-radius: 10px;
+}
+
+#animationTimer label{
+    text-align: center;
 }

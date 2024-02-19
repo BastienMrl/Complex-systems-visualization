@@ -1,4 +1,4 @@
-import * as shaderUtils from "./shaderUtils.js";
+import * as shaderUtils from "../shaderUtils.js";
 // provides access to gl constants
 const gl = WebGL2RenderingContext;
 export class SelectionHandler {

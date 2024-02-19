@@ -45,6 +45,10 @@ export class SocketHandler {
     
     }
 
+    public get isConnected() : boolean{
+        return this._isConnected;
+    }
+
     // setters
     public set onDataReceived(fct : (data : any) => void){
         this._onDataReceived = fct;

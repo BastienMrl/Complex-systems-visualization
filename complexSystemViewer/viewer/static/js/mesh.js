@@ -5,8 +5,8 @@ const gl = WebGL2RenderingContext;
 const posLoc = 0;
 const normalLoc = 1;
 const uvLoc = 2;
-const colorLoc = 3;
-const translationLoc = 5;
+const translationLoc = 3;
+const stateLoc = 5;
 const selectionLoc = 10;
 const idLoc = 1;
 export class MultipleMeshInstances {
@@ -16,25 +16,20 @@ export class MultipleMeshInstances {
     _vertNormals;
     _vertUVs;
     _vertIndices;
-    _nbFaces;
-    _colorBuffer;
-    _colors;
     _translationBuffer;
-    _translation;
+    _stateBuffer;
     _vao;
     _selectionVao;
     _mouseOverBuffer;
     constructor(context, values) {
         this._context = context;
         this._nbInstances = values.nbElements;
-        this._translation = values.translations;
-        this._colors = values.colors;
         this._vao = this._context.createVertexArray();
         this._selectionVao = this._context.createVertexArray();
         this._translationBuffer = new InstanceAttribBuffer(context);
-        this._translationBuffer.initialize(this._translation);
-        this._colorBuffer = new InstanceAttribBuffer(context);
-        this._colorBuffer.initialize(this._colors);
+        this._translationBuffer.initialize(values.translations);
+        this._stateBuffer = new InstanceAttribBuffer(context);
+        this._stateBuffer.initialize(values.states);
     }
     // getters
     get vertPositions() {
@@ -43,14 +38,10 @@ export class MultipleMeshInstances {
     get vertNormals() {
         return this._vertNormals;
     }
-    // private methods
-    getIndexFromCoords(i, j, nbCol) {
-        return nbCol * i + j;
-    }
     updataMouseOverBuffer(idx) {
         let arr = new Float32Array(this._nbInstances).fill(0.);
-        if (idx != null)
-            arr[idx] = 1.;
+        if (idx != null && idx > 0)
+            arr[idx - 1] = 1.;
         this._context.bindBuffer(gl.ARRAY_BUFFER, this._mouseOverBuffer);
         this._context.bufferSubData(gl.ARRAY_BUFFER, 0, arr);
         this._context.bindBuffer(gl.ARRAY_BUFFER, null);
@@ -77,6 +68,8 @@ export class MultipleMeshInstances {
         this._context.enableVertexAttribArray(idLoc);
         // translation
         this._translationBuffer.bindAttribs(translationLoc, 1, 3, gl.FLOAT, false, 0);
+        // states
+        this._stateBuffer.bindAttribs(stateLoc, 1, 1, gl.FLOAT, false, 0);
         this._context.bindBuffer(gl.ARRAY_BUFFER, null);
         this._context.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._context.createBuffer());
         this._context.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint32Array(this._vertIndices), gl.STATIC_DRAW);
@@ -94,10 +87,10 @@ export class MultipleMeshInstances {
         this._context.bufferData(gl.ARRAY_BUFFER, new Float32Array(this._vertNormals), gl.STATIC_DRAW);
         this._context.vertexAttribPointer(normalLoc, 3, gl.FLOAT, false, 0, 0);
         this._context.enableVertexAttribArray(1);
-        // colors
-        this._colorBuffer.bindAttribs(colorLoc, 1, 3, gl.FLOAT, false, 0);
         // translation
         this._translationBuffer.bindAttribs(translationLoc, 1, 3, gl.FLOAT, false, 0);
+        // states
+        this._stateBuffer.bindAttribs(stateLoc, 1, 1, gl.FLOAT, false, 0);
         // mouse over
         this._mouseOverBuffer = this._context.createBuffer();
         const arr = new Float32Array(this._nbInstances).fill(0.);
@@ -111,11 +104,9 @@ export class MultipleMeshInstances {
         this._context.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint32Array(this._vertIndices), gl.STATIC_DRAW);
         this._context.bindVertexArray(null);
     }
-    updateTranslations(translations) {
-        this._translationBuffer.updateAttribs(translations);
-    }
-    updateColors(colors) {
-        this._colorBuffer.updateAttribs(colors);
+    updateStates(values) {
+        this._translationBuffer.updateAttribs(values.translations);
+        this._stateBuffer.updateAttribs(values.states);
     }
     setMouseOver(idx) {
         this.updataMouseOverBuffer(idx);
@@ -182,7 +173,6 @@ export class MultipleMeshInstances {
             this._vertNormals[i * 3 + 2] = normals[i].z;
         }
         this._vertIndices = new Float32Array(vertIndices);
-        this._nbFaces = this._vertIndices.length / 3;
         this.initSelectionVAO();
         this.initDrawVAO();
     }

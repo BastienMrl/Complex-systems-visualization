@@ -4,9 +4,10 @@ import { Camera } from "./camera.js";
 import { MultipleMeshInstances } from "./mesh.js";
 import { Stats } from "./stats.js";
 import { AnimationTimer } from "./animationTimer.js";
-import { StatesBuffer } from "./statesBuffer.js";
-import { StatesTransformer, TransformType, TransformableValues } from "./statesTransformer.js";
+import { TransformableValues } from "./transformableValues.js";
 import { SelectionHandler } from "./selectionHandler.js";
+import { WorkerMessage, getMessageBody, getMessageHeader, sendMessageToWorker } from "./workers/workerInterface.js";
+import { StatesTransformer } from "./statesTransformer.js";
 
 // provides access to gl constants
 const gl = WebGL2RenderingContext
@@ -20,7 +21,7 @@ export enum AnimableValue {
 export class Viewer {
     public context : WebGL2RenderingContext;
     public canvas : HTMLCanvasElement;
-    public shaderProgram : WebGLProgram;
+    public shaderProgram : shaderUtils.ProgramWithTransformer;
     public resizeObserver : ResizeObserver;
 
 
@@ -39,9 +40,11 @@ export class Viewer {
     private _animationIds : [number, number];
 
 
-    private _statesBuffer : StatesBuffer;
+    private _transmissionWorker : Worker;
+    private _currentValue : TransformableValues | null;
 
     private _drawable : boolean;
+    private _usePicking : boolean;
     
     constructor(canvasId : string){
         this.canvas = document.getElementById(canvasId) as HTMLCanvasElement;
@@ -53,26 +56,33 @@ export class Viewer {
         this.context = context;
         this._stats = new Stats(document.getElementById("renderingFps") as HTMLElement,
                                 document.getElementById("updateMs") as HTMLElement,
-                                document.getElementById("renderingMs") as HTMLElement);
+                                document.getElementById("renderingMs") as HTMLElement,
+                                document.getElementById("pickingMs") as HTMLElement,
+                                document.getElementById("totalMs") as HTMLElement);
 
         this._animationTimer = new AnimationTimer(0.15, false);
         this._animationIds = [null, null];
 
         this._selectionHandler = SelectionHandler.getInstance(context);
         
-        
-        this._statesBuffer = new StatesBuffer(new StatesTransformer());
+        this._currentValue = null;
+        this._transmissionWorker = new Worker("/static/js/workers/transmissionWorker.js", {type : "module"});
+        this._transmissionWorker.onmessage = this.onTransmissionWorkerMessage.bind(this);
+
         this._drawable = false;
+
+        this.shaderProgram = new shaderUtils.ProgramWithTransformer(context);
     }
     
     // initialization methods
     public async initialization(srcVs : string, srcFs : string, nbInstances : number){
-        this.shaderProgram = await shaderUtils.initShaders(this.context, srcVs, srcFs);
-        this.context.useProgram(this.shaderProgram);
+        await this.shaderProgram.generateProgram(srcVs, srcFs);
+        this.context.useProgram(this.shaderProgram.program);
         
         this.context.viewport(0, 0, this.canvas.width, this.canvas.height);
         this.context.clearColor(0.2, 0.2, 0.2, 1.0);
         this.context.enable(gl.CULL_FACE);
+        this.context.cullFace(gl.BACK)
         this.context.enable(gl.DEPTH_TEST);
         
         
@@ -92,13 +102,14 @@ export class Viewer {
 
     public async initCurrentVisu(nbElements : number){
         this._drawable = false;
-        this._statesBuffer.initializeElements(nbElements);
+        this._currentValue = null;
+        sendMessageToWorker(this._transmissionWorker, WorkerMessage.RESET, nbElements);
         
-        while (!this._statesBuffer.isReady){
+        while (this._currentValue == null){
             await new Promise(resolve => setTimeout(resolve, 1));
         };
 
-        let values = this._statesBuffer.values;
+        let values = this._currentValue;
         await this.initMesh(values);
         this._drawable = true;
     }
@@ -125,6 +136,27 @@ export class Viewer {
     }
 
 
+    // getter
+    public get selectedId() : number {
+        return this._selectionHandler.selectedId;
+    }
+
+    public get usePicking() : boolean {
+        return this._usePicking;
+    }
+
+    // setter
+
+    // in seconds
+    public set animationDuration(duration : number){
+        this._animationTimer.duration = duration;
+    }
+
+    public set usePicking(value : boolean){
+        this._usePicking = value;
+    }
+
+
     // private methods
     private onCanvasResize(){
         this.canvas.width = this.canvas.clientWidth;
@@ -136,9 +168,13 @@ export class Viewer {
     }
     
     private updateScene(){
-        let values = this._statesBuffer.values;
-        this._multipleInstances.updateColors(values.colors);
-        this._multipleInstances.updateTranslations(values.translations);
+        if (this._currentValue == null)
+            return;
+        this._stats.startUpdateTimer();
+        this._multipleInstances.updateStates(this._currentValue)
+        this.context.finish();
+        this._stats.stopUpdateTimer();
+        sendMessageToWorker(this._transmissionWorker, WorkerMessage.GET_VALUES);
     }
 
     private clear(){
@@ -147,13 +183,13 @@ export class Viewer {
 
 
     private draw(){
-        this.context.useProgram(this.shaderProgram);
+        this.context.useProgram(this.shaderProgram.program);
 
-        let projLoc = this.context.getUniformLocation(this.shaderProgram, "u_proj");
-        let viewLoc = this.context.getUniformLocation(this.shaderProgram, "u_view")
-        let lightLoc = this.context.getUniformLocation(this.shaderProgram, "u_light_loc");
-        let timeColorLoc = this.context.getUniformLocation(this.shaderProgram, "u_time_color");
-        let timeTranslationLoc = this.context.getUniformLocation(this.shaderProgram, "u_time_translation");
+        let projLoc = this.context.getUniformLocation(this.shaderProgram.program, "u_proj");
+        let viewLoc = this.context.getUniformLocation(this.shaderProgram.program, "u_view")
+        let lightLoc = this.context.getUniformLocation(this.shaderProgram.program, "u_light_loc");
+        let timeColorLoc = this.context.getUniformLocation(this.shaderProgram.program, "u_time_color");
+        let timeTranslationLoc = this.context.getUniformLocation(this.shaderProgram.program, "u_time_translation");
 
         let lightPos = Vec3.fromValues(0.0, 100.0, 10.0);
         Vec3.transformMat4(lightPos, lightPos, this.camera.viewMatrix);
@@ -185,22 +221,27 @@ export class Viewer {
         let delta = this._lastTime = 0 ? 0 : time - this._lastTime;
         this._lastTime = time
         
+        
+        // picking
+        if (this._drawable && this._usePicking){
+            this._stats.startPickingTimer();
+            let prevSelection = this._selectionHandler.selectedId;
+            this._selectionHandler.updateCurrentSelection(this.camera, this._multipleInstances, this.getAnimationTime(AnimableValue.TRANSLATION));
+            let currentSelection = this._selectionHandler.selectedId;
+            
+            if (currentSelection != prevSelection){
+                this._multipleInstances.setMouseOver(currentSelection);
+            }
+            this._stats.stopPickingTimer();
+        }
+        
+        // rendering
         this._stats.startRenderingTimer(delta);
         this.clear();
-
-
-        // let prevSelection = this._selectionHandler.selectedId;
-        // this._selectionHandler.updateCurrentSelection(this.camera, this._multipleInstances, this.getAnimationTime(AnimableValue.TRANSLATION));
-        // let currentSelection = this._selectionHandler.selectedId;
-
-        // if (this._selectionHandler.hasCurrentSelection() && currentSelection != prevSelection){
-        //     this._multipleInstances.setMouseOver(currentSelection);
-        // }
         if (this._drawable)
             this.draw();
         this.context.finish();
-
-       this._stats.stopRenderingTimer();
+        this._stats.stopRenderingTimer();
     }
 
     private getAnimationTime(type : AnimableValue){
@@ -210,28 +251,15 @@ export class Viewer {
         return this._animationTimer.getAnimationTime(id);
     }
 
-    public updateState(data : any){
-        this._stats.startUpdateTimer();
-        
-        let colors = new Float32Array(data.length * 3);
-        const c1 = [0.0392156862745098, 0.23137254901960785, 0.28627450980392155];
-        const c2 = [0.8705882352941177, 0.8901960784313725, 0.9294117647058824];
-
-        for (let i = 0; i < data.length; i++){
-            for (let k = 0; k < 3; k++){
-                colors[i * 3 + k] = c1[k] * data[i] + c2[k] * (1. - data[i]);
-            }
+    private onTransmissionWorkerMessage(e : MessageEvent<any>){
+        switch(getMessageHeader(e.data)){
+            case WorkerMessage.READY:
+                break;
+            case WorkerMessage.VALUES:
+                let data = getMessageBody(e.data)
+                this._currentValue = TransformableValues.fromValues(data[0], data[1]);
+                break;
         }
-        this._multipleInstances.updateColors(colors);
-
-        // this._multipleInstances.updateTranslations(data);
-
-        this._stats.stopUpdateTimer();
-    }
-
-
-    public setCurrentTransformer(transformer : StatesTransformer){
-        this._statesBuffer.transformer = transformer;
     }
 
     public bindAnimationCurve(type : AnimableValue, fct : (time : number) => number){
@@ -246,12 +274,11 @@ export class Viewer {
 
     public stopVisualizationAnimation() {
         this._animationTimer.loop = false
-        this._animationTimer.stop();
     }
 
-
-    public get statesBuffer() : StatesBuffer {
-        return this._statesBuffer;
+    public updateProgamsTransformers(transformers : StatesTransformer){
+        this.shaderProgram.updateProgramTransformers(transformers.generateTransformersBlock());
+        this._selectionHandler.updateProgamTransformers(transformers);
     }
 
 }
