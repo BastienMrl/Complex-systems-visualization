@@ -2,16 +2,16 @@ from abc import ABC, abstractmethod
 import jax.numpy as jnp
 import jax.lax as lax
 import jax.random
-from .parameter import *
+from .param import *
 import numpy as np
 class Param(ABC): 
-    id_param : String = None
+    id_param  = None
     type_param : type = None
-    name : String = None
+    name  = None
     value = None
      
 
-    def __init__(self, id_p : string, type_p:type, name:string, value):
+    def __init__(self, id_p , type_p:type, name, value):
         self.id_param = id_p
         self.type_param = type_p
         self.name = name
@@ -41,7 +41,7 @@ class Param(ABC):
 
 class IntParam(Param):     
 
-    def __init__(self, id_p : string, name:string, value = 0):
+    def __init__(self, id_p , name, value = 0):
         super().__init__(id_p, int, name, value)
 
     def convert(self, value):

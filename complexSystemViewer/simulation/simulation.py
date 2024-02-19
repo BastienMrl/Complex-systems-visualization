@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 import jax.numpy as jnp
 import jax.lax as lax
 import jax.random
-from .parameter import *
+from .param import *
 import numpy as np
 class Simulation(ABC): 
     
