@@ -25,6 +25,8 @@ class RulesConfiguration(ConfigurationItem):
         return self.aLifeModel.__str__() + "srules"
 
 class TransformerItem(ConfigurationItem):
+    outputType = models.CharField(max_length=128, default="POSITION_X")
+    transformerType = models.CharField(max_length=128, default="COLOR")
     def __str__(self):
         return self.name + " of " + self.aLifeModel.__str__()
 
@@ -35,7 +37,7 @@ class ParamType(models.TextChoices):
         SELECTIONVALUE = "SV"
     
 class Parameter(models.Model):
-    idHtml = models.CharField(max_length=128, null=True)
+    paramId = models.CharField(max_length=128, null=True)
     name = models.CharField(max_length=128)
     configurationItem = models.ForeignKey(ConfigurationItem, on_delete=models.CASCADE)
     objects = InheritanceManager()
@@ -62,6 +64,7 @@ class ColorParameter(Parameter):
     
 class SelectionParameter(Parameter):
     options = models.CharField(max_length=512, help_text="Wrote options separate with '/'")
+    defaultValue = models.SmallIntegerField(default=0)
     type = ParamType.SELECTIONVALUE
     
     def getoptionsList(self):

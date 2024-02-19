@@ -130,6 +130,16 @@ export class StatesTransformer{
         this._inputDeclarations.push(s);
     }
 
+    private deleteVariableDeclaration(variable : string){
+        let idx = -1;
+        for (let i = 0; i < this._inputDeclarations.length; ++i){
+            if (this._inputDeclarations[i].includes(`${variable}`))
+                idx = i;
+        }
+        if (idx >= 0)
+            this._inputDeclarations.splice(idx, 1);
+    }
+
     private getInputVariableName(transformType : TransformType, intputType : InputType) : string{
         let s = "input_";
         switch(transformType){
@@ -200,13 +210,13 @@ export class StatesTransformer{
         return s;
     }
 
-    public addTransformer(type : TransformType, dataIndex : InputType, params? : any[]) : number{
-        let inputVariable = this.getInputVariableName(type, dataIndex);
+    public addTransformer(type : TransformType, inputType : InputType, params? : any[]) : number{        
+        let inputVariable = this.getInputVariableName(type, inputType);
         let id = this._idCpt++;
         switch(type){
             case TransformType.COLOR:
                 this._transformers.push(new ColorTransformer(id, inputVariable, params));
-                this._dataIndices.push(dataIndex);
+                this._dataIndices.push(inputType);
                 break;
             case TransformType.COLOR_R:
                 break;
@@ -217,19 +227,19 @@ export class StatesTransformer{
             
             case TransformType.POSITION_X:
                 this._transformers.push(new PositionTransformer(id, inputVariable, 0, params == undefined ? 1. : params[0]));
-                this._dataIndices.push(dataIndex);
+                this._dataIndices.push(inputType);
                 break;
             case TransformType.POSITION_Y:
                 this._transformers.push(new PositionTransformer(id, inputVariable, 1, params == undefined ? 1. : params[0]));
-                this._dataIndices.push(dataIndex);
+                this._dataIndices.push(inputType);
                 break;
             case TransformType.POSITION_Z:
                 this._transformers.push(new PositionTransformer(id, inputVariable, 2, params == undefined ? 1. : params[0]));
-                this._dataIndices.push(dataIndex);
+                this._dataIndices.push(inputType);
                 break;
         }
 
-        this.addInputVariableDeclaration(type, dataIndex, inputVariable);
+        this.addInputVariableDeclaration(type, inputType, inputVariable);
         return this._transformers.length - 1;
     }
 
@@ -275,6 +285,20 @@ export class StatesTransformer{
         if (id < 0 || id >= this._transformers.length)
             return;
         this._transformers[id].setParameters(params);
+    }
+
+    public setInputType(id : number, inputType : InputType){
+        if (id < 0 || id >= this._transformers.length)
+            return;
+
+        let oldVariable = this._transformers[id].getInputVariable();
+        let transformType = this._transformers[id].type;
+        let newVariable = this.getInputVariableName(transformType, inputType);
+
+        this.addInputVariableDeclaration(transformType, inputType, newVariable);
+        this._transformers[id].setInputVariable(newVariable);
+        
+        this.deleteVariableDeclaration(oldVariable);
     }
 
 }
@@ -373,6 +397,16 @@ abstract class Transformer {
     
 
     public abstract setParameters(...args : any[]) : void;
+
+    public setInputVariable(variable : string){
+        this._inputVariable = variable;
+    }
+
+    public getInputVariable() : string{
+        return this._inputVariable;
+    }
+
+    
 }
 
 class ColorTransformer extends Transformer{
