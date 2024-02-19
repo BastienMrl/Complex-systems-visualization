@@ -10,7 +10,6 @@ export class StatesBuffer {
         this._transformedValues = new TransformableValues();
         this._socketHandler = SocketHandler.getInstance();
         this._socketHandler.onDataReceived = function (data) {
-            
             this.onStateReceived(data);
         }.bind(this);
         this._isInitialized = false;

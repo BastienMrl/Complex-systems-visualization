@@ -1,6 +1,5 @@
-import json
-import asyncio
-import random
+import orjson
+import time
 import jax.numpy as jnp
 import jax.lax as lax
 import jax.random
@@ -28,7 +27,7 @@ class ViewerConsumer(AsyncWebsocketConsumer):
         self.isConnected = False
 
     async def receive(self, text_data=None):
-        text_data_json = json.loads(text_data)
+        text_data_json = orjson.loads(text_data)
         message = text_data_json["message"]
         match message:
             case "Start":
@@ -57,7 +56,10 @@ class ViewerConsumer(AsyncWebsocketConsumer):
         x = ((xy[1].reshape(row * row) + offset)).tolist()
         y = ((xy[0].reshape(row * row) + offset)).tolist()
         data = [x, y, grid]
-        await self.send(text_data=json.dumps(data))
+        time1 = time.time()
+        json = orjson.dumps(data)
+        print(time.time() - time1)
+        await self.send(bytes_data=json)
 
 
 
@@ -81,7 +83,7 @@ class ViewerConsumer(AsyncWebsocketConsumer):
         self.y = ((xy[0].reshape(row * row) + offset)).tolist()
         states = jnp.reshape(self.grid, (self.grid.size)).tolist()
         data = [self.x, self.y, states]
-        await self.send(text_data=json.dumps(data))
+        await self.send(bytes_data=orjson.dumps(data))
 
     async def sendOneStepGOL(self):
         def update(grid, kernel):
@@ -97,7 +99,7 @@ class ViewerConsumer(AsyncWebsocketConsumer):
         
         states = jnp.reshape(self.grid, (self.grid.size)).tolist()
         data = [self.x, self.y, states]
-        await self.send(text_data=json.dumps(data))
+        await self.send(bytes_data=orjson.dumps(data))
         self.grid = update(self.grid, self.kernel)
 
 
@@ -117,7 +119,7 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
         self.isConnected = False
 
     async def receive(self, text_data=None):
-        text_data_json = json.loads(text_data)
+        text_data_json = orjson.loads(text_data)
         message = text_data_json["message"]
         match message:
             case "Start":
@@ -143,7 +145,7 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
         x = ((xy[1].reshape(row * row) + offset) ).tolist()
         y = ((xy[0].reshape(row * row) + offset) ).tolist()
         data = [x, y, grid]
-        await self.send(text_data=json.dumps(data))
+        await self.send(bytes_data=orjson.dumps(data))
 
 
 
@@ -165,5 +167,5 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
 
     async def sendOneStepGOL(self):
         
-        await self.send(text_data=json.dumps(self.sim.to_JSON_object()))
+        await self.send(bytes_data=orjson.dumps(self.sim.to_JSON_object()))
         self.sim.step()
