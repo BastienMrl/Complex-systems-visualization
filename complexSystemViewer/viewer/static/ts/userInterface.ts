@@ -157,7 +157,6 @@ export class UserInterface {
                 toolButtons.item(i).classList.toggle("active");
                 if (i == 0) {
                     this._viewer.usePicking = !this._viewer.usePicking;
-                    console.log("test");
                 }
             });
         }
