@@ -39,7 +39,7 @@ class Simulation(ABC):
 
     def to_JSON_object(self) :
         print("to json")
-        
+        arr = list()
         id_arr = np.array([])
         pos_arr_x = np.empty( shape=(0) )
         pos_arr_y= np.empty( shape=(0) )
@@ -66,6 +66,11 @@ class Simulation(ABC):
             class_arr=v_cla(particules)
             
             print("to json3")
+            
+        arr.append(pos_arr_x.tolist())
+        arr.append(pos_arr_y.tolist())
+        arr.append(values_arr.tolist())
+        return arr
         return {
             #'ids' : id_arr.tolist(),
             'x' : pos_arr_x.tolist(),

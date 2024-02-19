@@ -36,8 +36,8 @@ class GridState(State) :
         self.grid = grid
         self.grid_particle_class = grid_particle_class
         s = jnp.shape(self.grid)
-        w = float(s[0])
-        h = float(s[1])
+        w = float(s[2])
+        h = float(s[3])
 
 
         super().__init__(w, h)
@@ -50,9 +50,9 @@ class GridState(State) :
         it = np.nditer(grid2d, order='C', flags=['multi_index'])
         for cell in it: 
             
-            x,y= it.multi_index
+            y,x= it.multi_index
             
-            particles.append(Particle(id_i, x-self.width/2, y-self.height/2, float(cell), particle_class = self.grid_particle_class, is_aligned_grid =  True))
+            particles.append(Particle(id_i, x-(self.width-1)/2, y-(self.height-1)/2, float(cell), particle_class = self.grid_particle_class, is_aligned_grid =  True))
             id_i+=1
         self.particles =  particles
 

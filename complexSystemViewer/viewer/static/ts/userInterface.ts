@@ -186,8 +186,8 @@ export class TransformersInterface {
     public constructor(viewer : Viewer){
         this._viewer = viewer;
         this._currentStatesTransformer = new StatesTransformer();
-        this._currentStatesTransformer.addTransformer(TransformType.POSITION_X, InputType.POSITION_X, [0.95]);
-        this._currentStatesTransformer.addTransformer(TransformType.POSITION_Z, InputType.POSITION_Y, [0.95]);
+        this._currentStatesTransformer.addTransformer(TransformType.POSITION_X, InputType.POSITION_X, [1.95]);
+        this._currentStatesTransformer.addTransformer(TransformType.POSITION_Z, InputType.POSITION_Y, [1.95]);
         this._currentStatesTransformer.addTransformer(TransformType.POSITION_Y, InputType.STATE_0, [1.5]);
     }
 
