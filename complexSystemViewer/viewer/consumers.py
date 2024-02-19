@@ -8,6 +8,8 @@ import math
 from channels.generic.websocket import AsyncWebsocketConsumer
 from simulation.state import State, GridState
 from simulation.models.game_of_life import GOLSimulation
+
+
 class ViewerConsumer(AsyncWebsocketConsumer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
