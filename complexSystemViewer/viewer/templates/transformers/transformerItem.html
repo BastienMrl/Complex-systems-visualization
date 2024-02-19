@@ -1,0 +1,15 @@
+<div class="configurationItem" id="{{transformer.idHtml}}">
+    <h2>{{transformer.name}}</h2>
+    <div class="visualizationInput">
+    <select>
+        {% for sysOutput in model.getSimOutType %}
+            <option value="{{sysOutput}}">{{sysOutput}}</option>
+        {% endfor %}
+    </select>
+    <div class="visuParam">
+        {% for param in parameters %}
+            {% include "parameters/miniParameterSwitch.html" %}
+        {% endfor %}
+    </div>
+    </div>
+</div>

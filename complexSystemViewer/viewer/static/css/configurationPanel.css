@@ -63,7 +63,7 @@
     margin: 0px;
 }
 
-.parametersList {
+.parametersList, .visualizationInput {
     margin: 10px;
     padding-left: 10px;
     border-left: solid var(--color-light) 1px;
@@ -97,4 +97,19 @@ input[type=number]:focus {
 
 h3, h4 {
     font-family: Inria-Light;
+}
+
+.visualizationInput {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.visualizationInput > select {
+    height: 27px;
+}
+
+.visualizationInput .visuParam {
+    display: flex;
+    flex-direction: column;
 }

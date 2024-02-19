@@ -1,0 +1,12 @@
+<div class="miniParam">
+    {% if param.type == "NR" %}
+        {% include "parameters/parameterItems/rangeParameter.html"%}
+    {% elif param.type == "NV" %}
+        {% include "parameters/parameterItems/numberParameter.html"%}
+    {% elif param.type == "SV" %}
+        {% include "parameters/parameterItems/selectionParameter.html"%}
+    {% elif param.type == "CV" %}
+        {% include "parameters/parameterItems/colorParameter.html"%}
+    {% endif %}
+    <p>{{param.name}}</p>
+</div>
