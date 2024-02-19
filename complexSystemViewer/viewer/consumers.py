@@ -6,8 +6,8 @@ import jax.lax as lax
 import jax.random
 import math
 from channels.generic.websocket import AsyncWebsocketConsumer
-
-
+from simulation.state import State, GridState
+from simulation.models.game_of_life import GOLSimulation
 class ViewerConsumer(AsyncWebsocketConsumer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -22,9 +22,11 @@ class ViewerConsumer(AsyncWebsocketConsumer):
             self.simulation_task.cancel()
 
     async def receive(self, text_data=None):
+        print("receive")
         text_data_json = json.loads(text_data)
         message = text_data_json["message"]
         if message == "Start":
+            print("Strat")
             if self.simulation_task is None or self.simulation_task.done():
                 key = jax.random.PRNGKey(1701)
                 nb = text_data_json["params"]
@@ -33,13 +35,14 @@ class ViewerConsumer(AsyncWebsocketConsumer):
                 grid = jnp.round(grid)
                 grid = jnp.transpose(grid, [0, 3, 1, 2])
 
-                # HWIO
-                kernel = jnp.zeros((3, 3, 1, 1), dtype=jnp.float32)
-                kernel += jnp.array([[1, 1, 1],
-                                    [1, 10, 1],
-                                    [1, 1, 1]])[:, :, jnp.newaxis, jnp.newaxis]
-                kernel = jnp.transpose(kernel, [3, 2, 0, 1])
-                self.simulation_task = asyncio.create_task(self.sendGameOfLife(grid, kernel))
+                print("prep state")
+                state = GridState(grid)
+
+                print("prep sim")
+                gol = GOLSimulation(init_states=[state])
+                
+                print("prep sim done")
+                self.simulation_task = asyncio.create_task(self.sendGameOfLife(gol))
         elif message == "Stop":
             if self.simulation_task:
                 self.simulation_task.cancel()
@@ -60,27 +63,19 @@ class ViewerConsumer(AsyncWebsocketConsumer):
             pass  # La tâche a été annulée, arrêter la simulation proprement
 
 
-    async def sendGameOfLife(self, grid, kernel):
-
-        def update(grid, kernel):
-            out = lax.conv(grid, kernel, (1, 1), 'SAME')
-
-            cdt_1 = out == 12 
-            cdt_2 = out == 13
-            cdt_3 = out == 3
-
-            out = jnp.logical_or(cdt_1, cdt_2)
-            out = jnp.logical_or(out, cdt_3)
-            return out.astype(jnp.float32)
-            
+    async def sendGameOfLife(self,sim):   
+        print("send")
         try:
             while True:
-                await self.send(text_data=json.dumps(jnp.reshape(grid, (grid.size)).tolist()))
-                grid = update(grid, kernel)
-                await asyncio.sleep(0.5)  # Contrôle la vitesse de la simulation
+                print("step")
+                await self.send(text_data=json.dumps(sim.to_JSON_object()))
+                sim.step()
+                await asyncio.sleep(0.15)  # Contrôle la vitesse de la simulation
         except asyncio.CancelledError:
+            print("cancelled")
             pass  # La tâche a été annulée, arrêter la simulation proprement
-    
+
+
 class ViewerConsumerV2(AsyncWebsocketConsumer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -170,4 +165,3 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
         data = [self.x, self.y, states]
         await self.send(text_data=json.dumps(data))
         self.grid = update(self.grid, self.kernel)
-        
