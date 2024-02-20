@@ -338,15 +338,23 @@ class Transformer {
         }
     }
     getVariableInitialisation(value) {
+        let toFloatString = function (value) {
+            if (!`${value}`.includes(".")) {
+                console.log("int");
+                let toFloat = parseFloat(`${value}`).toFixed(2);
+                return toFloat;
+            }
+            return value;
+        };
         switch (this.getTypeNbElements(value)) {
             case 1:
-                return `${value}`;
+                return `${toFloatString(value[0])}`;
             case 2:
-                return `vec2(${value[0]}, ${value[1]})`;
+                return `vec2(${toFloatString(value[0])}, ${toFloatString(value[1])})`;
             case 3:
-                return `vec3(${value[0]}, ${value[1]}, ${value[2]})`;
+                return `vec3(${toFloatString(value[0])}, ${toFloatString(value[1])}, ${toFloatString(value[2])})`;
             case 4:
-                return `vec4(${value[0]}, ${value[1]}, ${value[2]}, ${value[3]})`;
+                return `vec4(${toFloatString(value[0])}, ${toFloatString(value[1])}, ${toFloatString(value[2])}, ${toFloatString(value[3])})`;
         }
     }
     getParamName(paramIdx) {
@@ -418,7 +426,7 @@ class PositionTransformer extends Transformer {
     _factor;
     constructor(idx, inputVariable, axe, factor = 1.) {
         super(idx, inputVariable);
-        this._factor = factor;
+        this.setFactor(factor);
         switch (axe) {
             case 0:
                 this.type = TransformType.POSITION_X;
@@ -431,6 +439,9 @@ class PositionTransformer extends Transformer {
                 break;
         }
     }
+    setFactor(factor) {
+        this._factor = factor;
+    }
     getParamsDeclarationBlock() {
         return this.getParamDeclaration(0, this._factor);
     }
@@ -438,6 +449,6 @@ class PositionTransformer extends Transformer {
         return this.getTransformerFunctionCall(ShaderFunction.FACTOR, [0]);
     }
     setParameters(...args) {
-        this._factor = args[0];
+        this.setFactor(args[0]);
     }
 }
