@@ -80,6 +80,7 @@ export class ProgramWithTransformer {
     }
 
     private reloadProgram(){
+        console.log(this._currentTransformers)
         let vertexShader = getShaderFromString(this._vertexShader, this._context.VERTEX_SHADER, this._context);
         let fragmentShader = getShaderFromString(this._fragmentShader, this._context.FRAGMENT_SHADER, this._context);
 
@@ -125,7 +126,8 @@ enum ShaderVariable {
 enum ShaderFunction {
     FACTOR = "factor_transformer",
     INTERPOLATION = "interpolation_transformer",
-    INPUT_FROM_TIME = "get_input_value_from_time"
+    INPUT_FROM_TIME = "get_input_value_from_time",
+    NORMALIZE_POSITION = "normalize_position"
 }
 
 

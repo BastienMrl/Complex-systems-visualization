@@ -190,6 +190,7 @@ export class Viewer {
         let lightLoc = this.context.getUniformLocation(this.shaderProgram.program, "u_light_loc");
         let timeColorLoc = this.context.getUniformLocation(this.shaderProgram.program, "u_time_color");
         let timeTranslationLoc = this.context.getUniformLocation(this.shaderProgram.program, "u_time_translation");
+        let aabb = this.context.getUniformLocation(this.shaderProgram.program, "u_aabb");
 
         let lightPos = Vec3.fromValues(0.0, 100.0, 10.0);
         Vec3.transformMat4(lightPos, lightPos, this.camera.viewMatrix);
@@ -202,6 +203,8 @@ export class Viewer {
         
         this.context.uniform1f(timeColorLoc, this.getAnimationTime(AnimableValue.COLOR));
         this.context.uniform1f(timeTranslationLoc, this.getAnimationTime(AnimableValue.TRANSLATION));
+
+        this.context.uniform2fv(aabb, this._multipleInstances.aabb, 0, 0);
         
         this._multipleInstances.draw();
     }

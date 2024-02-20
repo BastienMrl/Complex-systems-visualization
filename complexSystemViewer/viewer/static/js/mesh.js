@@ -12,6 +12,7 @@ const idLoc = 1;
 export class MultipleMeshInstances {
     _context;
     _nbInstances;
+    _aabb = new Float32Array(6);
     _vertPositions;
     _vertNormals;
     _vertUVs;
@@ -24,6 +25,7 @@ export class MultipleMeshInstances {
     constructor(context, values) {
         this._context = context;
         this._nbInstances = values.nbElements;
+        this.updateAABB();
         this._vao = this._context.createVertexArray();
         this._selectionVao = this._context.createVertexArray();
         this._translationBuffer = new InstanceAttribBuffer(context);
@@ -37,6 +39,19 @@ export class MultipleMeshInstances {
     }
     get vertNormals() {
         return this._vertNormals;
+    }
+    get aabb() {
+        return this._aabb;
+    }
+    updateAABB() {
+        let row = Math.sqrt(this._nbInstances);
+        let offset = (row - 1) / 2.;
+        this._aabb[0] = -offset;
+        this._aabb[1] = offset;
+        this._aabb[4] = -offset;
+        this._aabb[5] = offset;
+        this._aabb[2] = -2.;
+        this._aabb[3] = 2.;
     }
     updataMouseOverBuffer(idx) {
         let arr = new Float32Array(this._nbInstances).fill(0.);

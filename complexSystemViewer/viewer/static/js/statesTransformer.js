@@ -41,18 +41,25 @@ export class StatesTransformer {
         let onT0 = "";
         let onT1 = "";
         let time = "";
+        let normalized = false;
+        let need_normalization = false;
+        let normalization_axis = null;
         switch (transformType) {
             case TransformType.COLOR:
                 time = ShaderUniforms.TIME_COLOR;
+                need_normalization = true;
                 break;
             case TransformType.COLOR_R:
                 time = ShaderUniforms.TIME_COLOR;
+                need_normalization = true;
                 break;
             case TransformType.COLOR_G:
                 time = ShaderUniforms.TIME_COLOR;
+                need_normalization = true;
                 break;
             case TransformType.COLOR_B:
                 time = ShaderUniforms.TIME_COLOR;
+                need_normalization = true;
                 break;
             case TransformType.POSITION_X:
                 time = ShaderUniforms.TIME_TRANSLATION;
@@ -68,14 +75,20 @@ export class StatesTransformer {
             case InputType.POSITION_X:
                 onT0 = ShaderMeshInputs.TRANSLATION_T0 + ".x";
                 onT1 = ShaderMeshInputs.TRANLSATION_T1 + ".x";
+                normalized = true && need_normalization;
+                normalization_axis = 0;
                 break;
             case InputType.POSITION_Y:
                 onT0 = ShaderMeshInputs.TRANSLATION_T0 + ".y";
                 onT1 = ShaderMeshInputs.TRANLSATION_T1 + ".y";
+                normalized = true && need_normalization;
+                normalization_axis = 2;
                 break;
             case InputType.POSITION_Z:
                 onT0 = ShaderMeshInputs.TRANSLATION_T0 + ".z";
                 onT1 = ShaderMeshInputs.TRANLSATION_T1 + ".z";
+                normalized = true && need_normalization;
+                normalization_axis = 1;
                 break;
             case InputType.STATE_0:
                 onT0 = ShaderMeshInputs.STATE_T0;
@@ -119,6 +132,8 @@ export class StatesTransformer {
                 break;
         }
         s += `mix(${onT0}, ${onT1}, ${time});`;
+        if (normalized)
+            s += `\n${ShaderFunction.NORMALIZE_POSITION}(${name}, ${normalization_axis});`;
         this._inputDeclarations.push(s);
     }
     deleteVariableDeclaration(variable) {
