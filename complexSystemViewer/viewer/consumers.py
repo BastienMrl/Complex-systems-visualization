@@ -8,7 +8,7 @@ import math
 from channels.generic.websocket import AsyncWebsocketConsumer
 from simulation.state import State, GridState
 from simulation.models.game_of_life import GOLSimulation
-
+import time
 
 class ViewerConsumer(AsyncWebsocketConsumer):
     def __init__(self, *args, **kwargs):
@@ -141,6 +141,7 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
         self.sim = gol
 
     async def sendOneStepGOL(self):
-        
+        t0 = time.time()
         await self.send(text_data=json.dumps(self.sim.to_JSON_object()))
+        print("Data sent - ", 1000*(time.time()-t0), "ms\n")
         self.sim.step()

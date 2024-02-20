@@ -38,15 +38,12 @@ class Simulation(ABC):
         pass
 
     def to_JSON_object(self) :
-        print("to json")
         arr = list()
         id_arr = np.array([])
         pos_arr_x = np.empty( shape=(0) )
         pos_arr_y= np.empty( shape=(0) )
         values_arr = np.empty( shape=(0) )
         class_arr = np.empty( shape=(0) )
-        print("to json2")
-        print(len(self.current_states))
         for state in self.current_states :
           
             particules = state.particles
@@ -65,7 +62,6 @@ class Simulation(ABC):
             v_cla = np.vectorize(lambda p: p.particle_class)
             class_arr=v_cla(particules)
             
-            print("to json3")
             
         arr.append(pos_arr_x.tolist())
         arr.append(pos_arr_y.tolist())
