@@ -340,7 +340,6 @@ class Transformer {
     getVariableInitialisation(value) {
         let toFloatString = function (value) {
             if (!`${value}`.includes(".")) {
-                console.log("int");
                 let toFloat = parseFloat(`${value}`).toFixed(2);
                 return toFloat;
             }
@@ -348,7 +347,7 @@ class Transformer {
         };
         switch (this.getTypeNbElements(value)) {
             case 1:
-                return `${toFloatString(value[0])}`;
+                return `${toFloatString(value)}`;
             case 2:
                 return `vec2(${toFloatString(value[0])}, ${toFloatString(value[1])})`;
             case 3:

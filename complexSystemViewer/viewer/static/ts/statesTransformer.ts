@@ -391,7 +391,7 @@ abstract class Transformer {
         
         switch(this.getTypeNbElements(value)){
             case 1:
-                return `${toFloatString(value[0])}`;
+                return `${toFloatString(value as number)}`;
             case 2:
                 return `vec2(${toFloatString(value[0])}, ${toFloatString(value[1])})`;
             case 3:
