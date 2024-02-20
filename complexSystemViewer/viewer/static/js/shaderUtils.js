@@ -62,7 +62,6 @@ export class ProgramWithTransformer {
         this.reloadProgram();
     }
     reloadProgram() {
-        console.log(this._currentTransformers);
         let vertexShader = getShaderFromString(this._vertexShader, this._context.VERTEX_SHADER, this._context);
         let fragmentShader = getShaderFromString(this._fragmentShader, this._context.FRAGMENT_SHADER, this._context);
         let shaderProgram = this._context.createProgram();
