@@ -80,8 +80,12 @@ export class SocketHandler {
     }
 
     private onMessage(e : MessageEvent<any>) {
-        const data : any = JSON.parse(e.data);
-        this._onDataReceived(data);
+        var promise = e.data.text()
+        promise.then(value => {
+            const data : any = JSON.parse(value);
+            this._onDataReceived(data);
+        })
+        
     }
 
     private onClose(e : CloseEvent) {

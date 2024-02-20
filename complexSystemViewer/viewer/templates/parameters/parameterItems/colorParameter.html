@@ -1,0 +1,9 @@
+{% extends "parameters/parameterItems/baseParameter.html" %}
+
+{% load static %}
+
+{% block valueControl %}
+
+<input type="color" paramId="{{param.paramId}}" name="{{param.name}}" value="{{param.hexDefaultValue}}" />
+
+{% endblock valueControl %}
