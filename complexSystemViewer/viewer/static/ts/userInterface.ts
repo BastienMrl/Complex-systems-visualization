@@ -170,11 +170,18 @@ export class UserInterface {
         let positionXElement = document.getElementById("positionX") as HTMLElement;
         let positionYElement = document.getElementById("positionY") as HTMLElement;
         let positionZElement = document.getElementById("positionZ") as HTMLElement;
+        // let colorRElement = document.getElementById("colorR") as HTMLElement;
+        // let colorGElement = document.getElementById("colorG") as HTMLElement;
+        // let colorBElement = document.getElementById("colorB") as HTMLElement;
+
 
         this._transformers.addTransformerFromElement(colorTransformerElement);
         this._transformers.addTransformerFromElement(positionXElement);
         this._transformers.addTransformerFromElement(positionYElement);
-        this._transformers.addTransformerFromElement(positionZElement)
+        this._transformers.addTransformerFromElement(positionZElement);
+        // this._transformers.addTransformerFromElement(colorRElement);
+        // this._transformers.addTransformerFromElement(colorGElement);
+        // this._transformers.addTransformerFromElement(colorBElement);
 
         this._transformers.updateProgram();
     }
@@ -202,13 +209,14 @@ export class TransformersInterface {
         
         const transformType = this.getTransformType(element);
         const paramsElements = this.getParamsElements(element);
+        console.log(paramsElements)
         let params = [];
         paramsElements.forEach(e => {
             params.push(e.value);
         });
         const id = this._currentStatesTransformer.addTransformer(transformType, inputType, params);
         paramsElements.forEach((e, i) => {
-            e.addEventListener("input", () => {
+            e.addEventListener("change", () => {
                 let newParams = new Array(params.length).fill(null);
                 newParams[i] = e.value;
                 this._currentStatesTransformer.setParams(id, newParams);
@@ -273,14 +281,15 @@ export class TransformersInterface {
                 let colorAliveInput = parent.querySelector("input[paramId=c1]") as HTMLInputElement;
                 let colorDeadInput = parent.querySelector("input[paramId=c0]") as HTMLInputElement;     
                 return [colorDeadInput, colorAliveInput];
-            case TransformType.COLOR_R:
-            case TransformType.COLOR_G:
-            case TransformType.COLOR_B:
-            case TransformType.POSITION_X:
-                return [parent.querySelector("input[paramId=factor]") as HTMLInputElement];
-            case TransformType.POSITION_Y:
-                return [parent.querySelector("input[paramId=factor]") as HTMLInputElement];
-            case TransformType.POSITION_Z:
+            case TransformType.COLOR_R :
+            case TransformType.COLOR_G :
+            case TransformType.COLOR_B :
+                let min = parent.querySelector("input[paramId=min]") as HTMLInputElement;
+                let max = parent.querySelector("input[paramId=max]") as HTMLInputElement;
+                return [min, max];
+            case TransformType.POSITION_X :
+            case TransformType.POSITION_Y :
+            case TransformType.POSITION_Z :
                 return [parent.querySelector("input[paramId=factor]") as HTMLInputElement];
         }
     }

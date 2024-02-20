@@ -27,12 +27,10 @@ export var InputType;
 })(InputType || (InputType = {}));
 export class StatesTransformer {
     _transformers;
-    _dataIndices;
     _idCpt;
     _inputDeclarations;
     constructor() {
         this._transformers = [];
-        this._dataIndices = [];
         this._idCpt = 0;
         this._inputDeclarations = [];
     }
@@ -220,25 +218,24 @@ export class StatesTransformer {
         switch (type) {
             case TransformType.COLOR:
                 this._transformers.push(new ColorTransformer(id, inputVariable, params));
-                this._dataIndices.push(inputType);
                 break;
             case TransformType.COLOR_R:
+                this._transformers.push(new ColorChannelTransformer(id, inputVariable, 0, params[0], params[1]));
                 break;
             case TransformType.COLOR_G:
+                this._transformers.push(new ColorChannelTransformer(id, inputVariable, 1, params[0], params[1]));
                 break;
             case TransformType.COLOR_B:
+                this._transformers.push(new ColorChannelTransformer(id, inputVariable, 2, params[0], params[1]));
                 break;
             case TransformType.POSITION_X:
                 this._transformers.push(new PositionTransformer(id, inputVariable, 0, params == undefined ? 1. : params[0]));
-                this._dataIndices.push(inputType);
                 break;
             case TransformType.POSITION_Y:
                 this._transformers.push(new PositionTransformer(id, inputVariable, 1, params == undefined ? 1. : params[0]));
-                this._dataIndices.push(inputType);
                 break;
             case TransformType.POSITION_Z:
                 this._transformers.push(new PositionTransformer(id, inputVariable, 2, params == undefined ? 1. : params[0]));
-                this._dataIndices.push(inputType);
                 break;
         }
         this.addInputVariableDeclaration(type, inputType, inputVariable);
@@ -362,9 +359,9 @@ class Transformer {
     getParamDeclaration(paramIdx, value) {
         return `const ${this.getTypeDeclaration(value)} param_${this._id}_${paramIdx} = ${this.getVariableInitialisation(value)};`;
     }
-    getTransformerFunctionCall(fct, params) {
+    getTransformerFunctionCall(fct, paramsIdx) {
         let s = `${fct}(${this.getOutputName()}`;
-        params.forEach(e => {
+        paramsIdx.forEach(e => {
             s += `, ${this.getParamName(e)}`;
         });
         s += `, ${this._inputVariable});`;
@@ -381,7 +378,6 @@ class ColorTransformer extends Transformer {
     type = TransformType.COLOR;
     _colorMin;
     _colorMax;
-    _nbParams = 2;
     constructor(id, inputVariable, params) {
         super(id, inputVariable);
         if (typeof params[0] == "string")
@@ -447,7 +443,42 @@ class PositionTransformer extends Transformer {
     getTransformationsBlock() {
         return this.getTransformerFunctionCall(ShaderFunction.FACTOR, [0]);
     }
-    setParameters(...args) {
-        this.setFactor(args[0]);
+    setParameters(params) {
+        this.setFactor(params[0]);
+    }
+}
+class ColorChannelTransformer extends Transformer {
+    _min;
+    _max;
+    constructor(idx, inputVariable, channel, min = 0, max = 1) {
+        super(idx, inputVariable);
+        this._min = min;
+        this._max = max;
+        switch (channel) {
+            case 0:
+                this.type = TransformType.COLOR_R;
+                break;
+            case 1:
+                this.type = TransformType.COLOR_G;
+                break;
+            case 2:
+                this.type = TransformType.COLOR_B;
+                break;
+        }
+    }
+    getParamsDeclarationBlock() {
+        let s = "";
+        s += this.getParamDeclaration(0, this._min) + "\n";
+        s += this.getParamDeclaration(1, this._max);
+        return s;
+    }
+    getTransformationsBlock() {
+        return this.getTransformerFunctionCall(ShaderFunction.INTERPOLATION, [0, 1]);
+    }
+    setParameters(params) {
+        if (params[0] != null)
+            this._min = params[0];
+        if (params[1] != null)
+            this._max = params[1];
     }
 }
