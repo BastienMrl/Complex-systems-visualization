@@ -14,10 +14,9 @@
     transition: background-color 0.1s ease-in-out;
 }
 
-.tool:hover, .tool.active {
+.tool:hover, .tool.toolActive {
     background-color: var(--color-lighter);
 }
-
 
 .tool img {
     width: 100%;

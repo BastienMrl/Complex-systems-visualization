@@ -115,13 +115,13 @@ export class UserInterface {
         });
         for (let i = 0; i < toolButtons.length; i++) {
             toolButtons.item(i).addEventListener("click", () => {
-                let activeTool = document.getElementsByClassName("tool active");
-                if (activeTool.length > 0) {
-                    activeTool[0].classList.remove("active");
-                }
-                toolButtons.item(i).classList.toggle("active");
-                if (i == 0) {
+                let prevActiveTool = document.querySelectorAll(".toolActive:not(#tool" + toolButtons.item(i).id + ")");
+                if (i == 0 || prevActiveTool[0].id == "tool1") {
                     this._viewer.usePicking = !this._viewer.usePicking;
+                }
+                toolButtons.item(i).classList.toggle("toolActive");
+                if (prevActiveTool.length > 0) {
+                    prevActiveTool[0].classList.remove("toolActive");
                 }
             });
         }

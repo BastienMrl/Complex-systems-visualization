@@ -1,6 +1,6 @@
 {%load static %}
 
-<div class="tool" id="{{tool.id}}">
+<div class="tool" id="tool{{tool.id}}">
     <img src="{% static "svg/" %}{{tool.name}}.svg" {% if tool.description and tool.description|length > 0 %} title="{{tool.description}}" {% endif %}/>
 </div>
 
