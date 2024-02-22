@@ -32,6 +32,13 @@ async function initShaders(gl : WebGL2RenderingContext, srcVertex : string, srcF
     }
     gl.attachShader(shaderProgram, vertexShader); 
     gl.attachShader(shaderProgram, fragmentShader); 
+
+    gl.transformFeedbackVaryings(
+        shaderProgram,
+        ['feedback_translation'],
+        gl.SEPARATE_ATTRIBS,
+    );
+
     gl.linkProgram(shaderProgram); 
 
     if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) { 
@@ -129,5 +136,19 @@ enum ShaderFunction {
     NORMALIZE_POSITION = "normalize_position"
 }
 
+enum ShaderLocation {
+    POS = 0,
+    NORMAL = 1,
+    UV = 2,
+    ID = 3,
 
-export {initShaders, ShaderVariable, ShaderFunction, ShaderMeshInputs, ShaderUniforms}
+    TRANSLATION_T0 = 10,
+    TRANLSATION_T1 = 11,
+    STATE_0_T0 = 12,
+    STATE_0_T1 = 13,
+
+    SELECTED = 15
+}
+
+
+export {initShaders, ShaderVariable, ShaderFunction, ShaderMeshInputs, ShaderUniforms, ShaderLocation}
