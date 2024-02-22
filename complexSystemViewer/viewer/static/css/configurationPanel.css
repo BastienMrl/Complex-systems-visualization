@@ -113,3 +113,32 @@ h3, h4 {
     display: flex;
     flex-direction: column;
 }
+
+#addTransformerItem {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: var(--color-dark);
+    color: var(--color-lighter);
+}
+
+#buttonAddTransformer {
+    background-color: transparent;
+    border: none;
+    padding-top: 0px;
+}
+
+#buttonAddTransformer svg {
+    width: 30px;
+    height: 30px;
+}
+
+#addTransformerForm {
+    margin-top: 15px;
+    display: flex;
+    align-items: flex-start;
+}
+
+#addTransformerForm select {
+    height: 30px;
+}

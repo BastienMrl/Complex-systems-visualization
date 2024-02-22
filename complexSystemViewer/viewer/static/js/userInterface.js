@@ -75,9 +75,11 @@ export class UserInterface {
         let restartButton = document.querySelector('#buttonRestart');
         let timerButton = document.querySelector('#buttonTimer');
         let animationTimerEl = document.querySelector('#animationTimer');
+        let configurationPanel = document.getElementById("configurationPanel");
         let foldButton = document.getElementById("foldButton");
         let gridSizeInput = document.querySelector("input[paramId=gridSize]");
         let toolButtons = document.getElementsByClassName("tool");
+        let addTransformerButton = document.querySelector('#buttonAddTransformer');
         playButton.addEventListener('click', () => {
             this._viewer.startVisualizationAnimation();
             console.log("START");
@@ -106,8 +108,8 @@ export class UserInterface {
                 animationTimerEl.style.display = 'none';
         });
         foldButton.addEventListener("click", () => {
-            document.getElementById("configurationPanel").classList.toggle("hidden");
-            document.getElementById("foldButton").classList.toggle("hidden");
+            configurationPanel.classList.toggle("hidden");
+            foldButton.classList.toggle("hidden");
         });
         gridSizeInput.addEventListener("change", async () => {
             this._nbElements = gridSizeInput.value ** 2;
@@ -125,6 +127,26 @@ export class UserInterface {
                 }
             });
         }
+        var nbAddedTransformer = 0;
+        let superthis = this;
+        addTransformerButton.addEventListener("click", (e) => {
+            e.preventDefault();
+            let transformertype = document.getElementById("transformerTypeSelector").value;
+            let selectedModel = document.getElementById("modelSelector").value;
+            let xhttp = new XMLHttpRequest();
+            xhttp.open("GET", "addTranformerURL/" + selectedModel + "/" + transformertype, true);
+            xhttp.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    let domParser = new DOMParser();
+                    let newTransformer = domParser.parseFromString(this.responseText, "text/html").body.childNodes[0];
+                    newTransformer.id = newTransformer.id + (nbAddedTransformer += 1);
+                    let CP = document.getElementById("configurationPanel");
+                    CP.insertBefore(newTransformer, CP.lastChild.previousSibling);
+                    superthis._transformers.addTransformerFromElement(newTransformer);
+                }
+            };
+            xhttp.send();
+        });
     }
     initTransformers() {
         this._transformers = new TransformersInterface(this._viewer);

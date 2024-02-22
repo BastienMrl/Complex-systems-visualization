@@ -98,11 +98,15 @@ export class UserInterface {
         
         let animationTimerEl = (document.querySelector('#animationTimer') as HTMLDivElement);
         
+        let configurationPanel = (document.getElementById("configurationPanel") as HTMLDivElement);
+
         let foldButton = (document.getElementById("foldButton") as HTMLDivElement);
         
         let gridSizeInput = (document.querySelector("input[paramId=gridSize]") as HTMLInputElement);
 
         let toolButtons = (document.getElementsByClassName("tool") as HTMLCollectionOf<HTMLDivElement>);
+
+        let addTransformerButton = (document.querySelector('#buttonAddTransformer') as HTMLButtonElement);
 
 
         playButton.addEventListener('click', () => {
@@ -139,8 +143,8 @@ export class UserInterface {
         });
 
         foldButton.addEventListener("click", () => {
-            document.getElementById("configurationPanel").classList.toggle("hidden")
-            document.getElementById("foldButton").classList.toggle("hidden")
+            configurationPanel.classList.toggle("hidden")
+            foldButton.classList.toggle("hidden")
         });
 
         gridSizeInput.addEventListener("change", async () => {
@@ -160,6 +164,28 @@ export class UserInterface {
                 }
             });
         }
+
+        var nbAddedTransformer = 0;
+        let superthis = this;
+
+        addTransformerButton.addEventListener("click", (e) => {
+            e.preventDefault();
+            let transformertype = (document.getElementById("transformerTypeSelector") as HTMLSelectElement).value
+            let selectedModel = (document.getElementById("modelSelector") as HTMLSelectElement).value
+            let xhttp = new XMLHttpRequest()
+            xhttp.open("GET", "addTranformerURL/" + selectedModel + "/" + transformertype, true);
+            xhttp.onreadystatechange = function() {
+                if(this.readyState == 4 && this.status == 200){
+                    let domParser = new DOMParser();
+                    let newTransformer = domParser.parseFromString(this.responseText, "text/html").body.childNodes[0] as HTMLDivElement;
+                    newTransformer.id = newTransformer.id + (nbAddedTransformer+=1) 
+                    let CP = document.getElementById("configurationPanel");
+                    CP.insertBefore(newTransformer, CP.lastChild.previousSibling);
+                    superthis._transformers.addTransformerFromElement(newTransformer)
+                }
+            }
+            xhttp.send()
+        });
 
     }
 
