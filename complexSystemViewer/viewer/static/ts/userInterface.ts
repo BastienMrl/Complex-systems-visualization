@@ -322,8 +322,8 @@ export class TransformersInterface {
             case TransformType.COLOR_R :
             case TransformType.COLOR_G :
             case TransformType.COLOR_B :
-                let min = parent.querySelector("input[paramId=min]") as HTMLInputElement;
-                let max = parent.querySelector("input[paramId=max]") as HTMLInputElement;
+                let min = parent.querySelector("input[paramId=rangeMin]") as HTMLInputElement;
+                let max = parent.querySelector("input[paramId=rangeMax]") as HTMLInputElement;
                 return [min, max];
             case TransformType.POSITION_X :
             case TransformType.POSITION_Y :
