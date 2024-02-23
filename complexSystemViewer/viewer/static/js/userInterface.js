@@ -184,6 +184,7 @@ export class TransformersInterface {
     constructor(viewer) {
         this._viewer = viewer;
         this._currentStatesTransformer = new StatesTransformer();
+        this._viewer.pickingTool.setTransformer(this._currentStatesTransformer);
     }
     addTransformerFromElement(element) {
         const inputElement = this.getInputTypeElement(element);

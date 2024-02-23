@@ -233,6 +233,7 @@ export class TransformersInterface {
     public constructor(viewer : Viewer){
         this._viewer = viewer;
         this._currentStatesTransformer = new StatesTransformer();
+        this._viewer.pickingTool.setTransformer(this._currentStatesTransformer);
     }
 
     public addTransformerFromElement(element : HTMLElement){

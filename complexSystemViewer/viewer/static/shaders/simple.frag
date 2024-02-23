@@ -7,7 +7,8 @@ in vec3 v_color;
 in vec2 v_uv;
 in float v_selected;
 
-out vec4 out_color;
+layout (location = 0) out vec4 out_color;
+layout (location = 1) out vec4 id;
 
 
 uniform vec3 u_light_loc;

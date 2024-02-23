@@ -50,15 +50,27 @@ export class Camera{
 
     // getters
     public get projectionMatrix() : Mat4 {
-        return this._projectionMatrix;
+        let copy = Mat4.create();
+        Mat4.copy(copy, this._projectionMatrix);
+        return copy;
     }
 
     public get viewMatrix() : Mat4 {
-        return this._viewMatrix;
+        let copy = Mat4.create();
+        Mat4.copy(copy, this._viewMatrix);
+        return copy;
     }
     
     public get projViewMatrix() : Mat4 {
-        return this._projViewMatrix;
+        let copy = Mat4.create();
+        Mat4.copy(copy, this._projViewMatrix);
+        return copy;
+    }
+
+    public get position() : Vec3 {
+        let copy = Vec3.create();
+        Vec3.copy(copy, this._cameraPosition);
+        return copy;
     }
 
     // setters

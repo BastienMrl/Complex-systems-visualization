@@ -8,15 +8,15 @@ layout (location = 2) in vec2 a_uv;
 
 //.... per mesh  attributes ....
 
-layout(location = 3) in vec3 a_translation_t0;
-layout(location = 4) in vec3 a_translation_t1;
+layout(location = 10) in vec3 a_translation_t0;
+layout(location = 11) in vec3 a_translation_t1;
 
-layout(location = 5) in float a_state_t0;
-layout(location = 6) in float a_state_t1;
+layout(location = 12) in float a_state_t0;
+layout(location = 13) in float a_state_t1;
 
 
 // selection
-layout (location = 10) in float a_selected;
+layout (location = 15) in float a_selected;
 
 
 out vec3 v_position;
@@ -24,6 +24,8 @@ out vec3 v_normal;
 out vec3 v_color;
 out vec2 v_uv;
 out float v_selected;
+
+out vec3 feedback_translation;
 
 uniform mat4 u_proj;
 uniform mat4 u_view;
@@ -84,4 +86,5 @@ void main(){
     v_color = color;
     v_uv = a_uv;
     v_selected = a_selected;
+    feedback_translation = translation;
 }

@@ -7,6 +7,7 @@ import { AnimationTimer } from "./animationTimer.js";
 import { TransformableValues } from "./transformableValues.js";
 import { SelectionHandler } from "./selectionHandler.js";
 import { WorkerMessage, getMessageBody, getMessageHeader, sendMessageToWorker } from "./workers/workerInterface.js";
+import { PickingTool } from "./pickingTool.js";
 // provides access to gl constants
 const gl = WebGL2RenderingContext;
 export var AnimableValue;
@@ -22,6 +23,7 @@ export class Viewer {
     camera;
     _multipleInstances;
     _selectionHandler;
+    _pickingTool;
     _lastTime = 0;
     _stats;
     _animationTimer;
@@ -30,6 +32,8 @@ export class Viewer {
     _currentValue;
     _drawable;
     _usePicking;
+    mouseX;
+    mouseY;
     constructor(canvasId) {
         this.canvas = document.getElementById(canvasId);
         let context = this.canvas.getContext("webgl2");
@@ -41,6 +45,7 @@ export class Viewer {
         this._animationTimer = new AnimationTimer(0.15, false);
         this._animationIds = [null, null];
         this._selectionHandler = SelectionHandler.getInstance(context);
+        this._pickingTool = new PickingTool(this);
         this._currentValue = null;
         this._transmissionWorker = new Worker("/static/js/workers/transmissionWorker.js", { type: "module" });
         this._transmissionWorker.onmessage = this.onTransmissionWorkerMessage.bind(this);
@@ -57,6 +62,11 @@ export class Viewer {
         this.context.cullFace(gl.BACK);
         this.context.enable(gl.DEPTH_TEST);
         await this._selectionHandler.initialization("/static/shaders/selection.vert", "/static/shaders/selection.frag");
+        this.canvas.addEventListener('mousemove', (e) => {
+            const rect = this.canvas.getBoundingClientRect();
+            this.mouseX = e.clientX - rect.left;
+            this.mouseY = e.clientY - rect.top;
+        });
         this.initCamera();
         let self = this;
         this.resizeObserver = new ResizeObserver(function () { self.onCanvasResize(); });
@@ -83,6 +93,7 @@ export class Viewer {
         if (this._multipleInstances != null)
             delete this._multipleInstances;
         this._multipleInstances = new MultipleMeshInstances(this.context, values);
+        this._pickingTool.setMeshes(this._multipleInstances);
         await this._multipleInstances.loadMesh("/static/models/cube_div_1.obj");
     }
     initCamera() {
@@ -101,6 +112,9 @@ export class Viewer {
     }
     get usePicking() {
         return this._usePicking;
+    }
+    get pickingTool() {
+        return this._pickingTool;
     }
     // setter
     // in seconds
@@ -163,12 +177,8 @@ export class Viewer {
         // picking
         if (this._drawable && this._usePicking) {
             this._stats.startPickingTimer();
-            let prevSelection = this._selectionHandler.selectedId;
-            this._selectionHandler.updateCurrentSelection(this.camera, this._multipleInstances, this.getAnimationTime(AnimableValue.TRANSLATION));
-            let currentSelection = this._selectionHandler.selectedId;
-            if (currentSelection != prevSelection) {
-                this._multipleInstances.setMouseOver(currentSelection);
-            }
+            let id = this._pickingTool.getMeshesId(this.mouseX, this.mouseY, this.canvas.width, this.canvas.height, this.camera);
+            this._multipleInstances.setMouseOver(id);
             this._stats.stopPickingTimer();
         }
         // rendering
