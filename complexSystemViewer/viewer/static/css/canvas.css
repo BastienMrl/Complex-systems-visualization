@@ -1,4 +1,4 @@
-canvas {
+#c {
     width: calc(100% - var(--toolBar-width));
 }
 

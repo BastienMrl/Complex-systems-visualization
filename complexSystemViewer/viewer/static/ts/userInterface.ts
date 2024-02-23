@@ -321,6 +321,35 @@ export class TransformersInterface {
     }
 }
 
+// easeing functions from https://easings.net/
+class AnimationFuction{
+    static easeOut = function(time : number){ return time == 1 ? 1 : 1 - Math.pow(2, -10 * time); };
+    static easeOutElastic = function(time: number): number {
+            const c4 = (2 * Math.PI) / 3;
+            return time === 0 ? 0 : time === 1 ? 1 : Math.pow(2, -10 * time) * Math.sin((time * 10 - 0.75) * c4) + 1;
+    }
+    static easeInBack = function(time: number): number {
+        const c1 = 1.70158;
+        const c3 = c1 + 1;
+        return c3 * time * time * time - c1 * time * time;
+    }
+    static fc0 = function(time : number){ return 1 };
+
+    static retrieveFunction(functionName:string){
+        switch (functionName) {
+            case "easeOut":
+                return AnimationFuction.easeOut
+            case "easeOutElastic":
+                return AnimationFuction.easeOutElastic
+            case "fc0":
+                return AnimationFuction.fc0
+            case "easeInBack":
+                return AnimationFuction.easeInBack;
+            default:
+                break;
+        }    
+    }
+}
 
 class AnimationInterface{
     private _viewer : Viewer;
@@ -329,15 +358,48 @@ class AnimationInterface{
         this._viewer = viewer;
         //.... AnimationCurves ....
         // default animation curve is linear
-        
-        // ease out expo from https://easings.net/
-        let easeOut = function(time : number){ return time == 1 ? 1 : 1 - Math.pow(2, -10 * time); };
-        let fc0 = function(time : number){ return 1 };
-        this._viewer.bindAnimationCurve(AnimableValue.COLOR, easeOut);
-        this._viewer.bindAnimationCurve(AnimableValue.TRANSLATION, easeOut);
-        
-        
-        //.........................
+        this._viewer.bindAnimationCurve(AnimableValue.COLOR, AnimationFuction.easeOut);
+        this._viewer.bindAnimationCurve(AnimableValue.TRANSLATION, AnimationFuction.easeOutElastic);
+
+        this.initAnimationItem()
+    }
+
+    private initAnimationItem(){
+        let animationItem = document.getElementById("animationFunctionsGrid") as HTMLDivElement;
+        let select = document.getElementById("animableSelect") as HTMLSelectElement
+        let keys = Object.keys(AnimableValue)
+        for(let i=0; i<keys.length/2; i++){
+            let option = document.createElement("option")
+            option.value = keys.at(i).toString();
+            option.innerText = keys.at(i+keys.length/2);
+            select.appendChild(option)
+        }
+
+        for(let funcName in AnimationFuction){
+            let canvas = document.createElement("canvas") as HTMLCanvasElement;
+            canvas.width = 80;
+            canvas.height = 120;
+            canvas.title = funcName;
+
+            let ctx = canvas.getContext("2d");
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = "#0a3b49";
+            ctx.beginPath();
+            let animFunction = AnimationFuction.retrieveFunction(funcName)
+            for(let x = 1; x<canvas.width-2; x++){
+                ctx.moveTo(x  ,5 + animFunction(x/canvas.width)    *canvas.width );
+                ctx.lineTo(x+1,5 + animFunction((x+1)/canvas.width)*canvas.width );
+            }
+            ctx.stroke();
+            let container = document.createElement("div");
+            container.classList.add("afGridItem");
+            container.appendChild(canvas);
+            container.addEventListener("click", () => {
+                let animableProperty = Number.parseInt(select.value);
+                this._viewer.bindAnimationCurve(animableProperty, animFunction);
+            });
+            animationItem.appendChild(container);
+        }
     }
 
     public setDurationElement(element : HTMLElement){

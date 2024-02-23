@@ -9,6 +9,7 @@
     {% for transformer, parameters in transformers.items %}
         {% include "transformers/transformerItem.html"%}
     {% endfor %}
+    {% include "animationItem.html" %}
     <div id="addTransformerItem" class="configurationItem">
         <h3>Ajouter un nouveau transfomer</h3>
         <div id="addTransformerForm">

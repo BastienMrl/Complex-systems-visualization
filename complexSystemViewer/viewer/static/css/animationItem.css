@@ -1,0 +1,9 @@
+#animationFunctionsGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.afGridItem{
+    display: flex;
+    justify-content: center;
+}
