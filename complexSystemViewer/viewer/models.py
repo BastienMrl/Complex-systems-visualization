@@ -30,6 +30,8 @@ class RulesConfiguration(ConfigurationItem):
 class TransformerItem(ConfigurationItem):
     outputType = models.CharField(max_length=128, default="POSITION_X")
     transformerType = models.CharField(max_length=128, default="COLOR")
+    displayedByDefault = models.BooleanField(default=True)
+    isDeletable = models.BooleanField(default=True)
     def __str__(self):
         return self.name + " of " + self.aLifeModel.__str__()
 

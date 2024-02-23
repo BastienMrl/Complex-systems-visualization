@@ -183,7 +183,7 @@ export class UserInterface {
                     superthis._transformers.addTransformerFromElement(newTransformer)
                 }
             }
-            xhttp.send()
+            xhttp.send();
         });
 
     }
