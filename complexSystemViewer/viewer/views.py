@@ -17,7 +17,7 @@ def index(request):
     for t in transformers:
         param = Parameter.objects.filter(configurationItem=t.id).select_subclasses()
         transformersParam[t] = param
-    return render(request, "index.html", {"model":modelSelected , "modelsName":modelsName, "rulesParameters":rulesParameters, "transformers":transformersParam}) 
+    return render(request, "index.html", {"model":modelSelected , "modelsName":modelsName, "rulesParameters":rulesParameters, "transformers":transformersParam, "toolsList":toolsList}) 
 
 def addTransformer(request, modelsName, transformerType ):
     model = ALifeModel.objects.filter(name=modelsName).first()
