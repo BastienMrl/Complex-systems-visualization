@@ -99,11 +99,15 @@ export class UserInterface {
         
         let animationTimerEl = (document.querySelector('#animationTimer') as HTMLDivElement);
         
+        let configurationPanel = (document.getElementById("configurationPanel") as HTMLDivElement);
+
         let foldButton = (document.getElementById("foldButton") as HTMLDivElement);
         
         let gridSizeInput = (document.querySelector("input[paramId=gridSize]") as HTMLInputElement);
 
         let toolButtons = (document.getElementsByClassName("tool") as HTMLCollectionOf<HTMLDivElement>);
+
+        let addTransformerButton = (document.querySelector('#buttonAddTransformer') as HTMLButtonElement);
 
 
         playButton.addEventListener('click', () => {
@@ -140,8 +144,8 @@ export class UserInterface {
         });
 
         foldButton.addEventListener("click", () => {
-            document.getElementById("configurationPanel").classList.toggle("hidden")
-            document.getElementById("foldButton").classList.toggle("hidden")
+            configurationPanel.classList.toggle("hidden")
+            foldButton.classList.toggle("hidden")
         });
 
         gridSizeInput.addEventListener("change", async () => {
@@ -164,6 +168,27 @@ export class UserInterface {
                 }
             });
         }
+
+        var nbAddedTransformer = 0;
+        let superthis = this;
+        addTransformerButton.addEventListener("click", (e) => {
+            e.preventDefault();
+            let transformertype = (document.getElementById("transformerTypeSelector") as HTMLSelectElement).value
+            let selectedModel = (document.getElementById("modelSelector") as HTMLSelectElement).value
+            let xhttp = new XMLHttpRequest()
+            xhttp.open("GET", "addTranformerURL/" + selectedModel + "/" + transformertype, true);
+            xhttp.onreadystatechange = function() {
+                if(this.readyState == 4 && this.status == 200){
+                    let domParser = new DOMParser();
+                    let newTransformer = domParser.parseFromString(this.responseText, "text/html").body.childNodes[0] as HTMLDivElement;
+                    newTransformer.id = newTransformer.id + (nbAddedTransformer+=1) 
+                    let CP = document.getElementById("configurationPanel");
+                    CP.insertBefore(newTransformer, CP.lastChild.previousSibling);
+                    superthis._transformers.addTransformerFromElement(newTransformer)
+                }
+            }
+            xhttp.send();
+        });
 
     }
 
@@ -211,6 +236,8 @@ export class TransformersInterface {
     public addTransformerFromElement(element : HTMLElement){
         const inputElement = this.getInputTypeElement(element);
         const inputType = this.getInputType(inputElement);
+
+        const deleteButton = (element.getElementsByClassName("deleteButton")[0] as HTMLButtonElement);
         
         const transformType = this.getTransformType(element);
         const paramsElements = this.getParamsElements(element);
@@ -227,6 +254,7 @@ export class TransformersInterface {
                 this._currentStatesTransformer.setParams(id, newParams);
                 this.updateProgram();
             });
+            e.dispatchEvent(new Event('change'));
         });
         
         
@@ -234,7 +262,16 @@ export class TransformersInterface {
             this._currentStatesTransformer.setInputType(id, this.getInputType(inputElement));
             this.updateProgram();
         });
-        // TODO: add functions to disconnect / delete transformer
+
+        //function to disconnect / delete transformer
+        if(deleteButton){
+            deleteButton.addEventListener("click", () => {
+                this._currentStatesTransformer.removeTransformer(id);
+                deleteButton.parentElement.remove();
+                this.updateProgram();
+                console.log("deleted");
+            });
+        }
     }
 
     public updateProgram(){

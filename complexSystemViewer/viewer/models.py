@@ -5,8 +5,11 @@ from model_utils.managers import InheritanceManager
 class ALifeModel(models.Model):
     name = models.CharField(max_length=128)
     simOutType = models.CharField(max_length=512, help_text="Wrote types separate with '/'")
+    transformerType = models.CharField(max_length=512, help_text="Wrote types separate with '/'")
     def getSimOutType(self):
         return self.simOutType.split('/')
+    def getTransformerType(self):
+        return self.transformerType.split('/')
     def __str__(self):
         return self.name
     
@@ -27,6 +30,8 @@ class RulesConfiguration(ConfigurationItem):
 class TransformerItem(ConfigurationItem):
     outputType = models.CharField(max_length=128, default="POSITION_X")
     transformerType = models.CharField(max_length=128, default="COLOR")
+    displayedByDefault = models.BooleanField(default=True)
+    isDeletable = models.BooleanField(default=True)
     def __str__(self):
         return self.name + " of " + self.aLifeModel.__str__()
 

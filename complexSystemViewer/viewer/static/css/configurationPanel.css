@@ -48,11 +48,29 @@
 }
 
 .configurationItem {
+    position: relative;
     background-color: var(--color-lighter);
     margin: 10px;
     margin-bottom: 0px;
     padding: 10px;
     width: calc(100% - 40px);
+}
+
+.configurationItem .deleteButton {
+    position: absolute;
+    background-color: transparent;
+    border: none;
+    top: 0px;
+    right: 0px;
+}
+
+.configurationItem .deleteButton svg{
+    width: 30px;
+    height: 30px;
+}
+
+.configurationItem .deleteButton:hover {
+    cursor:pointer;
 }
 
 .configurationItem:last-child {
@@ -112,4 +130,33 @@ h3, h4 {
 .visualizationInput .transformerParam {
     display: flex;
     flex-direction: column;
+}
+
+#addTransformerItem {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: var(--color-dark);
+    color: var(--color-lighter);
+}
+
+#buttonAddTransformer {
+    background-color: transparent;
+    border: none;
+    padding-top: 0px;
+}
+
+#buttonAddTransformer svg {
+    width: 30px;
+    height: 30px;
+}
+
+#addTransformerForm {
+    margin-top: 15px;
+    display: flex;
+    align-items: flex-start;
+}
+
+#addTransformerForm select {
+    height: 30px;
 }

@@ -249,9 +249,19 @@ export class StatesTransformer{
                 this._transformers.push(new PositionTransformer(id, inputVariable, 2, params == undefined ? 1. : params[0]));
                 break;
         }
-
         this.addInputVariableDeclaration(type, inputType, inputVariable);
-        return this._transformers.length - 1;
+        return id;
+    }
+
+    public removeTransformer(id : number){
+        let transformer = this.getTransformerFromId(id);
+        if(transformer == null)
+            return;
+        let variable = transformer.getInputVariable();
+        console.log(this._inputDeclarations.length);
+        this.deleteVariableDeclaration(variable);
+        console.log(this._inputDeclarations.length);
+        this._transformers.splice(this._transformers.indexOf(transformer), 1);
     }
 
     public generateTransformersBlock(){
@@ -293,21 +303,23 @@ export class StatesTransformer{
     }
 
     public setParams(id : number, params : any[]){
-        if (id < 0 || id >= this._transformers.length)
+        let transformer : Transformer = this.getTransformerFromId(id);
+        if (transformer == null)
             return;
-        this._transformers[id].setParameters(params);
+        transformer.setParameters(params);
     }
 
     public setInputType(id : number, inputType : InputType){
-        if (id < 0 || id >= this._transformers.length)
+        let transformer : Transformer = this.getTransformerFromId(id);
+        if (transformer == null)
             return;
 
-        let oldVariable = this._transformers[id].getInputVariable();
-        let transformType = this._transformers[id].type;
+        let oldVariable = transformer.getInputVariable();
+        let transformType = transformer.type;
         let newVariable = this.getInputVariableName(transformType, inputType);
 
         this.addInputVariableDeclaration(transformType, inputType, newVariable);
-        this._transformers[id].setInputVariable(newVariable);
+        transformer.setInputVariable(newVariable);
         
         this.deleteVariableDeclaration(oldVariable);
     }
@@ -333,6 +345,16 @@ export class StatesTransformer{
         return factor;
     }
 
+    public getTransformerFromId(id : number) : Transformer{
+        let transformer : Transformer = null;
+        for(let i=0; i<this._transformers.length; i++){
+            if(this._transformers[i].getId() == id){
+                transformer = this._transformers[i];
+                break;
+            }
+        }
+        return transformer;
+    }
 
 }
 
@@ -447,6 +469,10 @@ abstract class Transformer {
 
     public getInputVariable() : string{
         return this._inputVariable;
+    }
+
+    public getId() : number{
+        return this._id;
     }
 
     

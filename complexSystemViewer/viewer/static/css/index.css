@@ -34,6 +34,10 @@ div#simulator {
   overflow: hidden;
 }
 
+button {
+  cursor: pointer;
+}
+
 .transformerItem {
   display: flex;
   justify-content: space-evenly;
