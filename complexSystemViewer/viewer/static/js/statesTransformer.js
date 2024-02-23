@@ -27,12 +27,10 @@ export var InputType;
 })(InputType || (InputType = {}));
 export class StatesTransformer {
     _transformers;
-    _dataIndices;
     _idCpt;
     _inputDeclarations;
     constructor() {
         this._transformers = [];
-        this._dataIndices = [];
         this._idCpt = 0;
         this._inputDeclarations = [];
     }
@@ -41,18 +39,25 @@ export class StatesTransformer {
         let onT0 = "";
         let onT1 = "";
         let time = "";
+        let normalized = false;
+        let need_normalization = false;
+        let normalization_axis = null;
         switch (transformType) {
             case TransformType.COLOR:
                 time = ShaderUniforms.TIME_COLOR;
+                need_normalization = true;
                 break;
             case TransformType.COLOR_R:
                 time = ShaderUniforms.TIME_COLOR;
+                need_normalization = true;
                 break;
             case TransformType.COLOR_G:
                 time = ShaderUniforms.TIME_COLOR;
+                need_normalization = true;
                 break;
             case TransformType.COLOR_B:
                 time = ShaderUniforms.TIME_COLOR;
+                need_normalization = true;
                 break;
             case TransformType.POSITION_X:
                 time = ShaderUniforms.TIME_TRANSLATION;
@@ -68,14 +73,20 @@ export class StatesTransformer {
             case InputType.POSITION_X:
                 onT0 = ShaderMeshInputs.TRANSLATION_T0 + ".x";
                 onT1 = ShaderMeshInputs.TRANLSATION_T1 + ".x";
+                normalized = true && need_normalization;
+                normalization_axis = 0;
                 break;
             case InputType.POSITION_Y:
                 onT0 = ShaderMeshInputs.TRANSLATION_T0 + ".y";
                 onT1 = ShaderMeshInputs.TRANLSATION_T1 + ".y";
+                normalized = true && need_normalization;
+                normalization_axis = 2;
                 break;
             case InputType.POSITION_Z:
                 onT0 = ShaderMeshInputs.TRANSLATION_T0 + ".z";
                 onT1 = ShaderMeshInputs.TRANLSATION_T1 + ".z";
+                normalized = true && need_normalization;
+                normalization_axis = 1;
                 break;
             case InputType.STATE_0:
                 onT0 = ShaderMeshInputs.STATE_T0;
@@ -119,6 +130,8 @@ export class StatesTransformer {
                 break;
         }
         s += `mix(${onT0}, ${onT1}, ${time});`;
+        if (normalized)
+            s += `\n${ShaderFunction.NORMALIZE_POSITION}(${name}, ${normalization_axis});`;
         this._inputDeclarations.push(s);
     }
     deleteVariableDeclaration(variable) {
@@ -205,25 +218,24 @@ export class StatesTransformer {
         switch (type) {
             case TransformType.COLOR:
                 this._transformers.push(new ColorTransformer(id, inputVariable, params));
-                this._dataIndices.push(inputType);
                 break;
             case TransformType.COLOR_R:
+                this._transformers.push(new ColorChannelTransformer(id, inputVariable, 0, params[0], params[1]));
                 break;
             case TransformType.COLOR_G:
+                this._transformers.push(new ColorChannelTransformer(id, inputVariable, 1, params[0], params[1]));
                 break;
             case TransformType.COLOR_B:
+                this._transformers.push(new ColorChannelTransformer(id, inputVariable, 2, params[0], params[1]));
                 break;
             case TransformType.POSITION_X:
                 this._transformers.push(new PositionTransformer(id, inputVariable, 0, params == undefined ? 1. : params[0]));
-                this._dataIndices.push(inputType);
                 break;
             case TransformType.POSITION_Y:
                 this._transformers.push(new PositionTransformer(id, inputVariable, 1, params == undefined ? 1. : params[0]));
-                this._dataIndices.push(inputType);
                 break;
             case TransformType.POSITION_Z:
                 this._transformers.push(new PositionTransformer(id, inputVariable, 2, params == undefined ? 1. : params[0]));
-                this._dataIndices.push(inputType);
                 break;
         }
         this.addInputVariableDeclaration(type, inputType, inputVariable);
@@ -323,15 +335,22 @@ class Transformer {
         }
     }
     getVariableInitialisation(value) {
+        let toFloatString = function (value) {
+            if (!`${value}`.includes(".")) {
+                let toFloat = parseFloat(`${value}`).toFixed(2);
+                return toFloat;
+            }
+            return value;
+        };
         switch (this.getTypeNbElements(value)) {
             case 1:
-                return `${value}`;
+                return `${toFloatString(value)}`;
             case 2:
-                return `vec2(${value[0]}, ${value[1]})`;
+                return `vec2(${toFloatString(value[0])}, ${toFloatString(value[1])})`;
             case 3:
-                return `vec3(${value[0]}, ${value[1]}, ${value[2]})`;
+                return `vec3(${toFloatString(value[0])}, ${toFloatString(value[1])}, ${toFloatString(value[2])})`;
             case 4:
-                return `vec4(${value[0]}, ${value[1]}, ${value[2]}, ${value[3]})`;
+                return `vec4(${toFloatString(value[0])}, ${toFloatString(value[1])}, ${toFloatString(value[2])}, ${toFloatString(value[3])})`;
         }
     }
     getParamName(paramIdx) {
@@ -340,9 +359,9 @@ class Transformer {
     getParamDeclaration(paramIdx, value) {
         return `const ${this.getTypeDeclaration(value)} param_${this._id}_${paramIdx} = ${this.getVariableInitialisation(value)};`;
     }
-    getTransformerFunctionCall(fct, params) {
+    getTransformerFunctionCall(fct, paramsIdx) {
         let s = `${fct}(${this.getOutputName()}`;
-        params.forEach(e => {
+        paramsIdx.forEach(e => {
             s += `, ${this.getParamName(e)}`;
         });
         s += `, ${this._inputVariable});`;
@@ -359,7 +378,6 @@ class ColorTransformer extends Transformer {
     type = TransformType.COLOR;
     _colorMin;
     _colorMax;
-    _nbParams = 2;
     constructor(id, inputVariable, params) {
         super(id, inputVariable);
         if (typeof params[0] == "string")
@@ -403,7 +421,7 @@ class PositionTransformer extends Transformer {
     _factor;
     constructor(idx, inputVariable, axe, factor = 1.) {
         super(idx, inputVariable);
-        this._factor = factor;
+        this.setFactor(factor);
         switch (axe) {
             case 0:
                 this.type = TransformType.POSITION_X;
@@ -416,13 +434,51 @@ class PositionTransformer extends Transformer {
                 break;
         }
     }
+    setFactor(factor) {
+        this._factor = factor;
+    }
     getParamsDeclarationBlock() {
         return this.getParamDeclaration(0, this._factor);
     }
     getTransformationsBlock() {
         return this.getTransformerFunctionCall(ShaderFunction.FACTOR, [0]);
     }
-    setParameters(...args) {
-        this._factor = args[0];
+    setParameters(params) {
+        this.setFactor(params[0]);
+    }
+}
+class ColorChannelTransformer extends Transformer {
+    _min;
+    _max;
+    constructor(idx, inputVariable, channel, min = 0, max = 1) {
+        super(idx, inputVariable);
+        this._min = min;
+        this._max = max;
+        switch (channel) {
+            case 0:
+                this.type = TransformType.COLOR_R;
+                break;
+            case 1:
+                this.type = TransformType.COLOR_G;
+                break;
+            case 2:
+                this.type = TransformType.COLOR_B;
+                break;
+        }
+    }
+    getParamsDeclarationBlock() {
+        let s = "";
+        s += this.getParamDeclaration(0, this._min) + "\n";
+        s += this.getParamDeclaration(1, this._max);
+        return s;
+    }
+    getTransformationsBlock() {
+        return this.getTransformerFunctionCall(ShaderFunction.INTERPOLATION, [0, 1]);
+    }
+    setParameters(params) {
+        if (params[0] != null)
+            this._min = params[0];
+        if (params[1] != null)
+            this._max = params[1];
     }
 }

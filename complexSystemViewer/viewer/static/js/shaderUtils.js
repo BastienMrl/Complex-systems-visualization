@@ -99,5 +99,6 @@ var ShaderFunction;
     ShaderFunction["FACTOR"] = "factor_transformer";
     ShaderFunction["INTERPOLATION"] = "interpolation_transformer";
     ShaderFunction["INPUT_FROM_TIME"] = "get_input_value_from_time";
+    ShaderFunction["NORMALIZE_POSITION"] = "normalize_position";
 })(ShaderFunction || (ShaderFunction = {}));
 export { initShaders, ShaderVariable, ShaderFunction, ShaderMeshInputs, ShaderUniforms };

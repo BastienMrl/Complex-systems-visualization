@@ -62,8 +62,11 @@ export class SocketHandler {
         };
     }
     onMessage(e) {
-        const data = JSON.parse(e.data);
-        this._onDataReceived(data);
+        var promise = e.data.text();
+        promise.then(value => {
+            const data = JSON.parse(value);
+            this._onDataReceived(data);
+        });
     }
     onClose(e) {
         this._isConnected = false;

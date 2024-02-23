@@ -117,13 +117,13 @@ export class UserInterface {
         });
         for (let i = 0; i < toolButtons.length; i++) {
             toolButtons.item(i).addEventListener("click", () => {
-                let activeTool = document.getElementsByClassName("tool active");
-                if (activeTool.length > 0) {
-                    activeTool[0].classList.remove("active");
-                }
-                toolButtons.item(i).classList.toggle("active");
-                if (i == 0) {
+                let prevActiveTool = document.querySelectorAll(".toolActive:not(#tool" + toolButtons.item(i).id + ")");
+                if (i == 0 || prevActiveTool[0].id == "tool1") {
                     this._viewer.usePicking = !this._viewer.usePicking;
+                }
+                toolButtons.item(i).classList.toggle("toolActive");
+                if (prevActiveTool.length > 0) {
+                    prevActiveTool[0].classList.remove("toolActive");
                 }
             });
         }
@@ -154,10 +154,16 @@ export class UserInterface {
         let positionXElement = document.getElementById("positionX");
         let positionYElement = document.getElementById("positionY");
         let positionZElement = document.getElementById("positionZ");
+        // let colorRElement = document.getElementById("colorR") as HTMLElement;
+        // let colorGElement = document.getElementById("colorG") as HTMLElement;
+        // let colorBElement = document.getElementById("colorB") as HTMLElement;
         this._transformers.addTransformerFromElement(colorTransformerElement);
         this._transformers.addTransformerFromElement(positionXElement);
         this._transformers.addTransformerFromElement(positionYElement);
         this._transformers.addTransformerFromElement(positionZElement);
+        // this._transformers.addTransformerFromElement(colorRElement);
+        // this._transformers.addTransformerFromElement(colorGElement);
+        // this._transformers.addTransformerFromElement(colorBElement);
         this._transformers.updateProgram();
     }
     initAnimationCurves() {
@@ -178,13 +184,14 @@ export class TransformersInterface {
         const inputType = this.getInputType(inputElement);
         const transformType = this.getTransformType(element);
         const paramsElements = this.getParamsElements(element);
+        console.log(paramsElements);
         let params = [];
         paramsElements.forEach(e => {
             params.push(e.value);
         });
         const id = this._currentStatesTransformer.addTransformer(transformType, inputType, params);
         paramsElements.forEach((e, i) => {
-            e.addEventListener("input", () => {
+            e.addEventListener("change", () => {
                 let newParams = new Array(params.length).fill(null);
                 newParams[i] = e.value;
                 this._currentStatesTransformer.setParams(id, newParams);
@@ -245,10 +252,11 @@ export class TransformersInterface {
             case TransformType.COLOR_R:
             case TransformType.COLOR_G:
             case TransformType.COLOR_B:
+                let min = parent.querySelector("input[paramId=min]");
+                let max = parent.querySelector("input[paramId=max]");
+                return [min, max];
             case TransformType.POSITION_X:
-                return [parent.querySelector("input[paramId=factor]")];
             case TransformType.POSITION_Y:
-                return [parent.querySelector("input[paramId=factor]")];
             case TransformType.POSITION_Z:
                 return [parent.querySelector("input[paramId=factor]")];
         }

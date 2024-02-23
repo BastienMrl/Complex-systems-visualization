@@ -31,6 +31,8 @@ uniform mat4 u_view;
 uniform float u_time_color;
 uniform float u_time_translation;
 
+uniform vec2 u_aabb[3];
+
 mat4 create_translation_matrix(in vec3 translation){
     mat4 m;
     m[0][0] = 1.0;
@@ -40,7 +42,9 @@ mat4 create_translation_matrix(in vec3 translation){
     return m;
 }
 
-
+float map(float value, float min1, float max1, float min2, float max2) {
+  return min2 + (value - min1) * (max2 - min2) / (max1 - min1);
+}
 
 void factor_transformer(inout float value, const float factor, const float transformed_input){
     value += transformed_input * factor;
@@ -53,6 +57,12 @@ void interpolation_transformer(inout float value, const float factor_t0, const f
 
 void interpolation_transformer(inout vec3 value, const vec3 factor_t0, const vec3 factor_t1, const float transformed_input){
     value += mix(factor_t0, factor_t1, transformed_input);
+}
+
+void normalize_position(inout float value, const int idx){
+    float min_value = u_aabb[idx][0];
+    float max_value = u_aabb[idx][1];
+    value = map(value, min_value, max_value, 0., 1.);
 }
 
 

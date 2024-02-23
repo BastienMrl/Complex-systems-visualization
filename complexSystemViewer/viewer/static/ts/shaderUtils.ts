@@ -78,12 +78,12 @@ export class ProgramWithTransformer {
         this._vertexShader = this._templateVertexShader.replace(ProgramWithTransformer._transformersKey, this._currentTransformers);
         this.reloadProgram();
     }
-
+    
     private reloadProgram(){
         let vertexShader = getShaderFromString(this._vertexShader, this._context.VERTEX_SHADER, this._context);
         let fragmentShader = getShaderFromString(this._fragmentShader, this._context.FRAGMENT_SHADER, this._context);
-
-
+        
+        
         let shaderProgram : WebGLProgram | null = this._context.createProgram(); 
         if (shaderProgram == null){
             throw "Cour not create Shader Program";
@@ -91,11 +91,11 @@ export class ProgramWithTransformer {
         this._context.attachShader(shaderProgram, vertexShader); 
         this._context.attachShader(shaderProgram, fragmentShader); 
         this._context.linkProgram(shaderProgram); 
-    
+        
         if (!this._context.getProgramParameter(shaderProgram, this._context.LINK_STATUS)) { 
             alert("Could not initialise shaders"); 
         } 
-    
+        
         this._program = shaderProgram;
     }
 
@@ -125,7 +125,8 @@ enum ShaderVariable {
 enum ShaderFunction {
     FACTOR = "factor_transformer",
     INTERPOLATION = "interpolation_transformer",
-    INPUT_FROM_TIME = "get_input_value_from_time"
+    INPUT_FROM_TIME = "get_input_value_from_time",
+    NORMALIZE_POSITION = "normalize_position"
 }
 
 

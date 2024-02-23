@@ -7,7 +7,7 @@ def index(request):
     modelSelected = models.first()
     modelsName = [m.name for m in models]
     
-    #toolsList = Tool.objects.filter(aLifeModel=models.first().pk)
+    toolsList = Tool.objects.filter(aLifeModel=modelSelected.pk)
     
     rules = RulesConfiguration.objects.filter(aLifeModel=modelSelected.pk).first()
     rulesParameters = Parameter.objects.filter(configurationItem=rules.pk).select_subclasses()

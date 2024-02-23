@@ -21,6 +21,7 @@ export class MultipleMeshInstances{
     
     private _context : WebGL2RenderingContext;
     private _nbInstances : number;
+    private _aabb = new Float32Array(6);
 
     private _vertPositions : Float32Array;
     private _vertNormals : Float32Array;
@@ -40,6 +41,7 @@ export class MultipleMeshInstances{
 
         this._context = context;
         this._nbInstances = values.nbElements;
+        this.updateAABB();
 
         
         this._vao = this._context.createVertexArray();
@@ -58,6 +60,25 @@ export class MultipleMeshInstances{
 
     public get vertNormals(){
         return this._vertNormals;
+    }
+
+    public get aabb(){
+        return this._aabb;
+    }
+
+    private updateAABB(){
+        let row = Math.sqrt(this._nbInstances);
+        let offset = (row - 1) / 2.;
+
+        this._aabb[0] = -offset;
+        this._aabb[1] = offset;
+
+        this._aabb[4] = -offset;
+        this._aabb[5] = offset;
+
+
+        this._aabb[2] = -2.;
+        this._aabb[3] = 2.;
     }
     
 
