@@ -16,6 +16,7 @@
 
 .tool:hover, .tool.toolActive {
     background-color: var(--color-lighter);
+    cursor: pointer;
 }
 
 .tool img {

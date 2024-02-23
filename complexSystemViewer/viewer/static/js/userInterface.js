@@ -79,6 +79,7 @@ export class UserInterface {
         let foldButton = document.getElementById("foldButton");
         let gridSizeInput = document.querySelector("input[paramId=gridSize]");
         let toolButtons = document.getElementsByClassName("tool");
+        let deleteButtons = document.getElementsByClassName("deleteButton");
         let addTransformerButton = document.querySelector('#buttonAddTransformer');
         playButton.addEventListener('click', () => {
             this._viewer.startVisualizationAnimation();
@@ -127,6 +128,11 @@ export class UserInterface {
                 }
             });
         }
+        Array.from(deleteButtons).forEach(button => {
+            button.addEventListener("click", () => {
+                button.parentElement.remove();
+            });
+        });
         var nbAddedTransformer = 0;
         let superthis = this;
         addTransformerButton.addEventListener("click", (e) => {

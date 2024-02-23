@@ -105,6 +105,7 @@ export class UserInterface {
         let gridSizeInput = (document.querySelector("input[paramId=gridSize]") as HTMLInputElement);
 
         let toolButtons = (document.getElementsByClassName("tool") as HTMLCollectionOf<HTMLDivElement>);
+        let deleteButtons = (document.getElementsByClassName("deleteButton") as HTMLCollectionOf<HTMLButtonElement>);
 
         let addTransformerButton = (document.querySelector('#buttonAddTransformer') as HTMLButtonElement);
 
@@ -165,9 +166,14 @@ export class UserInterface {
             });
         }
 
+        Array.from(deleteButtons).forEach(button => {
+            button.addEventListener("click", () => {
+                button.parentElement.remove();
+            });
+        });
+
         var nbAddedTransformer = 0;
         let superthis = this;
-
         addTransformerButton.addEventListener("click", (e) => {
             e.preventDefault();
             let transformertype = (document.getElementById("transformerTypeSelector") as HTMLSelectElement).value
@@ -256,6 +262,10 @@ export class TransformersInterface {
             this.updateProgram();
         });
         // TODO: add functions to disconnect / delete transformer
+    }
+
+    public deleteTransformerFromElement(element: HTMLElement){
+        
     }
 
     public updateProgram(){

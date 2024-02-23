@@ -249,9 +249,13 @@ export class StatesTransformer{
                 this._transformers.push(new PositionTransformer(id, inputVariable, 2, params == undefined ? 1. : params[0]));
                 break;
         }
-
         this.addInputVariableDeclaration(type, inputType, inputVariable);
         return this._transformers.length - 1;
+    }
+
+    public removeTransformer(id : number){
+        let variable = this._transformers[id].getInputVariable();
+        this.deleteVariableDeclaration(variable);
     }
 
     public generateTransformersBlock(){

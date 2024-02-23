@@ -1,5 +1,14 @@
+{% load static %}
+
 <div class="configurationItem" id="{{transformer.idHtml}}" transformer="{{transformer.transformerType}}">
     <h2>{{transformer.name}}</h2>
+    <button class="deleteButton">
+        <svg width="64px" height="64px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#0A3B49">
+            <g id="SVGRepo_bgCarrier" stroke-width="0"/>
+            <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"/>
+            <g id="SVGRepo_iconCarrier"> <path d="M19 5L4.99998 19M5.00001 5L19 19" stroke="#0A3B49" stroke-width="1.536" stroke-linecap="round" stroke-linejoin="round"/> </g>
+            </svg>
+    </button>
     <div class="visualizationInput">
     <select>
         {% for sysOutput in model.getSimOutType %}
