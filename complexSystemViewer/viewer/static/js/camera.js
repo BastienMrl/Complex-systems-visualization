@@ -39,13 +39,24 @@ export class Camera {
     }
     // getters
     get projectionMatrix() {
-        return this._projectionMatrix;
+        let copy = Mat4.create();
+        Mat4.copy(copy, this._projectionMatrix);
+        return copy;
     }
     get viewMatrix() {
-        return this._viewMatrix;
+        let copy = Mat4.create();
+        Mat4.copy(copy, this._viewMatrix);
+        return copy;
     }
     get projViewMatrix() {
-        return this._projViewMatrix;
+        let copy = Mat4.create();
+        Mat4.copy(copy, this._projViewMatrix);
+        return copy;
+    }
+    get position() {
+        let copy = Vec3.create();
+        Vec3.copy(copy, this._cameraPosition);
+        return copy;
     }
     // setters
     set aspectRatio(aspect) {

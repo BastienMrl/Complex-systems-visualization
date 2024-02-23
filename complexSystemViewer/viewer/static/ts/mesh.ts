@@ -56,6 +56,18 @@ export class MultipleMeshInstances{
         return this._aabb;
     }
 
+    public get nbRow() : number{
+        return Math.sqrt(this._nbInstances);
+    }
+
+    public get nbCol() : number{
+        return Math.sqrt(this._nbInstances);
+    }
+
+    public get nbInstances() : number{
+        return this._nbInstances;
+    }
+
     private updateAABB(){
         let row = Math.sqrt(this._nbInstances);
         let offset = (row - 1) / 2.;
@@ -74,8 +86,8 @@ export class MultipleMeshInstances{
 
     private updataMouseOverBuffer(idx : number | null){
         let arr = new Float32Array(this._nbInstances).fill(0.);
-        if (idx != null && idx > 0)
-            arr[idx - 1] = 1.;
+        if (idx != null && idx >= 0)
+            arr[idx] = 1.;
         this._context.bindBuffer(gl.ARRAY_BUFFER, this._mouseOverBuffer);
         this._context.bufferSubData(gl.ARRAY_BUFFER, 0, arr);
         this._context.bindBuffer(gl.ARRAY_BUFFER, null);
