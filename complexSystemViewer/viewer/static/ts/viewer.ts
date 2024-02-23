@@ -46,10 +46,6 @@ export class Viewer {
     private _currentValue : TransformableValues | null;
 
     private _drawable : boolean;
-    private _usePicking : boolean;
-
-    public mouseX : number;
-    public mouseY : number;
 
     constructor(canvasId : string){
         this.canvas = document.getElementById(canvasId) as HTMLCanvasElement;
@@ -93,12 +89,6 @@ export class Viewer {
         
         
         await this._selectionHandler.initialization("/static/shaders/selection.vert", "/static/shaders/selection.frag");
-        this.canvas.addEventListener('mousemove', (e : MouseEvent) => {
-            const rect = this.canvas.getBoundingClientRect();   
-            this.mouseX = e.clientX - rect.left;
-            this.mouseY = e.clientY - rect.top;
-        });
-
 
         this.initCamera();
         let self = this;
@@ -155,9 +145,7 @@ export class Viewer {
         return this._selectionHandler.selectedId;
     }
 
-    public get usePicking() : boolean {
-        return this._usePicking;
-    }
+
 
     public get pickingTool() : PickingTool {
         return this._pickingTool;
@@ -170,9 +158,6 @@ export class Viewer {
         this._animationTimer.duration = duration;
     }
 
-    public set usePicking(value : boolean){
-        this._usePicking = value;
-    }
 
 
     // private methods
@@ -244,10 +229,10 @@ export class Viewer {
         
         
         // picking
-        if (this._drawable && this._usePicking){
+        if (this._drawable){
             this._stats.startPickingTimer();
-            let id = this._pickingTool.getMeshesId(this.mouseX, this.mouseY, this.canvas.width, this.canvas.height, this.camera);
-            this._multipleInstances.setMouseOver(id);
+            // let id = this._pickingTool.getMeshesId(this.mouseX, this.mouseY, this.canvas.width, this.canvas.height, this.camera);
+            // this._multipleInstances.setMouseOver(id);
             this._stats.stopPickingTimer();
         }
         
@@ -258,6 +243,10 @@ export class Viewer {
             this.draw();
         this.context.finish();
         this._stats.stopRenderingTimer();
+    }
+
+    public currentSelectionChanged(selection : Array<number> | null){
+        this._multipleInstances.updateMouseOverBuffer(selection);
     }
 
     private getAnimationTime(type : AnimableValue){

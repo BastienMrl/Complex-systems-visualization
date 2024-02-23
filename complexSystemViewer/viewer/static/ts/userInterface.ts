@@ -1,5 +1,6 @@
 import { AnimableValue, Viewer } from "./viewer.js";
 import { InputType, StatesTransformer, TransformType } from "./statesTransformer.js";
+import { PickingMode } from "./pickingTool.js";
 
 const MAX_REFRESH_RATE = 20.;
 const MIN_REFRESH_RATE = 0.5;
@@ -151,8 +152,11 @@ export class UserInterface {
         for(let i=0; i<toolButtons.length; i++){
             toolButtons.item(i).addEventListener("click", () => {
                 let prevActiveTool = document.querySelectorAll(".toolActive:not(#tool" + toolButtons.item(i).id +")");
-                if (i == 0 || prevActiveTool[0].id == "tool1") {
-                    this._viewer.usePicking = !this._viewer.usePicking;
+                if (i == 0) {
+                    this._viewer.pickingTool.switMode(PickingMode.BOX);
+                }
+                if (i == 1){
+                    this._viewer.pickingTool.switMode(PickingMode.LASSO);
                 }
                 toolButtons.item(i).classList.toggle("toolActive");
                 if(prevActiveTool.length > 0){

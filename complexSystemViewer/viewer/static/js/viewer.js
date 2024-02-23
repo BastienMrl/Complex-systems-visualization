@@ -31,9 +31,6 @@ export class Viewer {
     _transmissionWorker;
     _currentValue;
     _drawable;
-    _usePicking;
-    mouseX;
-    mouseY;
     constructor(canvasId) {
         this.canvas = document.getElementById(canvasId);
         let context = this.canvas.getContext("webgl2");
@@ -62,11 +59,6 @@ export class Viewer {
         this.context.cullFace(gl.BACK);
         this.context.enable(gl.DEPTH_TEST);
         await this._selectionHandler.initialization("/static/shaders/selection.vert", "/static/shaders/selection.frag");
-        this.canvas.addEventListener('mousemove', (e) => {
-            const rect = this.canvas.getBoundingClientRect();
-            this.mouseX = e.clientX - rect.left;
-            this.mouseY = e.clientY - rect.top;
-        });
         this.initCamera();
         let self = this;
         this.resizeObserver = new ResizeObserver(function () { self.onCanvasResize(); });
@@ -110,9 +102,6 @@ export class Viewer {
     get selectedId() {
         return this._selectionHandler.selectedId;
     }
-    get usePicking() {
-        return this._usePicking;
-    }
     get pickingTool() {
         return this._pickingTool;
     }
@@ -120,9 +109,6 @@ export class Viewer {
     // in seconds
     set animationDuration(duration) {
         this._animationTimer.duration = duration;
-    }
-    set usePicking(value) {
-        this._usePicking = value;
     }
     // private methods
     onCanvasResize() {
@@ -175,10 +161,10 @@ export class Viewer {
         let delta = this._lastTime = 0 ? 0 : time - this._lastTime;
         this._lastTime = time;
         // picking
-        if (this._drawable && this._usePicking) {
+        if (this._drawable) {
             this._stats.startPickingTimer();
-            let id = this._pickingTool.getMeshesId(this.mouseX, this.mouseY, this.canvas.width, this.canvas.height, this.camera);
-            this._multipleInstances.setMouseOver(id);
+            // let id = this._pickingTool.getMeshesId(this.mouseX, this.mouseY, this.canvas.width, this.canvas.height, this.camera);
+            // this._multipleInstances.setMouseOver(id);
             this._stats.stopPickingTimer();
         }
         // rendering
@@ -188,6 +174,9 @@ export class Viewer {
             this.draw();
         this.context.finish();
         this._stats.stopRenderingTimer();
+    }
+    currentSelectionChanged(selection) {
+        this._multipleInstances.updateMouseOverBuffer(selection);
     }
     getAnimationTime(type) {
         let id = this._animationIds[type];

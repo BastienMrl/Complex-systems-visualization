@@ -12,6 +12,7 @@ export class MultipleMeshInstances{
     private _context : WebGL2RenderingContext;
     private _nbInstances : number;
     private _aabb = new Float32Array(6);
+    private _localAabb = new Float32Array(6);
 
     private _vertPositions : Float32Array;
     private _vertNormals : Float32Array;
@@ -68,6 +69,10 @@ export class MultipleMeshInstances{
         return this._nbInstances;
     }
 
+    public get localAabb() : Float32Array {
+        return this._localAabb;
+    }
+
     private updateAABB(){
         let row = Math.sqrt(this._nbInstances);
         let offset = (row - 1) / 2.;
@@ -83,15 +88,6 @@ export class MultipleMeshInstances{
         this._aabb[3] = 2.;
     }
     
-
-    private updataMouseOverBuffer(idx : number | null){
-        let arr = new Float32Array(this._nbInstances).fill(0.);
-        if (idx != null && idx >= 0)
-            arr[idx] = 1.;
-        this._context.bindBuffer(gl.ARRAY_BUFFER, this._mouseOverBuffer);
-        this._context.bufferSubData(gl.ARRAY_BUFFER, 0, arr);
-        this._context.bindBuffer(gl.ARRAY_BUFFER, null);
-    }
 
     private initSelectionVAO(){
         this._context.bindVertexArray(this._selectionVao);
@@ -169,13 +165,36 @@ export class MultipleMeshInstances{
         this._context.bindVertexArray(null);
     }
 
+    private extendLocalAabb(vertex : Vec3){
+        let aabb = this._localAabb;
+        
+        let x = vertex[0];
+        let y = vertex[1];
+        let z = vertex[2];
+
+        
+        aabb[0] = aabb[0] < x ? aabb[0] : x;
+        aabb[1] = aabb[1] > x ? aabb[1] : x;
+        aabb[2] = aabb[2] < y ? aabb[2] : y;
+        aabb[3] = aabb[3] > y ? aabb[3] : y;
+        aabb[4] = aabb[4] < z ? aabb[4] : z;
+        aabb[5] = aabb[5] > z ? aabb[5] : z;
+    }
+
     public updateStates(values : TransformableValues){
         this._translationBuffer.updateAttribs(values.translations);
         this._stateBuffer.updateAttribs(values.states);
     }
 
-    public setMouseOver(idx : number | null){
-        this.updataMouseOverBuffer(idx);
+    public updateMouseOverBuffer(indices : Array<number> | null){
+        const arr = new Float32Array(this._nbInstances).fill(0.);
+        if (indices != null)
+            indices.forEach((e) => {
+            arr[e] = 1.;
+        });
+        this._context.bindBuffer(gl.ARRAY_BUFFER, this._mouseOverBuffer);
+        this._context.bufferSubData(gl.ARRAY_BUFFER, 0, arr);
+        this._context.bindBuffer(gl.ARRAY_BUFFER, null);
     }
 
     public draw(){
@@ -193,6 +212,10 @@ export class MultipleMeshInstances{
 
 
     public async loadMesh(src : string){
+
+        this._localAabb = new Float32Array(6).fill(0);
+
+
         const response : Response = await fetch(src);
         const text : string = await response.text();
         const objFile = new OBJFile(text);
@@ -243,6 +266,8 @@ export class MultipleMeshInstances{
         for (let i = 0; i < vertices.length; ++i){
             normals[i].scale(1. / nbFaces[i]);
             normals[i].normalize();
+
+            this.extendLocalAabb(vertices[i]);
         }
         
 
