@@ -105,7 +105,6 @@ export class UserInterface {
         let gridSizeInput = (document.querySelector("input[paramId=gridSize]") as HTMLInputElement);
 
         let toolButtons = (document.getElementsByClassName("tool") as HTMLCollectionOf<HTMLDivElement>);
-        let deleteButtons = (document.getElementsByClassName("deleteButton") as HTMLCollectionOf<HTMLButtonElement>);
 
         let addTransformerButton = (document.querySelector('#buttonAddTransformer') as HTMLButtonElement);
 
@@ -165,12 +164,6 @@ export class UserInterface {
                 }
             });
         }
-
-        Array.from(deleteButtons).forEach(button => {
-            button.addEventListener("click", () => {
-                button.parentElement.remove();
-            });
-        });
 
         var nbAddedTransformer = 0;
         let superthis = this;
@@ -239,6 +232,8 @@ export class TransformersInterface {
     public addTransformerFromElement(element : HTMLElement){
         const inputElement = this.getInputTypeElement(element);
         const inputType = this.getInputType(inputElement);
+
+        const deleteButton = (element.getElementsByClassName("deleteButton")[0] as HTMLButtonElement);
         
         const transformType = this.getTransformType(element);
         const paramsElements = this.getParamsElements(element);
@@ -255,6 +250,7 @@ export class TransformersInterface {
                 this._currentStatesTransformer.setParams(id, newParams);
                 this.updateProgram();
             });
+            e.dispatchEvent(new Event('change'));
         });
         
         
@@ -262,11 +258,16 @@ export class TransformersInterface {
             this._currentStatesTransformer.setInputType(id, this.getInputType(inputElement));
             this.updateProgram();
         });
-        // TODO: add functions to disconnect / delete transformer
-    }
 
-    public deleteTransformerFromElement(element: HTMLElement){
-        
+        //function to disconnect / delete transformer
+        if(deleteButton){
+            deleteButton.addEventListener("click", () => {
+                this._currentStatesTransformer.removeTransformer(id);
+                deleteButton.parentElement.remove();
+                this.updateProgram();
+                console.log("deleted");
+            });
+        }
     }
 
     public updateProgram(){

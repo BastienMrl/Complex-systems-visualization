@@ -79,7 +79,6 @@ export class UserInterface {
         let foldButton = document.getElementById("foldButton");
         let gridSizeInput = document.querySelector("input[paramId=gridSize]");
         let toolButtons = document.getElementsByClassName("tool");
-        let deleteButtons = document.getElementsByClassName("deleteButton");
         let addTransformerButton = document.querySelector('#buttonAddTransformer');
         playButton.addEventListener('click', () => {
             this._viewer.startVisualizationAnimation();
@@ -128,11 +127,6 @@ export class UserInterface {
                 }
             });
         }
-        Array.from(deleteButtons).forEach(button => {
-            button.addEventListener("click", () => {
-                button.parentElement.remove();
-            });
-        });
         var nbAddedTransformer = 0;
         let superthis = this;
         addTransformerButton.addEventListener("click", (e) => {
@@ -189,6 +183,7 @@ export class TransformersInterface {
     addTransformerFromElement(element) {
         const inputElement = this.getInputTypeElement(element);
         const inputType = this.getInputType(inputElement);
+        const deleteButton = element.getElementsByClassName("deleteButton")[0];
         const transformType = this.getTransformType(element);
         const paramsElements = this.getParamsElements(element);
         console.log(paramsElements);
@@ -204,12 +199,21 @@ export class TransformersInterface {
                 this._currentStatesTransformer.setParams(id, newParams);
                 this.updateProgram();
             });
+            e.dispatchEvent(new Event('change'));
         });
         inputElement.addEventListener("change", () => {
             this._currentStatesTransformer.setInputType(id, this.getInputType(inputElement));
             this.updateProgram();
         });
-        // TODO: add functions to disconnect / delete transformer
+        //function to disconnect / delete transformer
+        if (deleteButton) {
+            deleteButton.addEventListener("click", () => {
+                this._currentStatesTransformer.removeTransformer(id);
+                deleteButton.parentElement.remove();
+                this.updateProgram();
+                console.log("deleted");
+            });
+        }
     }
     updateProgram() {
         this._viewer.updateProgamsTransformers(this._currentStatesTransformer);

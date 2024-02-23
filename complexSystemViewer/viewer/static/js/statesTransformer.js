@@ -239,7 +239,17 @@ export class StatesTransformer {
                 break;
         }
         this.addInputVariableDeclaration(type, inputType, inputVariable);
-        return this._transformers.length - 1;
+        return id;
+    }
+    removeTransformer(id) {
+        let transformer = this.getTransformerFromId(id);
+        if (transformer == null)
+            return;
+        let variable = transformer.getInputVariable();
+        console.log(this._inputDeclarations.length);
+        this.deleteVariableDeclaration(variable);
+        console.log(this._inputDeclarations.length);
+        this._transformers.splice(this._transformers.indexOf(transformer), 1);
     }
     generateTransformersBlock() {
         let inputDeclarations = "";
@@ -276,18 +286,20 @@ export class StatesTransformer {
         return `${inputDeclarations}\n${constants}\n${fctCalls}`;
     }
     setParams(id, params) {
-        if (id < 0 || id >= this._transformers.length)
+        let transformer = this.getTransformerFromId(id);
+        if (transformer == null)
             return;
-        this._transformers[id].setParameters(params);
+        transformer.setParameters(params);
     }
     setInputType(id, inputType) {
-        if (id < 0 || id >= this._transformers.length)
+        let transformer = this.getTransformerFromId(id);
+        if (transformer == null)
             return;
-        let oldVariable = this._transformers[id].getInputVariable();
-        let transformType = this._transformers[id].type;
+        let oldVariable = transformer.getInputVariable();
+        let transformType = transformer.type;
         let newVariable = this.getInputVariableName(transformType, inputType);
         this.addInputVariableDeclaration(transformType, inputType, newVariable);
-        this._transformers[id].setInputVariable(newVariable);
+        transformer.setInputVariable(newVariable);
         this.deleteVariableDeclaration(oldVariable);
     }
     getPositionFactor(axis) {
@@ -309,6 +321,16 @@ export class StatesTransformer {
                 factor += e.factor;
         });
         return factor;
+    }
+    getTransformerFromId(id) {
+        let transformer = null;
+        for (let i = 0; i < this._transformers.length; i++) {
+            if (this._transformers[i].getId() == id) {
+                transformer = this._transformers[i];
+                break;
+            }
+        }
+        return transformer;
     }
 }
 class Transformer {
@@ -392,6 +414,9 @@ class Transformer {
     }
     getInputVariable() {
         return this._inputVariable;
+    }
+    getId() {
+        return this._id;
     }
 }
 class ColorTransformer extends Transformer {
