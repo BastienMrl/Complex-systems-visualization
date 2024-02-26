@@ -40,13 +40,14 @@ class Simulation(ABC):
 
     def to_JSON_object(self) :
         t0 = time.time()
-        particules = self.current_states[0].particles
+        """ particules = self.current_states[0].particles
         
         row_gen = (np.append(np.array([p.pos_x, p.pos_y], dtype=float),p.values) for p in particules)
 
         arr = np.fromiter(row_gen, object)
         
-        tsl = np.transpose(np.stack(arr)).tolist()
+        tsl = np.transpose(np.stack(arr)).tolist() """
+        tsl = self.current_states[0].to_JSON_object()
         print("json obj ok - ", 1000*(time.time()-t0), "ms\n")
         return tsl
         

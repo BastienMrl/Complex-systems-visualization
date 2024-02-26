@@ -36,15 +36,24 @@ class GridState(State) :
         self.grid = grid
         self.grid_particle_class = grid_particle_class
         s = jnp.shape(self.grid)
-        w = float(s[2])
-        h = float(s[3])
+        w = int(s[2])
+        h = int(s[3])
 
 
         super().__init__(w, h)
         self.update_particles()
 
     def to_JSON_object(self):
-        pass
+        grid2d = np.squeeze(self.grid)
+        single_x_row = np.arange(0-(self.width-1)/2, (self.width-1)/2+1).tolist()
+        single_y_row = np.arange(0-(self.height-1)/2, (self.height-1)/2+1).tolist()
+
+        x_row = single_x_row * self.height
+        y_row = [val for val in single_y_row for _ in range(self.width)]
+
+        val_rown = grid2d.flatten()
+        l = [x_row, y_row, val_rown.tolist()]
+        return l
 
         
 
