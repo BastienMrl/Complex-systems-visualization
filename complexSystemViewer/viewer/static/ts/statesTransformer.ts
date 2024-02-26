@@ -1,4 +1,5 @@
 import { ShaderVariable, ShaderFunction, ShaderMeshInputs, ShaderUniforms } from "./shaderUtils.js";
+import * as Utils from "./typeUtils.js"
 
 export enum TransformType {
     COLOR,
@@ -487,26 +488,13 @@ class ColorTransformer extends Transformer{
     public constructor(id : number, inputVariable : string, params : any[]){
         super(id, inputVariable);
         if (typeof params[0] == "string")
-            this._colorMin = this.hexToRgbA(params[0]);
+            this._colorMin = Utils.hexToRgbA(params[0]);
         else 
             this._colorMin = [0., 0., 0.];
         if (typeof params[1] == "string")
-            this._colorMax = this.hexToRgbA(params[1]);
+            this._colorMax = Utils.hexToRgbA(params[1]);
         else 
             this._colorMax = [1., 1., 1.];
-    }
-
-    private hexToRgbA(hex : string) : [number, number, number]{ 
-        let c;
-        if(/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)){
-            c= hex.substring(1).split('');
-            if(c.length== 3){
-                c= [c[0], c[0], c[1], c[1], c[2], c[2]];
-            }
-            c= '0x'+c.join('');
-            return [((c>>16)&255) / 255, ((c>>8)&255) / 255, (c&255) / 255];
-        }
-        throw new Error('Bad Hex');
     }
 
     public applyTransformation(input: number): number | [number, number, number] {
@@ -528,9 +516,9 @@ class ColorTransformer extends Transformer{
 
     public setParameters(params : any[]): void {
         if (typeof params[0] == "string")
-            this._colorMin = this.hexToRgbA(params[0]);
+            this._colorMin = Utils.hexToRgbA(params[0]);
         if (typeof params[1] == "string")
-            this._colorMax = this.hexToRgbA(params[1]);
+            this._colorMax = Utils.hexToRgbA(params[1]);
     }
 }
 
@@ -587,8 +575,8 @@ class ColorChannelTransformer extends Transformer {
 
     public constructor (idx : number, inputVariable : string, channel : 0 | 1 | 2, min : number = 0, max : number = 1){
         super(idx, inputVariable);
-        this._min = min;
-        this._max = max;
+        this._min = Utils.mapValue(0, 255, 0, 1, min);
+        this._max = Utils.mapValue(0, 255, 0, 1, max);
         switch(channel){
             case 0:
                 this.type = TransformType.COLOR_R;
@@ -619,8 +607,8 @@ class ColorChannelTransformer extends Transformer {
 
     public setParameters(params : any[]) : void{
         if (params[0] != null)
-            this._min = params[0];
+            this._min = Utils.mapValue(0, 255, 0, 1, params[0]);
         if (params[1] != null)
-            this._max = params[1];
+            this._max = Utils.mapValue(0, 255, 0, 1, params[1]);
     }
 }
