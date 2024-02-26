@@ -43,6 +43,11 @@ class GridState(State) :
         super().__init__(w, h)
         self.update_particles()
 
+    def to_JSON_object(self):
+        pass
+
+        
+
     def update_particles(self) :
         particles = list()
         grid2d = jnp.squeeze(self.grid)

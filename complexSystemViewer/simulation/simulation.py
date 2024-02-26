@@ -4,6 +4,7 @@ import jax.lax as lax
 import jax.random
 from .param import *
 import numpy as np
+import time
 class Simulation(ABC): 
     
     s_id = None
@@ -38,40 +39,18 @@ class Simulation(ABC):
         pass
 
     def to_JSON_object(self) :
-        arr = list()
-        id_arr = np.array([])
-        pos_arr_x = np.empty( shape=(0) )
-        pos_arr_y= np.empty( shape=(0) )
-        values_arr = np.empty( shape=(0) )
-        class_arr = np.empty( shape=(0) )
-        for state in self.current_states :
-          
-            particules = state.particles
-            v_id = np.vectorize(lambda p: p.p_id)
-            id_arr= v_id(particules)
-            
-            v_pos_x = np.vectorize(lambda p: p.pos_x)
-            pos_arr_x = v_pos_x(particules)
+        t0 = time.time()
+        particules = self.current_states[0].particles
+        
+        row_gen = (np.append(np.array([p.pos_x, p.pos_y], dtype=float),p.values) for p in particules)
 
-            v_pos_y = np.vectorize(lambda p: p.pos_y)
-            pos_arr_y = v_pos_y(particules)
-
-            v_val = np.vectorize(lambda p: p.values)
-            values_arr=v_val(particules)
-
-            v_cla = np.vectorize(lambda p: p.particle_class)
-            class_arr=v_cla(particules)
-            
-            
-        arr.append(pos_arr_x.tolist())
-        arr.append(pos_arr_y.tolist())
-        arr.append(values_arr.tolist())
-        return arr
-        return {
-            #'ids' : id_arr.tolist(),
-            'x' : pos_arr_x.tolist(),
-            'y' : pos_arr_y.tolist(),
-            'values' : values_arr.tolist(),
-            #'classes' : class_arr.tolist()  
-        }
+        arr = np.fromiter(row_gen, object)
+        
+        tsl = np.transpose(np.stack(arr)).tolist()
+        print("json obj ok - ", 1000*(time.time()-t0), "ms\n")
+        return tsl
+        
+        
+        
+        
     

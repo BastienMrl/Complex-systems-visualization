@@ -1,4 +1,5 @@
 import orjson
+
 import time
 import jax.numpy as jnp
 import jax.lax as lax
@@ -167,6 +168,6 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
 
     async def sendOneStepGOL(self):
         t0 = time.time()
-        await self.send(bytes_data=orjson(self.sim.to_JSON_object()))
+        await self.send(bytes_data=orjson.dumps(self.sim.to_JSON_object()))
         print("Data sent - ", 1000*(time.time()-t0), "ms\n")
         self.sim.step()
