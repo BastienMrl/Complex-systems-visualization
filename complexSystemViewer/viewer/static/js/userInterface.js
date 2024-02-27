@@ -1,5 +1,6 @@
 import { AnimableValue } from "./viewer.js";
 import { InputType, StatesTransformer, TransformType } from "./statesTransformer.js";
+import { PickingMode } from "./pickingTool.js";
 const MAX_REFRESH_RATE = 20.;
 const MIN_REFRESH_RATE = 0.5;
 const REFRESH_STEP = 0.5;
@@ -118,8 +119,11 @@ export class UserInterface {
         for (let i = 0; i < toolButtons.length; i++) {
             toolButtons.item(i).addEventListener("click", () => {
                 let prevActiveTool = document.querySelectorAll(".toolActive:not(#tool" + toolButtons.item(i).id + ")");
-                if (i == 0 || prevActiveTool[0].id == "tool1") {
-                    this._viewer.usePicking = !this._viewer.usePicking;
+                if (i == 0) {
+                    this._viewer.pickingTool.switMode(PickingMode.BOX);
+                }
+                if (i == 1) {
+                    this._viewer.pickingTool.switMode(PickingMode.LASSO);
                 }
                 toolButtons.item(i).classList.toggle("toolActive");
                 if (prevActiveTool.length > 0) {
@@ -178,10 +182,12 @@ export class TransformersInterface {
     constructor(viewer) {
         this._viewer = viewer;
         this._currentStatesTransformer = new StatesTransformer();
+        this._viewer.pickingTool.setTransformer(this._currentStatesTransformer);
     }
     addTransformerFromElement(element) {
         const inputElement = this.getInputTypeElement(element);
         const inputType = this.getInputType(inputElement);
+        const deleteButton = element.getElementsByClassName("deleteButton")[0];
         const transformType = this.getTransformType(element);
         const paramsElements = this.getParamsElements(element);
         console.log(paramsElements);
@@ -197,12 +203,21 @@ export class TransformersInterface {
                 this._currentStatesTransformer.setParams(id, newParams);
                 this.updateProgram();
             });
+            e.dispatchEvent(new Event('change'));
         });
         inputElement.addEventListener("change", () => {
             this._currentStatesTransformer.setInputType(id, this.getInputType(inputElement));
             this.updateProgram();
         });
-        // TODO: add functions to disconnect / delete transformer
+        //function to disconnect / delete transformer
+        if (deleteButton) {
+            deleteButton.addEventListener("click", () => {
+                this._currentStatesTransformer.removeTransformer(id);
+                deleteButton.parentElement.remove();
+                this.updateProgram();
+                console.log("deleted");
+            });
+        }
     }
     updateProgram() {
         this._viewer.updateProgamsTransformers(this._currentStatesTransformer);
@@ -252,8 +267,8 @@ export class TransformersInterface {
             case TransformType.COLOR_R:
             case TransformType.COLOR_G:
             case TransformType.COLOR_B:
-                let min = parent.querySelector("input[paramId=min]");
-                let max = parent.querySelector("input[paramId=max]");
+                let min = parent.querySelector("input[paramId=rangeMin]");
+                let max = parent.querySelector("input[paramId=rangeMax]");
                 return [min, max];
             case TransformType.POSITION_X:
             case TransformType.POSITION_Y:

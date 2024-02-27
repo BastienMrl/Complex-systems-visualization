@@ -1,0 +1,16 @@
+export function hexToRgbA(hex : string) : [number, number, number]{ 
+    let c;
+    if(/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)){
+        c = hex.substring(1).split('');
+        if(c.length== 3){
+            c = [c[0], c[0], c[1], c[1], c[2], c[2]];
+        }
+        c = '0x'+c.join('');
+        return [((c>>16)&255) / 255, ((c>>8)&255) / 255, (c&255) / 255];
+    }
+    throw new Error('Bad Hex');
+}
+
+export function mapValue(inMin : number, inMax : number, outMin : number, outMax : number, value : number){
+    return outMin + (value - inMin) * (outMax - outMin) / (inMax - inMin);
+}

@@ -1,13 +1,13 @@
 #version 300 es
 
 layout (location = 0) in vec3 a_position;
-layout (location = 1) in vec4 a_id;
+layout (location = 3) in vec4 a_id;
 
-layout (location = 3) in vec3 a_translation_t0;
-layout (location = 4) in vec3 a_translation_t1;
+layout (location = 10) in vec3 a_translation_t0;
+layout (location = 11) in vec3 a_translation_t1;
 
-layout (location = 5) in float a_state_t0;
-layout (location = 6) in float a_state_t1;
+layout (location = 12) in float a_state_t0;
+layout (location = 13) in float a_state_t1;
 
 
 out vec4 v_id;

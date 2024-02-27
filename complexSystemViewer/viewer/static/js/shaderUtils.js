@@ -25,6 +25,7 @@ async function initShaders(gl, srcVertex, srcFragment) {
     }
     gl.attachShader(shaderProgram, vertexShader);
     gl.attachShader(shaderProgram, fragmentShader);
+    gl.transformFeedbackVaryings(shaderProgram, ['feedback_translation'], gl.SEPARATE_ATTRIBS);
     gl.linkProgram(shaderProgram);
     if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
         alert("Could not initialise shaders");
@@ -101,4 +102,16 @@ var ShaderFunction;
     ShaderFunction["INPUT_FROM_TIME"] = "get_input_value_from_time";
     ShaderFunction["NORMALIZE_POSITION"] = "normalize_position";
 })(ShaderFunction || (ShaderFunction = {}));
-export { initShaders, ShaderVariable, ShaderFunction, ShaderMeshInputs, ShaderUniforms };
+var ShaderLocation;
+(function (ShaderLocation) {
+    ShaderLocation[ShaderLocation["POS"] = 0] = "POS";
+    ShaderLocation[ShaderLocation["NORMAL"] = 1] = "NORMAL";
+    ShaderLocation[ShaderLocation["UV"] = 2] = "UV";
+    ShaderLocation[ShaderLocation["ID"] = 3] = "ID";
+    ShaderLocation[ShaderLocation["TRANSLATION_T0"] = 10] = "TRANSLATION_T0";
+    ShaderLocation[ShaderLocation["TRANLSATION_T1"] = 11] = "TRANLSATION_T1";
+    ShaderLocation[ShaderLocation["STATE_0_T0"] = 12] = "STATE_0_T0";
+    ShaderLocation[ShaderLocation["STATE_0_T1"] = 13] = "STATE_0_T1";
+    ShaderLocation[ShaderLocation["SELECTED"] = 15] = "SELECTED";
+})(ShaderLocation || (ShaderLocation = {}));
+export { initShaders, ShaderVariable, ShaderFunction, ShaderMeshInputs, ShaderUniforms, ShaderLocation };

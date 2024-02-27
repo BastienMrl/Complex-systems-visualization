@@ -48,11 +48,29 @@
 }
 
 .configurationItem {
+    position: relative;
     background-color: var(--color-lighter);
     margin: 10px;
     margin-bottom: 0px;
     padding: 10px;
     width: calc(100% - 40px);
+}
+
+.configurationItem .deleteButton {
+    position: absolute;
+    background-color: transparent;
+    border: none;
+    top: 0px;
+    right: 0px;
+}
+
+.configurationItem .deleteButton svg{
+    width: 30px;
+    height: 30px;
+}
+
+.configurationItem .deleteButton:hover {
+    cursor:pointer;
 }
 
 .configurationItem:last-child {

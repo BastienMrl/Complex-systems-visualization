@@ -1,4 +1,5 @@
 import { ShaderVariable, ShaderFunction, ShaderMeshInputs, ShaderUniforms } from "./shaderUtils.js";
+import * as Utils from "./typeUtils.js"
 
 export enum TransformType {
     COLOR,
@@ -249,9 +250,19 @@ export class StatesTransformer{
                 this._transformers.push(new PositionTransformer(id, inputVariable, 2, params == undefined ? 1. : params[0]));
                 break;
         }
-
         this.addInputVariableDeclaration(type, inputType, inputVariable);
-        return this._transformers.length - 1;
+        return id;
+    }
+
+    public removeTransformer(id : number){
+        let transformer = this.getTransformerFromId(id);
+        if(transformer == null)
+            return;
+        let variable = transformer.getInputVariable();
+        console.log(this._inputDeclarations.length);
+        this.deleteVariableDeclaration(variable);
+        console.log(this._inputDeclarations.length);
+        this._transformers.splice(this._transformers.indexOf(transformer), 1);
     }
 
     public generateTransformersBlock(){
@@ -293,23 +304,57 @@ export class StatesTransformer{
     }
 
     public setParams(id : number, params : any[]){
-        if (id < 0 || id >= this._transformers.length)
+        let transformer : Transformer = this.getTransformerFromId(id);
+        if (transformer == null)
             return;
-        this._transformers[id].setParameters(params);
+        transformer.setParameters(params);
     }
 
     public setInputType(id : number, inputType : InputType){
-        if (id < 0 || id >= this._transformers.length)
+        let transformer : Transformer = this.getTransformerFromId(id);
+        if (transformer == null)
             return;
 
-        let oldVariable = this._transformers[id].getInputVariable();
-        let transformType = this._transformers[id].type;
+        let oldVariable = transformer.getInputVariable();
+        let transformType = transformer.type;
         let newVariable = this.getInputVariableName(transformType, inputType);
 
         this.addInputVariableDeclaration(transformType, inputType, newVariable);
-        this._transformers[id].setInputVariable(newVariable);
+        transformer.setInputVariable(newVariable);
         
         this.deleteVariableDeclaration(oldVariable);
+    }
+
+    public getPositionFactor(axis : 0 | 1 | 2) : number{
+        let type = TransformType.POSITION_X;
+        switch(axis){
+            case 0:
+                type = TransformType.POSITION_X;
+                break;
+            case 1:
+                type = TransformType.POSITION_Y;
+                break;
+            case 2:
+                type = TransformType.POSITION_Z;
+                break;
+        }
+        let factor = 0;
+        this._transformers.forEach((e) => {
+            if (e.type == type)
+                factor += (e as PositionTransformer).factor;
+        })
+        return factor;
+    }
+
+    public getTransformerFromId(id : number) : Transformer{
+        let transformer : Transformer = null;
+        for(let i=0; i<this._transformers.length; i++){
+            if(this._transformers[i].getId() == id){
+                transformer = this._transformers[i];
+                break;
+            }
+        }
+        return transformer;
     }
 
 }
@@ -335,7 +380,9 @@ abstract class Transformer {
 
 
     public abstract getParamsDeclarationBlock() : string;
-    public abstract getTransformationsBlock() : string;   
+    public abstract getTransformationsBlock() : string; 
+    
+    public abstract applyTransformation(input : number) : number | [number, number, number];
 
     private getTypeNbElements(value : ShaderVariableType) : 1 | 2 | 3 | 4 {
         if (Array.isArray(value))
@@ -425,6 +472,10 @@ abstract class Transformer {
         return this._inputVariable;
     }
 
+    public getId() : number{
+        return this._id;
+    }
+
     
 }
 
@@ -437,26 +488,18 @@ class ColorTransformer extends Transformer{
     public constructor(id : number, inputVariable : string, params : any[]){
         super(id, inputVariable);
         if (typeof params[0] == "string")
-            this._colorMin = this.hexToRgbA(params[0]);
+            this._colorMin = Utils.hexToRgbA(params[0]);
         else 
             this._colorMin = [0., 0., 0.];
         if (typeof params[1] == "string")
-            this._colorMax = this.hexToRgbA(params[1]);
+            this._colorMax = Utils.hexToRgbA(params[1]);
         else 
             this._colorMax = [1., 1., 1.];
     }
 
-    private hexToRgbA(hex : string) : [number, number, number]{ 
-        let c;
-        if(/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)){
-            c= hex.substring(1).split('');
-            if(c.length== 3){
-                c= [c[0], c[0], c[1], c[1], c[2], c[2]];
-            }
-            c= '0x'+c.join('');
-            return [((c>>16)&255) / 255, ((c>>8)&255) / 255, (c&255) / 255];
-        }
-        throw new Error('Bad Hex');
+    public applyTransformation(input: number): number | [number, number, number] {
+        let ret = this._colorMin.map(x => x * (1 - input))
+        return ret.map((x, i) => x + this._colorMax[i] * input) as [number, number, number];
     }
 
     public getParamsDeclarationBlock(): string {        
@@ -473,19 +516,21 @@ class ColorTransformer extends Transformer{
 
     public setParameters(params : any[]): void {
         if (typeof params[0] == "string")
-            this._colorMin = this.hexToRgbA(params[0]);
+            this._colorMin = Utils.hexToRgbA(params[0]);
         if (typeof params[1] == "string")
-            this._colorMax = this.hexToRgbA(params[1]);
+            this._colorMax = Utils.hexToRgbA(params[1]);
     }
 }
 
 class PositionTransformer extends Transformer{
     private _factor : number;
+    
 
-    public constructor(idx : number, inputVariable : string, axe : 0 | 1 | 2, factor : number = 1.){
+
+    public constructor(idx : number, inputVariable : string, axis : 0 | 1 | 2, factor : number = 1.){
         super(idx, inputVariable);
         this.setFactor(factor);
-        switch(axe){
+        switch(axis){
             case 0 : 
                 this.type = TransformType.POSITION_X;
                 break;
@@ -496,6 +541,10 @@ class PositionTransformer extends Transformer{
                 this.type = TransformType.POSITION_Z;
                 break;
             }
+    }
+
+    public applyTransformation(input: number): number | [number, number, number] {
+        return input * this.factor;
     }
 
     private setFactor(factor : number){
@@ -514,6 +563,10 @@ class PositionTransformer extends Transformer{
     public setParameters(params : any[]): void {
         this.setFactor(params[0]);
     }
+
+    public get factor() : number{
+        return this._factor;
+    }
 }
 
 class ColorChannelTransformer extends Transformer {
@@ -522,8 +575,8 @@ class ColorChannelTransformer extends Transformer {
 
     public constructor (idx : number, inputVariable : string, channel : 0 | 1 | 2, min : number = 0, max : number = 1){
         super(idx, inputVariable);
-        this._min = min;
-        this._max = max;
+        this._min = Utils.mapValue(0, 255, 0, 1, min);
+        this._max = Utils.mapValue(0, 255, 0, 1, max);
         switch(channel){
             case 0:
                 this.type = TransformType.COLOR_R;
@@ -535,6 +588,10 @@ class ColorChannelTransformer extends Transformer {
                 this.type = TransformType.COLOR_B;
                 break;
         }
+    }
+
+    public applyTransformation(input: number): number | [number, number, number] {
+        return this._min * (1 - input) + this._max * input;
     }
 
     public getParamsDeclarationBlock(): string {
@@ -550,8 +607,8 @@ class ColorChannelTransformer extends Transformer {
 
     public setParameters(params : any[]) : void{
         if (params[0] != null)
-            this._min = params[0];
+            this._min = Utils.mapValue(0, 255, 0, 1, params[0]);
         if (params[1] != null)
-            this._max = params[1];
+            this._max = Utils.mapValue(0, 255, 0, 1, params[1]);
     }
 }

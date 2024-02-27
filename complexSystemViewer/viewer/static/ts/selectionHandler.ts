@@ -14,7 +14,7 @@ export class SelectionHandler{
     private _canvas : HTMLCanvasElement;
     
     private _frameBuffer : WebGLFramebuffer | null;
-    private _selectionTargetTexture : WebGLTexture | null;
+    private _selectionTargetTexture : WebGLRenderbuffer | null;
     private _selectionDepthBuffer : WebGLRenderbuffer | null;
 
     private _selectionProgram : shaderUtils.ProgramWithTransformer;
@@ -52,14 +52,19 @@ export class SelectionHandler{
         this._frameBuffer = this._context.createFramebuffer();
         this._context.bindFramebuffer(gl.FRAMEBUFFER, this._frameBuffer);
         
-        this._selectionTargetTexture = this._context.createTexture();
-        this._context.bindTexture(gl.TEXTURE_2D, this._selectionTargetTexture);
-        this._context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        this._context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        this._context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        this._context.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this._selectionTargetTexture, 0);
-        this._context.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this._canvas.width, this._canvas.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-        this._context.bindTexture(gl.TEXTURE_2D, null);        
+        // this._selectionTargetTexture = this._context.createTexture();
+        // this._context.bindTexture(gl.TEXTURE_2D, this._selectionTargetTexture);
+        // this._context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        // this._context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        // this._context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        // this._context.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this._selectionTargetTexture, 0);
+        // this._context.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this._canvas.width, this._canvas.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+        // this._context.bindTexture(gl.TEXTURE_2D, null);    
+        this._selectionTargetTexture = this._context.createRenderbuffer();
+        this._context.bindRenderbuffer(gl.RENDERBUFFER, this._selectionTargetTexture);
+        this._context.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, this._selectionTargetTexture);
+        this._context.renderbufferStorage(gl.RENDERBUFFER, gl.RGBA8, this._canvas.width, this._canvas.height);
+        this._context.bindRenderbuffer(gl.RENDERBUFFER, null);
         
         this._selectionDepthBuffer = this._context.createRenderbuffer();
         this._context.bindRenderbuffer(gl.RENDERBUFFER, this._selectionDepthBuffer);
@@ -67,15 +72,21 @@ export class SelectionHandler{
         this._context.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, this._canvas.width, this._canvas.height);
         this._context.bindRenderbuffer(gl.RENDERBUFFER, null);
 
+        // use this for readPixels and blitFramebuffer
+        this._context.readBuffer(gl.COLOR_ATTACHMENT0);
+
         this._context.bindFramebuffer(gl.FRAMEBUFFER, null);
     }
 
     public resizeBuffers(){
-        this._context.bindTexture(gl.TEXTURE_2D, this._selectionTargetTexture);
-        this._context.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this._canvas.width, this._canvas.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+        // this._context.bindTexture(gl.TEXTURE_2D, this._selectionTargetTexture);
+        // this._context.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this._canvas.width, this._canvas.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
        
         this._context.bindRenderbuffer(gl.RENDERBUFFER, this._selectionDepthBuffer);
         this._context.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, this._canvas.width, this._canvas.height);
+
+        this._context.bindRenderbuffer(gl.RENDERBUFFER, this._selectionTargetTexture);
+        this._context.renderbufferStorage(gl.RENDERBUFFER, gl.RGBA8, this._canvas.width, this._canvas.height);
     }
 
     public updateCurrentSelection(camera : Camera, meshes : MultipleMeshInstances, time : number){
@@ -100,6 +111,8 @@ export class SelectionHandler{
         if (id != this.selectedId){
             this.selectedId = id > 0 ? id : null;
         }
+
+        console.log("id = ", id);
     }
 
     public updateProgamTransformers(transformers : StatesTransformer){
