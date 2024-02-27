@@ -4,14 +4,21 @@ import jax.lax as lax
 import jax.random
 from .param import *
 import numpy as np
+class Paramtype(Enum):
+ NUMBER,
+ INT_LIST,
+ STRING
 class Param(ABC): 
     id_param  = None
-    type_param : type = None
+    type_param : Paramtype = None
     name  = None
     value = None
+    min = None
+    max = None
+    step
      
 
-    def __init__(self, id_p , type_p:type, name, value):
+    def __init__(self, id_p , type_p:type, name, value, step = 1):
         self.id_param = id_p
         self.type_param = type_p
         self.name = name

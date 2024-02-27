@@ -7,6 +7,7 @@ import math
 from ..simulation import * 
 class GOLSimulation(Simulation): 
     kernel = None
+    name = "Game of Life"
     def __init__(self, init_states = None, init_params = None): 
         super().__init__(0, init_states, init_params)
         self.kernel = jnp.zeros((3, 3, 1, 1), dtype=jnp.float32)
@@ -28,3 +29,8 @@ class GOLSimulation(Simulation):
         out = jnp.logical_or(out, cdt_3)
         state.set_grid(out.astype(jnp.float32))
         state.update_particles()
+
+    def declare_params() : #TODO
+        paramlist = list()
+
+        paramlist.append(Param('kill', type_p, name, value))

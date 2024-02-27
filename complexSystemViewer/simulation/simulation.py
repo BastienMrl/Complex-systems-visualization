@@ -50,6 +50,13 @@ class Simulation(ABC):
         tsl = self.current_states[0].to_JSON_object()
         print("json obj ok - ", 1000*(time.time()-t0), "ms\n")
         return tsl
+
+    @abstractmethod
+    def declare_params() :
+        pass
+
+    def getParams(): 
+        pass #dict 
         
         
         
