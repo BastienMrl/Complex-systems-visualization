@@ -118,6 +118,7 @@ h3, h4 {
 }
 
 .visualizationInput {
+    margin-top: 0px;
     display: flex;
     justify-content: space-around;
     align-items: center;
@@ -125,6 +126,7 @@ h3, h4 {
 
 .visualizationInput > select {
     height: 27px;
+    margin-top: 20px;
 }
 
 .visualizationInput .transformerParam {
@@ -159,4 +161,22 @@ h3, h4 {
 
 #addTransformerForm select {
     height: 30px;
+}
+
+.transformerParam .NR {
+    flex-direction: column;
+}
+
+.transformerParam .NR div{
+    margin-bottom: 10px;
+}
+
+.transformerParam .NR div:last-of-type {
+    margin-bottom: 0px;
+}
+
+.transformerParam .parameterItem {
+    margin: 5px;
+    padding-left: 5px;
+    border-left: solid var(--color-light) 1px;
 }

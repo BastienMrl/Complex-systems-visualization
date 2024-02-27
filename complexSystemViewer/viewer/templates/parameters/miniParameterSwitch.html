@@ -1,4 +1,5 @@
 <div class="miniParam">
+    <p>{{param.name}}</p>
     {% if param.type == "NR" %}
         {% include "parameters/parameterItems/rangeParameter.html"%}
     {% elif param.type == "NV" %}
@@ -8,5 +9,4 @@
     {% elif param.type == "CV" %}
         {% include "parameters/parameterItems/colorParameter.html"%}
     {% endif %}
-    <p>{{param.name}}</p>
 </div>
