@@ -5,17 +5,14 @@ import jax.random
 from .param import *
 import numpy as np
 import time
-class Simulation(ABC): 
-    
-    s_id = None
-    current_states = None
-    parameters = None
-    width = None
-    height = None
-     
+class Simulation(ABC):   
 
     def __init__(self, id :int, init_states = None, init_params  = None): 
-        s_id = None
+        self.s_id = None
+        self.current_states = None
+        self.parameters = None
+        self.width = None
+        self.height = None
         if init_states != None :
             self.current_states = init_states
         else : 
@@ -29,7 +26,7 @@ class Simulation(ABC):
         
 
         if init_params != None :
-            self.parameter = init_params
+            self.parameters = init_params
         else :
             pass
             #raise ValueError("Initial parameters can't be None")
@@ -51,12 +48,8 @@ class Simulation(ABC):
         print("json obj ok - ", 1000*(time.time()-t0), "ms\n")
         return tsl
 
-    @abstractmethod
-    def declare_params() :
-        pass
-
-    def getParams(): 
-        pass #dict 
+    def getParams(self): 
+        return self.parameters
         
         
         

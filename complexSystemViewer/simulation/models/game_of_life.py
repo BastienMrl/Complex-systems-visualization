@@ -5,11 +5,50 @@ import jax.random
 import math
 
 from ..simulation import * 
+
 class GOLSimulation(Simulation): 
-    kernel = None
-    name = "Game of Life"
-    def __init__(self, init_states = None, init_params = None): 
+
+    default_parameters = [
+        IntParam(id_p="gridSize", name="Grid size",
+                 default_value=10, min_value=0, step=1),
+        RangeIntParam(id_p="birth", name="Birth",
+                      min_param= IntParam(
+                          id_p="",
+                          name="",
+                          default_value=3,
+                          min_value=0,
+                          max_value=8,
+                          step=1
+                      ),
+                      max_param= IntParam(
+                          id_p="",
+                          name="",
+                          default_value=3,
+                          min_value=0,
+                          max_value=8,
+                          step=1
+                      )),
+        RangeIntParam(id_p="survival", name="Survival",
+                      min_param= IntParam(
+                          id_p="",
+                          name="",
+                          default_value=2,
+                          min_value=0,
+                          max_value=8,
+                          step=1
+                      ),
+                      max_param= IntParam(
+                          id_p="",
+                          name="",
+                          default_value=3,
+                          min_value=0,
+                          max_value=8,
+                          step=1
+                      ))]
+
+    def __init__(self, init_states = None, init_params = default_parameters): 
         super().__init__(0, init_states, init_params)
+        self.name = "Game of life"
         self.kernel = jnp.zeros((3, 3, 1, 1), dtype=jnp.float32)
         self.kernel += jnp.array([[1, 1, 1],
                             [1, 10, 1],
@@ -29,8 +68,3 @@ class GOLSimulation(Simulation):
         out = jnp.logical_or(out, cdt_3)
         state.set_grid(out.astype(jnp.float32))
         state.update_particles()
-
-    def declare_params() : #TODO
-        paramlist = list()
-
-        paramlist.append(Param('kill', type_p, name, value))
