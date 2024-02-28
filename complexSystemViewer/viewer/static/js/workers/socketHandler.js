@@ -5,6 +5,7 @@ export class SocketHandler {
     _stopMessage = "Stop";
     _requestDataMessage = "RequestData";
     _requestEmptyGridMessage = "EmptyGrid";
+    _changeRulesMessage = "ChangeRules";
     // These functions must be defined by the owner
     _onDataReceived;
     _onStart;
@@ -124,6 +125,19 @@ export class SocketHandler {
             return;
         this._socket.send(JSON.stringify({
             'message': this._requestEmptyGridMessage,
+            'params': params
+        }));
+    }
+    changeSimuRules(params) {
+        if (!this._isConnected) {
+            this._awaitingRequests.push(this.requestEmptyInstance.bind(this, params));
+            return;
+        }
+        ;
+        if (this._isRunning)
+            return;
+        this._socket.send(JSON.stringify({
+            'message': this._changeRulesMessage,
             'params': params
         }));
     }

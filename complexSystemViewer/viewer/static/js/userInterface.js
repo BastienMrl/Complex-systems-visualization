@@ -1,5 +1,6 @@
 import { AnimableValue } from "./viewer.js";
 import { InputType, StatesTransformer, TransformType } from "./statesTransformer.js";
+import { SocketHandler } from "./workers/socketHandler.js";
 const MAX_REFRESH_RATE = 20.;
 const MIN_REFRESH_RATE = 0.5;
 const REFRESH_STEP = 0.5;
@@ -70,6 +71,7 @@ export class UserInterface {
         });
     }
     initInterfaceHandlers() {
+        let webSocket = SocketHandler.getInstance();
         let playButton = document.querySelector('#buttonPlay');
         let pauseButton = document.querySelector('#buttonPause');
         let restartButton = document.querySelector('#buttonRestart');
@@ -77,6 +79,10 @@ export class UserInterface {
         let animationTimerEl = document.querySelector('#animationTimer');
         let foldButton = document.getElementById("foldButton");
         let gridSizeInput = document.querySelector("input[paramId=gridSize]");
+        let birthMinInput = document.querySelector("input[paramId=birthMin]");
+        let birthMaxInput = document.querySelector("input[paramId=birthMax]");
+        let survivalMinInput = document.querySelector("input[paramId=survivalMin]");
+        let survivalMaxInput = document.querySelector("input[paramId=survivalMax]");
         let toolButtons = document.getElementsByClassName("tool");
         playButton.addEventListener('click', () => {
             this._viewer.startVisualizationAnimation();
@@ -125,6 +131,18 @@ export class UserInterface {
                 }
             });
         }
+        function sendSimuRules() {
+            let birthMin = birthMinInput.valueAsNumber;
+            let birthMax = birthMaxInput.valueAsNumber;
+            let survivalMin = survivalMinInput.valueAsNumber;
+            let survivalMax = survivalMaxInput.valueAsNumber;
+            let params = JSON.stringify({
+                "birth": [birthMin, birthMax],
+                "survival": [survivalMin, survivalMax]
+            });
+            console.log(params);
+        }
+        birthMinInput.addEventListener("change", sendSimuRules);
     }
     initTransformers() {
         this._transformers = new TransformersInterface(this._viewer);
