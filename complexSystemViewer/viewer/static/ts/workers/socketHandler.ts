@@ -90,11 +90,13 @@ export class SocketHandler {
     }
 
     private onClose(e : CloseEvent) {
+        console.log("onClose");
         this._isConnected = false;
         console.debug('Socket closed unexpectedly', e);
     }
 
     private onError(e : Event){
+        console.log("onError");
         this._isConnected = false;
         console.error('Socket closed unexpectedly', e)
     }
@@ -153,11 +155,11 @@ export class SocketHandler {
     }
 
     public changeSimuRules(params: any){
+        console.log(this);
         if (!this._isConnected){
             this._awaitingRequests.push(this.requestEmptyInstance.bind(this, params));
             return;
         };
-        if (this._isRunning) return;
         this._socket.send(JSON.stringify({
             'message' : this._changeRulesMessage,
             'params' : params

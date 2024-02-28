@@ -8,6 +8,7 @@ import math
 from channels.generic.websocket import AsyncWebsocketConsumer
 from simulation.state import State, GridState
 from simulation.models.game_of_life import GOLSimulation
+from simulation.param import *
 import time
 
 class ViewerConsumer(AsyncWebsocketConsumer):
@@ -137,6 +138,10 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
             case "EmptyGrid":
                 if self.isConnected:
                     await self.emptyGrid(text_data_json["params"])
+            case "ChangeRules":
+                if self.isConnected:
+                    await self.updateRules(text_data_json["params"])
+                    
 
     async def emptyGrid(self, nbInstances):
         row = int(math.sqrt(nbInstances))
@@ -171,3 +176,21 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
         await self.send(bytes_data=orjson.dumps(self.sim.to_JSON_object()))
         print("Data sent - ", 1000*(time.time()-t0), "ms\n")
         self.sim.step()
+
+    async def updateRules(self, params):
+        rules = orjson.loads(params)
+        for rule in rules:
+            print(rule)
+            match rule:
+                case "birth":
+                    parameter : RangeIntParam = self.sim.getParamById("birth")
+                    parameter.min_param.value = rules[rule][0]
+                    parameter.max_param.value = rules[rule][1]
+                case "survival":
+                    parameter : RangeIntParam = self.sim.getParamById("survival")
+                    parameter.min_param.value = rules[rule][0]
+                    parameter.max_param.value = rules[rule][1]
+
+
+
+

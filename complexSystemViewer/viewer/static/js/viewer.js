@@ -102,6 +102,9 @@ export class Viewer {
     get usePicking() {
         return this._usePicking;
     }
+    get transmissionWorker() {
+        return this._transmissionWorker;
+    }
     // setter
     // in seconds
     set animationDuration(duration) {

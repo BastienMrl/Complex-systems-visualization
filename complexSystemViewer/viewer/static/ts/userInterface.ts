@@ -1,6 +1,6 @@
 import { AnimableValue, Viewer } from "./viewer.js";
 import { InputType, StatesTransformer, TransformType } from "./statesTransformer.js";
-import { SocketHandler } from "./workers/socketHandler.js";
+import { sendMessageToWorker, WorkerMessage } from "./workers/workerInterface.js"
 
 const MAX_REFRESH_RATE = 20.;
 const MIN_REFRESH_RATE = 0.5;
@@ -92,8 +92,6 @@ export class UserInterface {
 
     private initInterfaceHandlers()
     {
-        let webSocket = SocketHandler.getInstance();
-
         let playButton = (document.querySelector('#buttonPlay') as HTMLButtonElement);
         let pauseButton = (document.querySelector('#buttonPause') as HTMLButtonElement);
         let restartButton = (document.querySelector('#buttonRestart') as HTMLButtonElement);
@@ -168,7 +166,7 @@ export class UserInterface {
             });
         }
 
-        function sendSimuRules(){
+        let sendSimuRules = () =>{
             let birthMin : number = birthMinInput.valueAsNumber;
             let birthMax : number = birthMaxInput.valueAsNumber;
             let survivalMin : number = survivalMinInput.valueAsNumber;
@@ -178,8 +176,7 @@ export class UserInterface {
                 "birth": [birthMin, birthMax],
                 "survival": [survivalMin, survivalMax]
             });
-
-            webSocket.changeSimuRules(params);
+            sendMessageToWorker(this._viewer.transmissionWorker, WorkerMessage.UPDATE_RULES, params);
         }
         birthMinInput.addEventListener("change", sendSimuRules);
         birthMaxInput.addEventListener("change", sendSimuRules);

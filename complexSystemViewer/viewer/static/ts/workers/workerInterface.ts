@@ -3,7 +3,8 @@ export enum WorkerMessage {
     GET_VALUES = "get",
     RESET = "reset",
     VALUES = "values",
-    READY = "ready"
+    READY = "ready",
+    UPDATE_RULES = "update_r"
 }
 
 export function sendMessageToWorker(worker : Worker, header : WorkerMessage, message? : any){

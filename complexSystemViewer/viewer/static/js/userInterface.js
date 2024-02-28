@@ -1,6 +1,6 @@
 import { AnimableValue } from "./viewer.js";
 import { InputType, StatesTransformer, TransformType } from "./statesTransformer.js";
-import { SocketHandler } from "./workers/socketHandler.js";
+import { sendMessageToWorker, WorkerMessage } from "./workers/workerInterface.js";
 const MAX_REFRESH_RATE = 20.;
 const MIN_REFRESH_RATE = 0.5;
 const REFRESH_STEP = 0.5;
@@ -71,7 +71,6 @@ export class UserInterface {
         });
     }
     initInterfaceHandlers() {
-        let webSocket = SocketHandler.getInstance();
         let playButton = document.querySelector('#buttonPlay');
         let pauseButton = document.querySelector('#buttonPause');
         let restartButton = document.querySelector('#buttonRestart');
@@ -131,7 +130,7 @@ export class UserInterface {
                 }
             });
         }
-        function sendSimuRules() {
+        let sendSimuRules = () => {
             let birthMin = birthMinInput.valueAsNumber;
             let birthMax = birthMaxInput.valueAsNumber;
             let survivalMin = survivalMinInput.valueAsNumber;
@@ -140,9 +139,12 @@ export class UserInterface {
                 "birth": [birthMin, birthMax],
                 "survival": [survivalMin, survivalMax]
             });
-            console.log(params);
-        }
+            sendMessageToWorker(this._viewer.transmissionWorker, WorkerMessage.UPDATE_RULES, params);
+        };
         birthMinInput.addEventListener("change", sendSimuRules);
+        birthMaxInput.addEventListener("change", sendSimuRules);
+        survivalMinInput.addEventListener("change", sendSimuRules);
+        survivalMaxInput.addEventListener("change", sendSimuRules);
     }
     initTransformers() {
         this._transformers = new TransformersInterface(this._viewer);

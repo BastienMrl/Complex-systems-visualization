@@ -70,10 +70,12 @@ export class SocketHandler {
         });
     }
     onClose(e) {
+        console.log("onClose");
         this._isConnected = false;
         console.debug('Socket closed unexpectedly', e);
     }
     onError(e) {
+        console.log("onError");
         this._isConnected = false;
         console.error('Socket closed unexpectedly', e);
     }
@@ -129,13 +131,12 @@ export class SocketHandler {
         }));
     }
     changeSimuRules(params) {
+        console.log(this);
         if (!this._isConnected) {
             this._awaitingRequests.push(this.requestEmptyInstance.bind(this, params));
             return;
         }
         ;
-        if (this._isRunning)
-            return;
         this._socket.send(JSON.stringify({
             'message': this._changeRulesMessage,
             'params': params
