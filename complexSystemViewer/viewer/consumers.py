@@ -8,6 +8,8 @@ import math
 from channels.generic.websocket import AsyncWebsocketConsumer
 from simulation.state import State, GridState
 from simulation.models.game_of_life import GOLSimulation
+from simulation.models.lenia import  LeniaSimulation
+
 import time
 
 class ViewerConsumer(AsyncWebsocketConsumer):
@@ -126,14 +128,14 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
             case "Start":
                 if self.isConnected:
                     
-                    await self.initGOL(text_data_json["params"])
+                    await self.initLenia(text_data_json["params"])
             case "Stop":
                 if self.isConnected:
                     
                     self.sim = None
             case "RequestData":
                 if self.isConnected :
-                    await self.sendOneStepGOL()
+                    await self.sendOneStepLenia()
             case "EmptyGrid":
                 if self.isConnected:
                     await self.emptyGrid(text_data_json["params"])
@@ -164,9 +166,34 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
 
         print("prep sim")
         gol = GOLSimulation(init_states=[state])
+        gol.pa
         self.sim = gol
 
     async def sendOneStepGOL(self):
+        t0 = time.time()
+        await self.send(bytes_data=orjson.dumps(self.sim.to_JSON_object()))
+        print("Data sent - ", 1000*(time.time()-t0), "ms\n")
+        self.sim.step()
+
+    async def initLenia(self, nbInstances):
+        seed = 10
+        key = jax.random.PRNGKey(seed)
+        params_seed, state_seed = jax.random.split(key)
+        SX = SY = int(math.sqrt(nbInstances))
+        mx, my = SX//2, SY//2 # center coordinated
+        A0 = jnp.zeros((SX, SY, 1)).at[mx-20:mx+20, my-20:my+20, :].set(
+            jax.random.uniform(state_seed, (40, 40, 1))
+        )
+
+        print("prep state")
+        state = GridState(A0)
+
+        print("prep sim")
+        lenia = LeniaSimulation(init_states=[state])
+        
+        self.sim = lenia
+
+    async def sendOneStepLenia(self):
         t0 = time.time()
         await self.send(bytes_data=orjson.dumps(self.sim.to_JSON_object()))
         print("Data sent - ", 1000*(time.time()-t0), "ms\n")

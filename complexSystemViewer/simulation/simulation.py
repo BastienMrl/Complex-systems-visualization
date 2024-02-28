@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod 
+from abc import ABC, abstractmethod, abstractproperty
 import jax.numpy as jnp
 import jax.lax as lax
 import jax.random
@@ -6,6 +6,17 @@ from .param import *
 import numpy as np
 import time
 class Simulation(ABC):   
+
+    """ @abstractproperty
+    def default_parameters(self):
+        pass """
+
+    """ def get_param_by_id(id) :
+        match = filter(lambda p: p.id == id, self.default_parameters)
+        if len(match>0) :
+            return match[0]
+        else :
+            raise ValueError( f"id {id} doesn't correspond to a parameter") """
 
     def __init__(self, id :int, init_states = None, init_params  = None): 
         self.s_id = None
@@ -53,9 +64,9 @@ class Simulation(ABC):
     
     def getParamById(self, id:str):
         for p in self.parameters:
-            p = Param(p)
+            #p = Param(p)
             if p.id_param == id:
-                return p
+                return p.value
         return None
         
         

@@ -35,9 +35,9 @@ class GridState(State) :
         
         self.grid = grid
         self.grid_particle_class = grid_particle_class
-        s = jnp.shape(self.grid)
-        w = int(s[2])
-        h = int(s[3])
+        s = jnp.shape(np.squeeze(self.grid))
+        w = int(s[0])
+        h = int(s[1])
 
 
         super().__init__(w, h)
