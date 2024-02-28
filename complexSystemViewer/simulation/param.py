@@ -53,6 +53,7 @@ class FloatParam(Param):
 
     def __init__(self, id_p , name, default_value : float, min_value:float = None, max_value:float = None, step:float = None):
         super().__init__(id_p, Paramtype.NUMBERVALUE, name)
+        self.value = default_value
         self.default_value = default_value
         self.min_value = min_value
         self.max_value = max_value
@@ -71,6 +72,7 @@ class FloatParam(Param):
 class IntParam(Param):
     def __init__(self, id_p , name, default_value : int, min_value:int = None, max_value:int = None, step:int = None):
         super().__init__(id_p, Paramtype.NUMBERVALUE, name)
+        self.value = default_value
         self.default_value = default_value
         self.min_value = min_value
         self.max_value = max_value

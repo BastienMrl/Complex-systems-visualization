@@ -50,6 +50,14 @@ class Simulation(ABC):
 
     def getParams(self): 
         return self.parameters
+    
+    def getParamById(self, id:str):
+        for p in self.parameters:
+            p = Param(p)
+            if p.id_param == id:
+                return p
+        return None
+        
         
         
         
