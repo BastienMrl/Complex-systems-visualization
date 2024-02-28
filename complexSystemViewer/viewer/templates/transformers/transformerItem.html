@@ -1,6 +1,6 @@
 {% load static %}
 
-<div class="configurationItem" id="{{transformer.idHtml}}" transformer="{{transformer.transformerType}}">
+<div class="configurationItem" id="{{transformer.idHtml}}" transformer="{{transformer.transformerType}}" title="{{transformer.description}}">
     <h2>{{transformer.name}}</h2>
     {% if transformer.isDeletable %}
         <button class="deleteButton">

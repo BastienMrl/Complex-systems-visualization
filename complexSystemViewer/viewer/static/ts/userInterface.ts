@@ -107,7 +107,9 @@ export class UserInterface {
 
         let toolButtons = (document.getElementsByClassName("tool") as HTMLCollectionOf<HTMLDivElement>);
 
-        let addTransformerButton = (document.querySelector('#buttonAddTransformer') as HTMLButtonElement);
+        let addTransformerButton = (document.getElementById('buttonAddTransformer') as HTMLButtonElement);
+
+        let animableSelect = (document.getElementById("animableSelect") as HTMLSelectElement);
 
 
         playButton.addEventListener('click', () => {
@@ -188,6 +190,12 @@ export class UserInterface {
                 }
             }
             xhttp.send();
+        });
+
+        animableSelect.addEventListener("change", () => {
+            document.getElementsByClassName("afGridItem active")[0].classList.remove("active")
+            let funcName = animableSelect.children[animableSelect.selectedIndex].getAttribute("animationFunction");
+            document.getElementById(funcName).classList.add("active");
         });
 
     }
@@ -349,7 +357,7 @@ class AnimationFuction{
         const c3 = c1 + 1;
         return c3 * time * time * time - c1 * time * time;
     }
-    static fc0 = function(time : number){ return 1 };
+    static fc0 = function(time : number){ return time < 0.5 ? 0 : 1 };
 
     static retrieveFunction(functionName:string){
         switch (functionName) {
@@ -374,8 +382,8 @@ class AnimationInterface{
         this._viewer = viewer;
         //.... AnimationCurves ....
         // default animation curve is linear
-        this._viewer.bindAnimationCurve(AnimableValue.COLOR, AnimationFuction.easeOut);
-        this._viewer.bindAnimationCurve(AnimableValue.TRANSLATION, AnimationFuction.easeOutElastic);
+        this._viewer.bindAnimationCurve(AnimableValue.COULEUR, AnimationFuction.easeOut);
+        this._viewer.bindAnimationCurve(AnimableValue.POSITION, AnimationFuction.easeOut);
 
         this.initAnimationItem()
     }
@@ -383,13 +391,20 @@ class AnimationInterface{
     private initAnimationItem(){
         let animationItem = document.getElementById("animationFunctionsGrid") as HTMLDivElement;
         let select = document.getElementById("animableSelect") as HTMLSelectElement
-        let keys = Object.keys(AnimableValue)
-        for(let i=0; i<keys.length/2; i++){
+        let animationKeysValue = Object.keys(AnimableValue)
+        for(let i=0; i<animationKeysValue.length/2; i++){
             let option = document.createElement("option")
-            option.value = keys.at(i).toString();
-            option.innerText = keys.at(i+keys.length/2);
+            option.value = animationKeysValue.at(i).toString();
+            option.innerText = animationKeysValue.at(i+animationKeysValue.length/2);
+            option.setAttribute("animationFunction","easeOut");
             select.appendChild(option)
         }
+
+        let optionAll = document.createElement("option");
+        optionAll.value = "-1";
+        optionAll.innerText = "TOUS";
+        optionAll.setAttribute("animationFunction","easeOut");
+        select.appendChild(optionAll);
 
         for(let funcName in AnimationFuction){
             let canvas = document.createElement("canvas") as HTMLCanvasElement;
@@ -402,17 +417,44 @@ class AnimationInterface{
             ctx.strokeStyle = "#0a3b49";
             ctx.beginPath();
             let animFunction = AnimationFuction.retrieveFunction(funcName)
+            let path = new Path2D()
+            let offset = 0;
+            let y = animFunction(1/canvas.width)*canvas.width
+            let y_next = y
             for(let x = 1; x<canvas.width-2; x++){
-                ctx.moveTo(x  ,5 + animFunction(x/canvas.width)    *canvas.width );
-                ctx.lineTo(x+1,5 + animFunction((x+1)/canvas.width)*canvas.width );
+                offset = y < offset ? y : offset
+                path.moveTo(x,y);
+                y_next = animFunction((x+1)/canvas.width)*canvas.width 
+                path.lineTo(x+1 , y_next);
+                y = y_next
             }
-            ctx.stroke();
+            ctx.setTransform(1,0,0,1, 0,-offset + 3);
+            ctx.stroke(path);
             let container = document.createElement("div");
+            container.id = funcName;
             container.classList.add("afGridItem");
+            if(funcName == "easeOut")
+                container.classList.add("active")
             container.appendChild(canvas);
+
+            let name = document.createElement("h5");
+            name.innerText = funcName;
+            container.appendChild(name)
+
             container.addEventListener("click", () => {
                 let animableProperty = Number.parseInt(select.value);
+                if(animableProperty == -1){
+                    for(let i=0; i<animationKeysValue.length/2;i++){
+                        this._viewer.bindAnimationCurve(i, animFunction);
+                    }
+                }
                 this._viewer.bindAnimationCurve(animableProperty, animFunction);
+                let predActive = document.getElementsByClassName("afGridItem active")[0]
+                if(predActive){
+                    predActive.classList.remove("active")
+                }
+                container.classList.add("active")
+                select.children[select.selectedIndex].setAttribute("animationFunction",funcName)
             });
             animationItem.appendChild(container);
         }

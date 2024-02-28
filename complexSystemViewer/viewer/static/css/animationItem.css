@@ -1,9 +1,38 @@
 #animationFunctionsGrid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
+    gap : 5px;
 }
 
 .afGridItem{
     display: flex;
     justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 0px 1px 6px var(--color-light);
+    border-radius: 5px;
+    border: transparent solid 2px;
+    transition: border-color 0.15s;
 }
+
+
+#animableSelectContainer {
+    display: flex;
+    justify-content: center;
+    margin: 10px;
+}
+
+#animationItem canvas {
+    transform: scale(1,-1);
+    margin-bottom: 5px;
+}
+
+.afGridItem h5 {
+    color: var(--color-midDark);
+    font-weight: 100;
+    margin-bottom: 5px;
+}
+
+.afGridItem.active , .afGridItem:hover{
+    border-color: var(--color-midDark) ;
+} 

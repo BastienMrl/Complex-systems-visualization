@@ -14,8 +14,8 @@ import { PickingTool } from "./pickingTool.js";
 const gl = WebGL2RenderingContext
 
 export enum AnimableValue {
-    COLOR = 0,
-    TRANSLATION = 1
+    COULEUR = 0,
+    POSITION = 1
 }
 
 
@@ -204,8 +204,8 @@ export class Viewer {
         
         this.context.uniform3fv(lightLoc, lightPos);
         
-        this.context.uniform1f(timeColorLoc, this.getAnimationTime(AnimableValue.COLOR));
-        this.context.uniform1f(timeTranslationLoc, this.getAnimationTime(AnimableValue.TRANSLATION));
+        this.context.uniform1f(timeColorLoc, this.getAnimationTime(AnimableValue.COULEUR));
+        this.context.uniform1f(timeTranslationLoc, this.getAnimationTime(AnimableValue.POSITION));
 
         this.context.uniform2fv(aabb, this._multipleInstances.aabb, 0, 0);
         

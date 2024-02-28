@@ -18,6 +18,7 @@
 
 #configurationPanel>select{
     margin: 10px;
+    box-shadow: 0px 0px 0px;
 }
 
 #foldButton {
@@ -99,8 +100,12 @@
 }
 
 input,button,select {
-    border: solid var(--color-action) 2px;
+    border: none;
     border-radius: 4px;
+}
+
+input, select {
+    box-shadow: 0px 2px 10px var(--color-light);
 }
 
 input[type=number] {
@@ -111,10 +116,6 @@ input[type=number] {
 
 input[type=number]:focus {
     outline: none;
-}
-
-h3, h4 {
-    font-family: Inria-Light;
 }
 
 .visualizationInput {
@@ -161,6 +162,7 @@ h3, h4 {
 
 #addTransformerForm select {
     height: 30px;
+    box-shadow: 0px 0px 0px;
 }
 
 .transformerParam .NR {
