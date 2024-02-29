@@ -55,6 +55,7 @@
     margin-bottom: 0px;
     padding: 10px;
     width: calc(100% - 40px);
+    border-radius: 3px;
 }
 
 .configurationItem .deleteButton {
@@ -63,6 +64,7 @@
     border: none;
     top: 0px;
     right: 0px;
+    padding: 3px;
 }
 
 .configurationItem .deleteButton svg{

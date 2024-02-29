@@ -296,6 +296,17 @@ class AnimationFuction {
         return c3 * time * time * time - c1 * time * time;
     };
     static fc0 = function (time) { return time < 0.5 ? 0 : 1; };
+    static linear = function (time) { return time; };
+    static easeInExpo = function (time) {
+        return time === 0 ? 0 : Math.pow(2, 10 * time - 10);
+    };
+    static easeInOutBack = function (time) {
+        const c1 = 1.70158;
+        const c2 = c1 * 1.525;
+        return time < 0.5
+            ? (Math.pow(2 * time, 2) * ((c2 + 1) * 2 * time - c2)) / 2
+            : (Math.pow(2 * time - 2, 2) * ((c2 + 1) * (time * 2 - 2) + c2) + 2) / 2;
+    };
     static retrieveFunction(functionName) {
         switch (functionName) {
             case "easeOut":
@@ -306,6 +317,12 @@ class AnimationFuction {
                 return AnimationFuction.fc0;
             case "easeInBack":
                 return AnimationFuction.easeInBack;
+            case "linear":
+                return AnimationFuction.linear;
+            case "easeInExpo":
+                return AnimationFuction.easeInExpo;
+            case "easeInOutBack":
+                return AnimationFuction.easeInOutBack;
             default:
                 break;
         }
