@@ -52,7 +52,6 @@ class TransmissionWorker {
         ;
     }
     async changeSimulationRules(params) {
-        console.log("AAAAAAAAAA");
         if (!this._socketHandler.isConnected)
             await this.waitSocketConnection();
         this._socketHandler.changeSimuRules(params);

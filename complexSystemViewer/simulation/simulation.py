@@ -45,7 +45,7 @@ class Simulation(ABC):
         
         tsl = np.transpose(np.stack(arr)).tolist() """
         tsl = self.current_states[0].to_JSON_object()
-        print("json obj ok - ", 1000*(time.time()-t0), "ms\n")
+        #print("json obj ok - ", 1000*(time.time()-t0), "ms\n")
         return tsl
 
     def getParams(self): 

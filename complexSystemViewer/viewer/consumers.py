@@ -164,23 +164,22 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
         grid = jnp.round(grid)
         grid = jnp.transpose(grid, [0, 3, 1, 2])
 
-        print("prep state")
+        #print("prep state")
         state = GridState(grid)
 
-        print("prep sim")
+        #print("prep sim")
         gol = GOLSimulation(init_states=[state])
         self.sim = gol
 
     async def sendOneStepGOL(self):
         t0 = time.time()
         await self.send(bytes_data=orjson.dumps(self.sim.to_JSON_object()))
-        print("Data sent - ", 1000*(time.time()-t0), "ms\n")
+        #print("Data sent - ", 1000*(time.time()-t0), "ms\n")
         self.sim.step()
 
     async def updateRules(self, params):
         rules = orjson.loads(params)
         for rule in rules:
-            print(rule)
             match rule:
                 case "birth":
                     parameter : RangeIntParam = self.sim.getParamById("birth")
@@ -190,7 +189,3 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
                     parameter : RangeIntParam = self.sim.getParamById("survival")
                     parameter.min_param.value = rules[rule][0]
                     parameter.max_param.value = rules[rule][1]
-
-
-
-
