@@ -20,6 +20,9 @@ class TransmissionWorker {
             case WorkerMessage.RESET:
                 this.resetSimulation(e.data[1]);
                 break;
+            case WorkerMessage.UPDATE_RULES:
+                this.changeSimulationRules(e.data[1]);
+                break;
         }
     }
     async initSocket(url) {
@@ -47,6 +50,11 @@ class TransmissionWorker {
             await new Promise(resolve => setTimeout(resolve, 1));
         }
         ;
+    }
+    async changeSimulationRules(params) {
+        if (!this._socketHandler.isConnected)
+            await this.waitSocketConnection();
+        this._socketHandler.changeSimuRules(params);
     }
 }
 const url = 'ws://'

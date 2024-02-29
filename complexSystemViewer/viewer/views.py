@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from .models import ALifeModel, TransformerItem, RulesConfiguration, Parameter, Tool
+from simulation.models.game_of_life import GOLSimulation
 
 # Create your views here.
 def index(request):
@@ -9,8 +10,11 @@ def index(request):
     
     toolsList = Tool.objects.filter(aLifeModel=modelSelected.pk)
     
-    rules = RulesConfiguration.objects.filter(aLifeModel=modelSelected.pk).first()
-    rulesParameters = Parameter.objects.filter(configurationItem=rules.pk).select_subclasses()
+    # rules = RulesConfiguration.objects.filter(aLifeModel=modelSelected.pk).first()
+    # rulesParameters = Parameter.objects.filter(configurationItem=rules.pk).select_subclasses()
+    rules = GOLSimulation.default_parameters
+    rulesParameters = [rule.get_param() for rule in rules]
+    
     
     transformers = TransformerItem.objects.filter(aLifeModel=modelSelected.pk)
     transformersParam = {}

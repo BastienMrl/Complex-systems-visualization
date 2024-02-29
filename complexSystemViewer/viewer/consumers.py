@@ -1,4 +1,5 @@
 import orjson
+
 import time
 import jax.numpy as jnp
 import jax.lax as lax
@@ -7,7 +8,8 @@ import math
 from channels.generic.websocket import AsyncWebsocketConsumer
 from simulation.state import State, GridState
 from simulation.models.game_of_life import GOLSimulation
-
+from simulation.param import *
+import time
 
 class ViewerConsumer(AsyncWebsocketConsumer):
     def __init__(self, *args, **kwargs):
@@ -136,6 +138,10 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
             case "EmptyGrid":
                 if self.isConnected:
                     await self.emptyGrid(text_data_json["params"])
+            case "ChangeRules":
+                if self.isConnected:
+                    await self.updateRules(text_data_json["params"])
+                    
 
     async def emptyGrid(self, nbInstances):
         row = int(math.sqrt(nbInstances))
@@ -158,14 +164,28 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
         grid = jnp.round(grid)
         grid = jnp.transpose(grid, [0, 3, 1, 2])
 
-        print("prep state")
+        #print("prep state")
         state = GridState(grid)
 
-        print("prep sim")
+        #print("prep sim")
         gol = GOLSimulation(init_states=[state])
         self.sim = gol
 
     async def sendOneStepGOL(self):
-        
+        t0 = time.time()
         await self.send(bytes_data=orjson.dumps(self.sim.to_JSON_object()))
+        #print("Data sent - ", 1000*(time.time()-t0), "ms\n")
         self.sim.step()
+
+    async def updateRules(self, params):
+        rules = orjson.loads(params)
+        for rule in rules:
+            match rule:
+                case "birth":
+                    parameter : RangeIntParam = self.sim.getParamById("birth")
+                    parameter.min_param.value = rules[rule][0]
+                    parameter.max_param.value = rules[rule][1]
+                case "survival":
+                    parameter : RangeIntParam = self.sim.getParamById("survival")
+                    parameter.min_param.value = rules[rule][0]
+                    parameter.max_param.value = rules[rule][1]

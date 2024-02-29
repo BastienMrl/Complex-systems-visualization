@@ -8,7 +8,8 @@ export class SocketHandler {
     private _startMesssage : string = "Start";
     private _stopMessage : string = "Stop";
     private _requestDataMessage : string = "RequestData";
-    private _requestEmptyGridMessage : string = "EmptyGrid"
+    private _requestEmptyGridMessage : string = "EmptyGrid";
+    private _changeRulesMessage : string = "ChangeRules";
 
     // These functions must be defined by the owner
     private _onDataReceived : (data : any) => void;
@@ -89,11 +90,13 @@ export class SocketHandler {
     }
 
     private onClose(e : CloseEvent) {
+        console.log("onClose");
         this._isConnected = false;
         console.debug('Socket closed unexpectedly', e);
     }
 
     private onError(e : Event){
+        console.log("onError");
         this._isConnected = false;
         console.error('Socket closed unexpectedly', e)
     }
@@ -147,6 +150,18 @@ export class SocketHandler {
         if (this._isRunning) return;
         this._socket.send(JSON.stringify({
             'message' : this._requestEmptyGridMessage,
+            'params' : params
+        }));
+    }
+
+    public changeSimuRules(params: any){
+        console.log(this);
+        if (!this._isConnected){
+            this._awaitingRequests.push(this.requestEmptyInstance.bind(this, params));
+            return;
+        };
+        this._socket.send(JSON.stringify({
+            'message' : this._changeRulesMessage,
             'params' : params
         }));
     }

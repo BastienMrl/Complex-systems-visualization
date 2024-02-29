@@ -142,6 +142,10 @@ export class Viewer {
         return this._pickingTool;
     }
 
+    public get transmissionWorker() : Worker {
+        return this._transmissionWorker;
+    }
+
     // setter
 
     // in seconds
