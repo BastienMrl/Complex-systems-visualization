@@ -8,8 +8,12 @@
   src: url('InriaSans-Light.ttf') format('truetype');
 }
 
+@font-face {
+  font-family: 'Inria-Bold';
+  src: url('InriaSans-Bold.ttf') format('truetype');
+}
+
 :root {
-    font-family: Inria-Regular !important;
     --color-dark: #062d38;
     --color-midDark: #0a3b49;
     --color-light: #bcccd1;
@@ -20,7 +24,16 @@
 }
 
 body {
+  font-family: Inria-Light !important;
   margin: 0px;
+}
+
+h1,h2, h3{
+  font-family: Inria-Bold;
+}
+
+h4,h5,h6 {
+  font-family: Inria-Regular;
 }
 
 div#simulator {

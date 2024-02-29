@@ -28,6 +28,7 @@ class RulesConfiguration(ConfigurationItem):
         return self.aLifeModel.__str__() + "srules"
 
 class TransformerItem(ConfigurationItem):
+    description = models.CharField(max_length=1024)
     outputType = models.CharField(max_length=128, default="POSITION_X")
     transformerType = models.CharField(max_length=128, default="COLOR")
     displayedByDefault = models.BooleanField(default=True)
