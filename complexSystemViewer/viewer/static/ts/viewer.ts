@@ -5,7 +5,6 @@ import { MultipleMeshInstances } from "./mesh.js";
 import { Stats } from "./stats.js";
 import { AnimationTimer } from "./animationTimer.js";
 import { TransformableValues } from "./transformableValues.js";
-import { SelectionHandler } from "./selectionHandler.js";
 import { WorkerMessage, getMessageBody, getMessageHeader, sendMessageToWorker } from "./workers/workerInterface.js";
 import { StatesTransformer } from "./statesTransformer.js";
 import { PickingTool } from "./pickingTool.js";
@@ -30,7 +29,6 @@ export class Viewer {
     private _multipleInstances : MultipleMeshInstances;
 
 
-    private _selectionHandler : SelectionHandler
     private _pickingTool : PickingTool;
 
     private _lastTime : number= 0;
@@ -64,7 +62,6 @@ export class Viewer {
         this._animationTimer = new AnimationTimer(0.15, false);
         this._animationIds = [null, null];
 
-        this._selectionHandler = SelectionHandler.getInstance(context);
         this._pickingTool = new PickingTool(this);
         
         this._currentValue = null;
@@ -88,8 +85,6 @@ export class Viewer {
         this.context.enable(gl.DEPTH_TEST);
         
         
-        await this._selectionHandler.initialization("/static/shaders/selection.vert", "/static/shaders/selection.frag");
-
         this.initCamera();
         let self = this;
         this.resizeObserver = new ResizeObserver(function() {self.onCanvasResize();});
@@ -140,10 +135,6 @@ export class Viewer {
     }
 
 
-    // getter
-    public get selectedId() : number {
-        return this._selectionHandler.selectedId;
-    }
 
 
 
@@ -166,8 +157,6 @@ export class Viewer {
         this.canvas.height = this.canvas.clientHeight;
         this.camera.aspectRatio = this.canvas.clientWidth / this.canvas.clientHeight;
         this.context.viewport(0, 0, this.canvas.width, this.canvas.height);
-
-        this._selectionHandler.resizeBuffers();
     }
     
     private updateScene(){
@@ -283,7 +272,6 @@ export class Viewer {
 
     public updateProgamsTransformers(transformers : StatesTransformer){
         this.shaderProgram.updateProgramTransformers(transformers.generateTransformersBlock());
-        this._selectionHandler.updateProgamTransformers(transformers);
     }
 
 }

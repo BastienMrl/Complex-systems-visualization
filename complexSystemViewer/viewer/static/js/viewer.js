@@ -5,7 +5,6 @@ import { MultipleMeshInstances } from "./mesh.js";
 import { Stats } from "./stats.js";
 import { AnimationTimer } from "./animationTimer.js";
 import { TransformableValues } from "./transformableValues.js";
-import { SelectionHandler } from "./selectionHandler.js";
 import { WorkerMessage, getMessageBody, getMessageHeader, sendMessageToWorker } from "./workers/workerInterface.js";
 import { PickingTool } from "./pickingTool.js";
 // provides access to gl constants
@@ -22,7 +21,6 @@ export class Viewer {
     resizeObserver;
     camera;
     _multipleInstances;
-    _selectionHandler;
     _pickingTool;
     _lastTime = 0;
     _stats;
@@ -41,7 +39,6 @@ export class Viewer {
         this._stats = new Stats(document.getElementById("renderingFps"), document.getElementById("updateMs"), document.getElementById("renderingMs"), document.getElementById("pickingMs"), document.getElementById("totalMs"));
         this._animationTimer = new AnimationTimer(0.15, false);
         this._animationIds = [null, null];
-        this._selectionHandler = SelectionHandler.getInstance(context);
         this._pickingTool = new PickingTool(this);
         this._currentValue = null;
         this._transmissionWorker = new Worker("/static/js/workers/transmissionWorker.js", { type: "module" });
@@ -58,7 +55,6 @@ export class Viewer {
         this.context.enable(gl.CULL_FACE);
         this.context.cullFace(gl.BACK);
         this.context.enable(gl.DEPTH_TEST);
-        await this._selectionHandler.initialization("/static/shaders/selection.vert", "/static/shaders/selection.frag");
         this.initCamera();
         let self = this;
         this.resizeObserver = new ResizeObserver(function () { self.onCanvasResize(); });
@@ -98,10 +94,6 @@ export class Viewer {
         const far = 100000;
         this.camera = new Camera(cameraPos, cameraTarget, up, fovy, aspect, near, far);
     }
-    // getter
-    get selectedId() {
-        return this._selectionHandler.selectedId;
-    }
     get pickingTool() {
         return this._pickingTool;
     }
@@ -116,7 +108,6 @@ export class Viewer {
         this.canvas.height = this.canvas.clientHeight;
         this.camera.aspectRatio = this.canvas.clientWidth / this.canvas.clientHeight;
         this.context.viewport(0, 0, this.canvas.width, this.canvas.height);
-        this._selectionHandler.resizeBuffers();
     }
     updateScene() {
         if (this._currentValue == null)
@@ -207,6 +198,5 @@ export class Viewer {
     }
     updateProgamsTransformers(transformers) {
         this.shaderProgram.updateProgramTransformers(transformers.generateTransformersBlock());
-        this._selectionHandler.updateProgamTransformers(transformers);
     }
 }

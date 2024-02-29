@@ -24,7 +24,6 @@ export class MultipleMeshInstances{
     private _stateBuffer : InstanceAttribBuffer;
 
     private _vao : WebGLVertexArrayObject | null;
-    private _selectionVao : WebGLVertexArrayObject | null;
     private _mouseOverBuffer : WebGLBuffer | null;
 
     public constructor(context : WebGL2RenderingContext, values : TransformableValues){
@@ -36,7 +35,6 @@ export class MultipleMeshInstances{
 
         
         this._vao = this._context.createVertexArray();
-        this._selectionVao = this._context.createVertexArray();
         this._translationBuffer = new InstanceAttribBuffer(context);
         this._translationBuffer.initialize(values.translations);
 
@@ -88,44 +86,6 @@ export class MultipleMeshInstances{
         this._aabb[3] = 2.;
     }
     
-
-    private initSelectionVAO(){
-        this._context.bindVertexArray(this._selectionVao);
-
-        // positions
-        this._context.bindBuffer(gl.ARRAY_BUFFER, this._context.createBuffer());
-        this._context.bufferData(gl.ARRAY_BUFFER, new Float32Array(this._vertPositions), gl.STATIC_DRAW);
-        this._context.vertexAttribPointer(ShaderLocation.POS, 3, gl.FLOAT, false, 0, 0);
-        this._context.enableVertexAttribArray(ShaderLocation.POS);
-
-        // id
-        this._context.bindBuffer(gl.ARRAY_BUFFER, this._context.createBuffer());
-        let ids = new Float32Array(this._nbInstances * 4);
-        for (let i = 0; i < this._nbInstances; i++){
-            ids[i * 4] = (((i + 1) & 0x000000FF) >> 0) / 0xFF;
-            ids[i * 4 + 1] = (((i + 1) & 0x0000FF00) >> 8) / 0xFF;
-            ids[i * 4 + 2] = (((i + 1) & 0x00FF0000) >> 16) / 0xFF;
-            ids[i * 4 + 3] = (((i + 1) & 0xFF000000) >> 24) / 0xFF;
-        }
-        this._context.bufferData(gl.ARRAY_BUFFER, ids, gl.STATIC_DRAW);
-        this._context.vertexAttribPointer(ShaderLocation.ID, 4, gl.FLOAT, false, 0, 0);
-        this._context.vertexAttribDivisor(ShaderLocation.ID, 1);
-        this._context.enableVertexAttribArray(ShaderLocation.ID);
-
-        // translation
-        this._translationBuffer.bindAttribs(ShaderLocation.TRANSLATION_T0, 1, 3, gl.FLOAT, false, 0);
-
-        // states
-        this._stateBuffer.bindAttribs(ShaderLocation.STATE_0_T0, 1, 1, gl.FLOAT, false, 0);
-        
-        this._context.bindBuffer(gl.ARRAY_BUFFER, null);
-
-        this._context.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._context.createBuffer());
-        this._context.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint32Array(this._vertIndices), gl.STATIC_DRAW);
-
-
-        this._context.bindVertexArray(null);
-    }
 
     private initDrawVAO(){
         this._context.bindVertexArray(this._vao);
@@ -202,13 +162,6 @@ export class MultipleMeshInstances{
         this._context.drawElementsInstanced(gl.TRIANGLES, this._vertIndices.length, gl.UNSIGNED_INT, 0, this._nbInstances)
         this._context.bindVertexArray(null);
     }
-
-    public drawSelection(){
-        this._context.bindVertexArray(this._selectionVao);
-        this._context.drawElementsInstanced(gl.TRIANGLES, this._vertIndices.length, gl.UNSIGNED_INT, 0, this._nbInstances)
-        this._context.bindVertexArray(null);
-    }
-
 
 
     public async loadMesh(src : string){
@@ -287,7 +240,6 @@ export class MultipleMeshInstances{
 
         this._vertIndices = new Float32Array(vertIndices);
 
-        this.initSelectionVAO();
         this.initDrawVAO();
     }
 

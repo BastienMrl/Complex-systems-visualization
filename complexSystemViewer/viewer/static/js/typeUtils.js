@@ -11,7 +11,5 @@ export function hexToRgbA(hex) {
     throw new Error('Bad Hex');
 }
 export function mapValue(inMin, inMax, outMin, outMax, value) {
-    let ret = outMin + (value - inMin) * (outMax - outMin) / (inMax - inMin);
-    console.log(ret);
-    return ret;
+    return outMin + (value - inMin) * (outMax - outMin) / (inMax - inMin);
 }

@@ -106,7 +106,7 @@ export class PickingTool {
                     }
 
                     if (this._pathIds[0] == undefined || this._pathIds[0] == null){
-                        this._viewer.currentSelectionChanged(null);
+                        this.onCurrentSelectionChanged(null);
                         return;
                     }
                 
@@ -115,7 +115,7 @@ export class PickingTool {
                         secondId = this._pathIds[1];
 
                     let ids = this.getIdsFromBox(this._pathIds[0], secondId);
-                    this._viewer.currentSelectionChanged(ids);
+                    this.onCurrentSelectionChanged(ids);
                 }
                 break;
             case PickingMode.LASSO:
@@ -132,7 +132,7 @@ export class PickingTool {
                     let ret = this.getIdsInsideLasso();
                     if (ret.length == 0)
                         ret = null;
-                    this._viewer.currentSelectionChanged(ret);
+                    this.onCurrentSelectionChanged(ret);
                 }
                 break;
         }
@@ -162,7 +162,7 @@ export class PickingTool {
     private onMouseReleasePoint(e : MouseEvent){
         if (e.button != 0)
             return;
-        this._viewer.currentSelectionChanged(this._currentId == null ? null : [this._currentId])
+        this.onCurrentSelectionChanged(this._currentId == null ? null : [this._currentId])
     }
 
     private onMouseReleaseBox(e : MouseEvent){
@@ -176,6 +176,10 @@ export class PickingTool {
             return;
         this._mouseDown = false;
         this.resetAabb();
+    }
+
+    private onCurrentSelectionChanged(selection : number[] | null){
+        this._viewer.currentSelectionChanged(selection);
     }
 
     private coordToId(i : number, j : number) : number{
