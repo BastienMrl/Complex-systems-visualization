@@ -1,4 +1,3 @@
-import { AnimableValue } from "./viewer.js";
 import { InputType, StatesTransformer, TransformType } from "./statesTransformer.js";
 const MAX_REFRESH_RATE = 20.;
 const MIN_REFRESH_RATE = 0.5;
@@ -241,8 +240,8 @@ class AnimationInterface {
         // ease out expo from https://easings.net/
         let easeOut = function (time) { return time == 1 ? 1 : 1 - Math.pow(2, -10 * time); };
         let fc0 = function (time) { return 1; };
-        this._viewer.bindAnimationCurve(AnimableValue.COLOR, easeOut);
-        this._viewer.bindAnimationCurve(AnimableValue.TRANSLATION, easeOut);
+        //this._viewer.bindAnimationCurve(AnimableValue.COLOR, easeOut);
+        //this._viewer.bindAnimationCurve(AnimableValue.TRANSLATION, easeOut);
         //.........................
     }
     setDurationElement(element) {

@@ -298,8 +298,8 @@ class AnimationInterface{
         // ease out expo from https://easings.net/
         let easeOut = function(time : number){ return time == 1 ? 1 : 1 - Math.pow(2, -10 * time); };
         let fc0 = function(time : number){ return 1 };
-        this._viewer.bindAnimationCurve(AnimableValue.COLOR, easeOut);
-        this._viewer.bindAnimationCurve(AnimableValue.TRANSLATION, easeOut);
+        //this._viewer.bindAnimationCurve(AnimableValue.COLOR, easeOut);
+        //this._viewer.bindAnimationCurve(AnimableValue.TRANSLATION, easeOut);
         
         
         //.........................
