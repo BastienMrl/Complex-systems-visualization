@@ -1,6 +1,7 @@
 import { AnimableValue } from "./viewer.js";
 import { InputType, StatesTransformer, TransformType } from "./statesTransformer.js";
 import { PickingMode } from "./pickingTool.js";
+import { sendMessageToWorker, WorkerMessage } from "./workers/workerInterface.js";
 const MAX_REFRESH_RATE = 20.;
 const MIN_REFRESH_RATE = 0.5;
 const REFRESH_STEP = 0.5;
@@ -79,6 +80,10 @@ export class UserInterface {
         let configurationPanel = document.getElementById("configurationPanel");
         let foldButton = document.getElementById("foldButton");
         let gridSizeInput = document.querySelector("input[paramId=gridSize]");
+        let birthMinInput = document.querySelector("input[paramId=birthMin]");
+        let birthMaxInput = document.querySelector("input[paramId=birthMax]");
+        let survivalMinInput = document.querySelector("input[paramId=survivalMin]");
+        let survivalMaxInput = document.querySelector("input[paramId=survivalMax]");
         let toolButtons = document.getElementsByClassName("tool");
         let addTransformerButton = document.getElementById('buttonAddTransformer');
         let animableSelect = document.getElementById("animableSelect");
@@ -157,6 +162,21 @@ export class UserInterface {
             let funcName = animableSelect.children[animableSelect.selectedIndex].getAttribute("animationFunction");
             document.getElementById(funcName).classList.add("active");
         });
+        let sendSimuRules = () => {
+            let birthMin = birthMinInput.valueAsNumber;
+            let birthMax = birthMaxInput.valueAsNumber;
+            let survivalMin = survivalMinInput.valueAsNumber;
+            let survivalMax = survivalMaxInput.valueAsNumber;
+            let params = JSON.stringify({
+                "birth": [birthMin, birthMax],
+                "survival": [survivalMin, survivalMax]
+            });
+            sendMessageToWorker(this._viewer.transmissionWorker, WorkerMessage.UPDATE_RULES, params);
+        };
+        birthMinInput.addEventListener("change", sendSimuRules);
+        birthMaxInput.addEventListener("change", sendSimuRules);
+        survivalMinInput.addEventListener("change", sendSimuRules);
+        survivalMaxInput.addEventListener("change", sendSimuRules);
     }
     initTransformers() {
         this._transformers = new TransformersInterface(this._viewer);

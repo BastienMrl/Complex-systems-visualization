@@ -5,6 +5,7 @@ export class SocketHandler {
     _stopMessage = "Stop";
     _requestDataMessage = "RequestData";
     _requestEmptyGridMessage = "EmptyGrid";
+    _changeRulesMessage = "ChangeRules";
     // These functions must be defined by the owner
     _onDataReceived;
     _onStart;
@@ -69,10 +70,12 @@ export class SocketHandler {
         });
     }
     onClose(e) {
+        console.log("onClose");
         this._isConnected = false;
         console.debug('Socket closed unexpectedly', e);
     }
     onError(e) {
+        console.log("onError");
         this._isConnected = false;
         console.error('Socket closed unexpectedly', e);
     }
@@ -124,6 +127,18 @@ export class SocketHandler {
             return;
         this._socket.send(JSON.stringify({
             'message': this._requestEmptyGridMessage,
+            'params': params
+        }));
+    }
+    changeSimuRules(params) {
+        console.log(this);
+        if (!this._isConnected) {
+            this._awaitingRequests.push(this.requestEmptyInstance.bind(this, params));
+            return;
+        }
+        ;
+        this._socket.send(JSON.stringify({
+            'message': this._changeRulesMessage,
             'params': params
         }));
     }

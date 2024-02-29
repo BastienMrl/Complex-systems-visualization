@@ -5,6 +5,7 @@ export var WorkerMessage;
     WorkerMessage["RESET"] = "reset";
     WorkerMessage["VALUES"] = "values";
     WorkerMessage["READY"] = "ready";
+    WorkerMessage["UPDATE_RULES"] = "update_r";
 })(WorkerMessage || (WorkerMessage = {}));
 export function sendMessageToWorker(worker, header, message) {
     let data = [header, message];

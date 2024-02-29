@@ -23,6 +23,9 @@ class TransmissionWorker{
             case WorkerMessage.RESET:
                 this.resetSimulation(e.data[1]);
                 break;
+            case WorkerMessage.UPDATE_RULES:
+                this.changeSimulationRules(e.data[1]);
+                break;
         }
     }
 
@@ -53,6 +56,12 @@ class TransmissionWorker{
         while (!this._socketHandler.isConnected){
             await new Promise(resolve => setTimeout(resolve, 1));
         };
+    }
+
+    private async changeSimulationRules(params : any){
+        if (!this._socketHandler.isConnected)
+            await this.waitSocketConnection();
+        this._socketHandler.changeSimuRules(params)
     }
 
 }

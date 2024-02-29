@@ -1,6 +1,7 @@
 import { AnimableValue, Viewer } from "./viewer.js";
 import { InputType, StatesTransformer, TransformType } from "./statesTransformer.js";
 import { PickingMode } from "./pickingTool.js";
+import { sendMessageToWorker, WorkerMessage } from "./workers/workerInterface.js"
 
 const MAX_REFRESH_RATE = 20.;
 const MIN_REFRESH_RATE = 0.5;
@@ -104,6 +105,10 @@ export class UserInterface {
         let foldButton = (document.getElementById("foldButton") as HTMLDivElement);
         
         let gridSizeInput = (document.querySelector("input[paramId=gridSize]") as HTMLInputElement);
+        let birthMinInput = (document.querySelector("input[paramId=birthMin]") as HTMLInputElement);
+        let birthMaxInput = (document.querySelector("input[paramId=birthMax]") as HTMLInputElement);
+        let survivalMinInput = (document.querySelector("input[paramId=survivalMin]") as HTMLInputElement);
+        let survivalMaxInput = (document.querySelector("input[paramId=survivalMax]") as HTMLInputElement);
 
         let toolButtons = (document.getElementsByClassName("tool") as HTMLCollectionOf<HTMLDivElement>);
 
@@ -170,7 +175,6 @@ export class UserInterface {
                 }
             });
         }
-
         var nbAddedTransformer = 0;
         let superthis = this;
         addTransformerButton.addEventListener("click", (e) => {
@@ -197,6 +201,22 @@ export class UserInterface {
             let funcName = animableSelect.children[animableSelect.selectedIndex].getAttribute("animationFunction");
             document.getElementById(funcName).classList.add("active");
         });
+        let sendSimuRules = () =>{
+            let birthMin : number = birthMinInput.valueAsNumber;
+            let birthMax : number = birthMaxInput.valueAsNumber;
+            let survivalMin : number = survivalMinInput.valueAsNumber;
+            let survivalMax : number = survivalMaxInput.valueAsNumber;
+
+            let params = JSON.stringify({
+                "birth": [birthMin, birthMax],
+                "survival": [survivalMin, survivalMax]
+            });
+            sendMessageToWorker(this._viewer.transmissionWorker, WorkerMessage.UPDATE_RULES, params);
+        }
+        birthMinInput.addEventListener("change", sendSimuRules);
+        birthMaxInput.addEventListener("change", sendSimuRules);
+        survivalMinInput.addEventListener("change", sendSimuRules);
+        survivalMaxInput.addEventListener("change", sendSimuRules);
 
     }
 

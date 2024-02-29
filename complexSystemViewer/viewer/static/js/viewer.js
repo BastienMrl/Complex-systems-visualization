@@ -97,6 +97,9 @@ export class Viewer {
     get pickingTool() {
         return this._pickingTool;
     }
+    get transmissionWorker() {
+        return this._transmissionWorker;
+    }
     // setter
     // in seconds
     set animationDuration(duration) {
