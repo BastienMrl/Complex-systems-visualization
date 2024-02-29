@@ -188,8 +188,15 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
         print("prep state")
         state = GridState(A0)
 
+        params = LeniaSimulation.default_parameters
+
+        for p in params :
+            if p.id_param == "gridSize" :
+                p.value = SX
+
         print("prep sim")
-        lenia = LeniaSimulation(init_states=[state])
+        lenia = LeniaSimulation(init_states=[state], init_params=params)
+        
         
         self.sim = lenia
 
