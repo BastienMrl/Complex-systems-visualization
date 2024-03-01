@@ -1,7 +1,7 @@
 import { AnimableValue, Viewer } from "./viewer.js";
 import { InputType, StatesTransformer, TransformType } from "./statesTransformer.js";
-import { PickingMode } from "./pickingTool.js";
 import { sendMessageToWorker, WorkerMessage } from "./workers/workerInterface.js"
+import { SelectionMode } from "./selectionTools/selectionManager.js";
 
 const MAX_REFRESH_RATE = 20.;
 const MIN_REFRESH_RATE = 0.5;
@@ -164,10 +164,10 @@ export class UserInterface {
             toolButtons.item(i).addEventListener("click", () => {
                 let prevActiveTool = document.querySelectorAll(".toolActive:not(#tool" + toolButtons.item(i).id +")");
                 if (i == 0) {
-                    this._viewer.pickingTool.switMode(PickingMode.BOX);
+                    this._viewer.selectionManager.switchMode(SelectionMode.BRUSH);
                 }
                 if (i == 1){
-                    this._viewer.pickingTool.switMode(PickingMode.LASSO);
+                    this._viewer.selectionManager.switchMode(SelectionMode.BOX);
                 }
                 toolButtons.item(i).classList.toggle("toolActive");
                 if(prevActiveTool.length > 0){
@@ -258,7 +258,7 @@ export class TransformersInterface {
     public constructor(viewer : Viewer){
         this._viewer = viewer;
         this._currentStatesTransformer = new StatesTransformer();
-        this._viewer.pickingTool.setTransformer(this._currentStatesTransformer);
+        this._viewer.selectionManager.setTransformer(this._currentStatesTransformer);
     }
 
     public addTransformerFromElement(element : HTMLElement){

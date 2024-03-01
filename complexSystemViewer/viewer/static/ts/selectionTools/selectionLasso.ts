@@ -1,23 +1,7 @@
-import { Camera } from "./camera.js";
-import { Vec3 } from "./ext/glMatrix/vec3.js";
-import { MultipleMeshInstances } from "./mesh.js";
-import { StatesTransformer } from "./statesTransformer.js";
-import { Viewer } from "./viewer.js";
+import { SelectionTool } from "./selectionTool.js";
+import { Viewer } from "../viewer.js";
 
-export enum PickingMode {
-    DISABLE,
-    POINT,
-    BOX,
-    // Only Convex polygon
-    LASSO
-}
-
-
-
-
-
-
-export class LassoTool extends SelectionTool {
+export class SelectionLassoTool extends SelectionTool {
 
 
     private _pathIds : number[] = [];
