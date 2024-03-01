@@ -179,11 +179,11 @@ export class Viewer {
         return this._animationTimer.getAnimationTime(id);
     }
     onTransmissionWorkerMessage(e) {
-        switch (getMessageHeader(e.data)) {
+        switch (getMessageHeader(e)) {
             case WorkerMessage.READY:
                 break;
             case WorkerMessage.VALUES:
-                let data = getMessageBody(e.data);
+                let data = getMessageBody(e);
                 this._currentValue = TransformableValues.fromValues(data[0], data[1]);
                 break;
         }
@@ -201,5 +201,8 @@ export class Viewer {
     }
     updateProgamsTransformers(transformers) {
         this.shaderProgram.updateProgramTransformers(transformers.generateTransformersBlock());
+    }
+    sendInteractionRequest(mask) {
+        sendMessageToWorker(this._transmissionWorker, WorkerMessage.APPLY_INTERACTION, mask, [mask.buffer]);
     }
 }

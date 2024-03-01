@@ -76,6 +76,7 @@ export class Viewer {
     // initialization methods
     public async initialization(srcVs : string, srcFs : string, nbInstances : number){
         await this.shaderProgram.generateProgram(srcVs, srcFs);
+        
         this.context.useProgram(this.shaderProgram.program);
         
         this.context.viewport(0, 0, this.canvas.width, this.canvas.height);
@@ -97,7 +98,7 @@ export class Viewer {
         await this.initCurrentVisu(nbInstances);
         this._drawable = true;
     }
-
+    
     public async initCurrentVisu(nbElements : number){
         this._drawable = false;
         this._currentValue = null;
@@ -250,11 +251,11 @@ export class Viewer {
     }
 
     private onTransmissionWorkerMessage(e : MessageEvent<any>){
-        switch(getMessageHeader(e.data)){
+        switch(getMessageHeader(e)){
             case WorkerMessage.READY:
                 break;
             case WorkerMessage.VALUES:
-                let data = getMessageBody(e.data)
+                let data = getMessageBody(e)
                 this._currentValue = TransformableValues.fromValues(data[0], data[1]);
                 break;
         }
@@ -278,4 +279,7 @@ export class Viewer {
         this.shaderProgram.updateProgramTransformers(transformers.generateTransformersBlock());
     }
 
+    public sendInteractionRequest(mask : Float32Array){
+        sendMessageToWorker(this._transmissionWorker, WorkerMessage.APPLY_INTERACTION, mask, [mask.buffer]);
+    }
 }

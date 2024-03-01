@@ -10,6 +10,7 @@ export class SocketHandler {
     private _requestDataMessage : string = "RequestData";
     private _requestEmptyGridMessage : string = "EmptyGrid";
     private _changeRulesMessage : string = "ChangeRules";
+    private _applyInteractionMessage : string = "ApplyInteraction";
 
     // These functions must be defined by the owner
     private _onDataReceived : (data : any) => void;
@@ -157,12 +158,23 @@ export class SocketHandler {
     public changeSimuRules(params: any){
         console.log(this);
         if (!this._isConnected){
-            this._awaitingRequests.push(this.requestEmptyInstance.bind(this, params));
+            this._awaitingRequests.push(this.changeSimuRules.bind(this, params));
             return;
         };
         this._socket.send(JSON.stringify({
             'message' : this._changeRulesMessage,
             'params' : params
+        }));
+    }
+
+    public applyInteraction(mask : Float32Array){
+        if (!this._isConnected){
+            this._awaitingRequests.push(this.applyInteraction.bind(this, mask));
+            return;
+        }
+        this._socket.send(JSON.stringify({
+            'message' : this._applyInteractionMessage,
+            'mask' : Array.from(mask)
         }));
     }
     

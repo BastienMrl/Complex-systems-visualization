@@ -29,6 +29,8 @@ export class PickingTool {
 
     private _aabb : [number, number, number, number] = [-1, -1, -1, -1];
 
+    private _currentMask : Float32Array;
+
     public constructor(viewer : Viewer){
         this._viewer = viewer;
         this._viewer.canvas.addEventListener('mousemove', (e : MouseEvent) => {
@@ -58,14 +60,22 @@ export class PickingTool {
                 case PickingMode.LASSO:
                     this.onMouseReleaseLasso(e);
                     break;
-            } 
+            }
+            this._viewer.sendInteractionRequest(new Float32Array(this._currentMask));
+            this.onCurrentSelectionChanged(null);
          });
+
+        window.addEventListener('keydown', (e : KeyboardEvent) => {
+            if (e.key == "Enter")
+                this._viewer.sendInteractionRequest(new Float32Array(this._currentMask));
+        })
 
         this._mode = PickingMode.DISABLE;
     }
 
     public setMeshes(meshes : MultipleMeshInstances){
-        this._meshes = meshes;
+        this._meshes = meshes;     
+        this._currentMask = new Float32Array(this._meshes.nbInstances).fill(0);
     }
 
     public setTransformer(transformer : StatesTransformer){
@@ -180,6 +190,11 @@ export class PickingTool {
 
     private onCurrentSelectionChanged(selection : number[] | null){
         this._viewer.currentSelectionChanged(selection);
+        this._currentMask.fill(0.);
+        if (selection != null)
+            selection.forEach(e => {
+                this._currentMask[e] = 1.;
+        });
     }
 
     private coordToId(i : number, j : number) : number{

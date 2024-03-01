@@ -141,6 +141,9 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
             case "ChangeRules":
                 if self.isConnected:
                     await self.updateRules(text_data_json["params"])
+            case "ApplyInteraction":
+                if self.isConnected:
+                    await self.applyInteraction(text_data_json["mask"])
                     
 
     async def emptyGrid(self, nbInstances):
@@ -189,3 +192,7 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
                     parameter : RangeIntParam = self.sim.getParamById("survival")
                     parameter.min_param.value = rules[rule][0]
                     parameter.max_param.value = rules[rule][1]
+
+    async def applyInteraction(self, mask):
+        mask_jnp = jnp.array(mask).reshape(self.sim.width, self.sim.height)
+        self.sim.applyInteraction("toLife", mask_jnp)

@@ -1,6 +1,6 @@
 import { SocketHandler } from "./socketHandler.js";
 import { StatesBuffer } from "./statesBuffer.js";
-import { WorkerMessage, sendMessageToWindow } from "./workerInterface.js";
+import { WorkerMessage, sendMessageToWindow, getMessageBody, getMessageHeader } from "./workerInterface.js";
 
 class TransmissionWorker{
     private _socketHandler : SocketHandler;
@@ -13,18 +13,22 @@ class TransmissionWorker{
     }
 
     private onMessage(e : MessageEvent<any>) : void {
-        switch(e.data[0]){
+        console.log(getMessageHeader(e))
+        switch(getMessageHeader(e)){
             case WorkerMessage.INIT_SOCKET:
-                this.initSocket(e.data[1]);
+                this.initSocket(getMessageBody(e));
                 break;
             case WorkerMessage.GET_VALUES:
                 this.sendValues();
                 break;
             case WorkerMessage.RESET:
-                this.resetSimulation(e.data[1]);
+                this.resetSimulation(getMessageBody(e));
                 break;
             case WorkerMessage.UPDATE_RULES:
-                this.changeSimulationRules(e.data[1]);
+                this.changeSimulationRules(getMessageBody(e));
+                break;
+            case WorkerMessage.APPLY_INTERACTION:
+                this.applyInteraction(getMessageBody(e));
                 break;
         }
     }
@@ -62,6 +66,12 @@ class TransmissionWorker{
         if (!this._socketHandler.isConnected)
             await this.waitSocketConnection();
         this._socketHandler.changeSimuRules(params)
+    }
+
+    private async applyInteraction(mask : Float32Array){
+        if (!this._socketHandler.isConnected)
+            await this.waitSocketConnection();
+        this._socketHandler.applyInteraction(mask);
     }
 
 }

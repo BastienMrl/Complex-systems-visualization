@@ -18,6 +18,7 @@ export class PickingTool {
     _mouseDown = false;
     _pathIds = [];
     _aabb = [-1, -1, -1, -1];
+    _currentMask;
     constructor(viewer) {
         this._viewer = viewer;
         this._viewer.canvas.addEventListener('mousemove', (e) => {
@@ -46,11 +47,18 @@ export class PickingTool {
                     this.onMouseReleaseLasso(e);
                     break;
             }
+            this._viewer.sendInteractionRequest(new Float32Array(this._currentMask));
+            this.onCurrentSelectionChanged(null);
+        });
+        window.addEventListener('keydown', (e) => {
+            if (e.key == "Enter")
+                this._viewer.sendInteractionRequest(new Float32Array(this._currentMask));
         });
         this._mode = PickingMode.DISABLE;
     }
     setMeshes(meshes) {
         this._meshes = meshes;
+        this._currentMask = new Float32Array(this._meshes.nbInstances).fill(0);
     }
     setTransformer(transformer) {
         this._transformer = transformer;
@@ -146,6 +154,11 @@ export class PickingTool {
     }
     onCurrentSelectionChanged(selection) {
         this._viewer.currentSelectionChanged(selection);
+        this._currentMask.fill(0.);
+        if (selection != null)
+            selection.forEach(e => {
+                this._currentMask[e] = 1.;
+            });
     }
     coordToId(i, j) {
         return i * this._meshes.nbCol + j;
