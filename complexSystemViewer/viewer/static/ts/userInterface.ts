@@ -99,9 +99,11 @@ export class UserInterface {
         
         let animationTimerEl = (document.querySelector('#animationTimer') as HTMLDivElement);
         
-        let configurationPanel = (document.getElementById("configurationPanel") as HTMLDivElement);
+        let visualizationPanel = (document.getElementById("visualizationPanel") as HTMLDivElement);
+        let simulationPanel = (document.getElementById("simulationPanel") as HTMLDivElement);
 
-        let foldButton = (document.getElementById("foldButton") as HTMLDivElement);
+        let foldVisualizationPanelButton = (document.getElementById("foldVisualizationPanelButton") as HTMLDivElement);
+        let foldSimulationPanelButton = (document.getElementById("foldSimulationPanelButton") as HTMLDivElement);
         
         let gridSizeInput = (document.querySelector("input[paramId=gridSize]") as HTMLInputElement);
 
@@ -145,9 +147,14 @@ export class UserInterface {
                 animationTimerEl.style.display = 'none';
         });
 
-        foldButton.addEventListener("click", () => {
-            configurationPanel.classList.toggle("hidden")
-            foldButton.classList.toggle("hidden")
+        foldVisualizationPanelButton.addEventListener("click", () => {
+            visualizationPanel.classList.toggle("slideRight")
+            foldVisualizationPanelButton.classList.toggle("slideRight")
+        });
+
+        foldSimulationPanelButton.addEventListener("click", () => {
+            simulationPanel.classList.toggle("slideLeft")
+            foldSimulationPanelButton.classList.toggle("slideLeft")
         });
 
         gridSizeInput.addEventListener("change", async () => {

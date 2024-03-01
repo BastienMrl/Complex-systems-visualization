@@ -76,8 +76,10 @@ export class UserInterface {
         let restartButton = document.querySelector('#buttonRestart');
         let timerButton = document.querySelector('#buttonTimer');
         let animationTimerEl = document.querySelector('#animationTimer');
-        let configurationPanel = document.getElementById("configurationPanel");
-        let foldButton = document.getElementById("foldButton");
+        let visualizationPanel = document.getElementById("visualizationPanel");
+        let simulationPanel = document.getElementById("simulationPanel");
+        let foldVisualizationPanelButton = document.getElementById("foldVisualizationPanelButton");
+        let foldSimulationPanelButton = document.getElementById("foldSimulationPanelButton");
         let gridSizeInput = document.querySelector("input[paramId=gridSize]");
         let toolButtons = document.getElementsByClassName("tool");
         let addTransformerButton = document.getElementById('buttonAddTransformer');
@@ -109,9 +111,13 @@ export class UserInterface {
             else
                 animationTimerEl.style.display = 'none';
         });
-        foldButton.addEventListener("click", () => {
-            configurationPanel.classList.toggle("hidden");
-            foldButton.classList.toggle("hidden");
+        foldVisualizationPanelButton.addEventListener("click", () => {
+            visualizationPanel.classList.toggle("slideRight");
+            foldVisualizationPanelButton.classList.toggle("slideRight");
+        });
+        foldSimulationPanelButton.addEventListener("click", () => {
+            simulationPanel.classList.toggle("slideLeft");
+            foldSimulationPanelButton.classList.toggle("slideLeft");
         });
         gridSizeInput.addEventListener("change", async () => {
             this._nbElements = gridSizeInput.value ** 2;
