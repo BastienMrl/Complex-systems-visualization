@@ -12,22 +12,11 @@ class ALifeModel(models.Model):
         return self.transformerType.split('/')
     def __str__(self):
         return self.name
-    
-class ConfigurationItem(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+class TransformerItem(models.Model):
     idHtml = models.CharField(max_length=128)
     name = models.CharField(max_length=128)
     aLifeModel = models.ForeignKey(ALifeModel, on_delete=models.CASCADE)
-    def __str__(self):
-        return self.name + " of " + self.aLifeModel.name
-
-class RulesConfiguration(ConfigurationItem):
-    def __str__(self) :
-        return "Rules of " + self.aLifeModel.__str__()
-    def getIdHtml(self):
-        return self.aLifeModel.__str__() + "srules"
-
-class TransformerItem(ConfigurationItem):
     description = models.CharField(max_length=1024)
     outputType = models.CharField(max_length=128, default="POSITION_X")
     transformerType = models.CharField(max_length=128, default="COLOR")
@@ -45,11 +34,11 @@ class ParamType(models.TextChoices):
 class Parameter(models.Model):
     paramId = models.CharField(max_length=128, null=True)
     name = models.CharField(max_length=128)
-    configurationItem = models.ForeignKey(ConfigurationItem, on_delete=models.CASCADE)
+    transformer = models.ForeignKey(TransformerItem, on_delete=models.CASCADE)
     objects = InheritanceManager()
     
     def __str__(self):
-        return self.name + " from " + self.configurationItem.__str__()
+        return self.name + " from " + self.transformer.__str__()
         
 class NumberRangeParameter(Parameter):
     minDefaultValue = models.FloatField()
