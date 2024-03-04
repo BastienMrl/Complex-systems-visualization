@@ -24,12 +24,6 @@ class TransformerItem(models.Model):
     isDeletable = models.BooleanField(default=True)
     def __str__(self):
         return self.name + " of " + self.aLifeModel.__str__()
-
-class ParamType(models.TextChoices):
-        NUMBERRANGE = "NR",
-        NUMBERVALUE = "NV",
-        COLORVALUE = "CV",
-        SELECTIONVALUE = "SV"
     
 class Parameter(models.Model):
     paramId = models.CharField(max_length=128, null=True)
@@ -44,26 +38,34 @@ class NumberRangeParameter(Parameter):
     minDefaultValue = models.FloatField()
     maxDefaultValue = models.FloatField()
     step = models.FloatField()
-    type = ParamType.NUMBERRANGE
+    
+    def type(self):
+        return "NR"
     
 class NumberParameter(Parameter):
     defaultValue = models.FloatField()
     step = models.FloatField()
     minValue = models.FloatField(null=True, blank=True)
     maxValue = models.FloatField(null=True, blank=True)
-    type = ParamType.NUMBERVALUE
+    
+    def type(self):
+        return "NV"
     
 class ColorParameter(Parameter):
     hexDefaultValue = models.CharField(max_length=7)
-    type = ParamType.COLORVALUE
+    
+    def type(self):
+        return "CV"
     
 class SelectionParameter(Parameter):
     options = models.CharField(max_length=512, help_text="Wrote options separate with '/'")
     defaultValue = models.SmallIntegerField(default=0)
-    type = ParamType.SELECTIONVALUE
     
     def getoptionsList(self):
         return self.options.split(sep='/')
+    
+    def type(self):
+        return "SV"
     
 class Tool(models.Model):
     name = models.CharField(max_length=128)
