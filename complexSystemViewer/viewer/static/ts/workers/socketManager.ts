@@ -1,9 +1,9 @@
 
 
 
-export class SocketHandler {
+export class SocketManager {
     // Singleton
-    private static _instance : SocketHandler;
+    private static _instance : SocketManager;
 
     private _startMesssage : string = "Start";
     private _stopMessage : string = "Stop";
@@ -35,10 +35,10 @@ export class SocketHandler {
         this._awaitingRequests = [];
     }
     
-    public static getInstance() : SocketHandler {
-        if (!SocketHandler._instance)
-            SocketHandler._instance = new SocketHandler();
-        return SocketHandler._instance;
+    public static getInstance() : SocketManager {
+        if (!SocketManager._instance)
+            SocketManager._instance = new SocketManager();
+        return SocketManager._instance;
     }
     
     // getter

@@ -1,5 +1,5 @@
 import { AnimableValue } from "./viewer.js";
-import { InputType, StatesTransformer, TransformType } from "./statesTransformer.js";
+import { InputType, TransformerBuilder, TransformType } from "./transformerBuilder.js";
 import { sendMessageToWorker, WorkerMessage } from "./workers/workerInterface.js";
 import { SelectionMode } from "./selectionTools/selectionManager.js";
 const MAX_REFRESH_RATE = 20.;
@@ -204,11 +204,11 @@ export class UserInterface {
 }
 export class TransformersInterface {
     _viewer;
-    _currentStatesTransformer;
+    _currentTransformerBuilder;
     constructor(viewer) {
         this._viewer = viewer;
-        this._currentStatesTransformer = new StatesTransformer();
-        this._viewer.selectionManager.setTransformer(this._currentStatesTransformer);
+        this._currentTransformerBuilder = new TransformerBuilder();
+        this._viewer.selectionManager.setTransformer(this._currentTransformerBuilder);
     }
     addTransformerFromElement(element) {
         const inputElement = this.getInputTypeElement(element);
@@ -221,24 +221,24 @@ export class TransformersInterface {
         paramsElements.forEach(e => {
             params.push(e.value);
         });
-        const id = this._currentStatesTransformer.addTransformer(transformType, inputType, params);
+        const id = this._currentTransformerBuilder.addTransformer(transformType, inputType, params);
         paramsElements.forEach((e, i) => {
             e.addEventListener("change", () => {
                 let newParams = new Array(params.length).fill(null);
                 newParams[i] = e.value;
-                this._currentStatesTransformer.setParams(id, newParams);
+                this._currentTransformerBuilder.setParams(id, newParams);
                 this.updateProgram();
             });
             e.dispatchEvent(new Event('change'));
         });
         inputElement.addEventListener("change", () => {
-            this._currentStatesTransformer.setInputType(id, this.getInputType(inputElement));
+            this._currentTransformerBuilder.setInputType(id, this.getInputType(inputElement));
             this.updateProgram();
         });
         //function to disconnect / delete transformer
         if (deleteButton) {
             deleteButton.addEventListener("click", () => {
-                this._currentStatesTransformer.removeTransformer(id);
+                this._currentTransformerBuilder.removeTransformer(id);
                 deleteButton.parentElement.remove();
                 this.updateProgram();
                 console.log("deleted");
@@ -246,7 +246,7 @@ export class TransformersInterface {
         }
     }
     updateProgram() {
-        this._viewer.updateProgamsTransformers(this._currentStatesTransformer);
+        this._viewer.updateProgamsTransformers(this._currentTransformerBuilder);
     }
     // TODO: return value according to HTMLElement
     getTransformType(element) {

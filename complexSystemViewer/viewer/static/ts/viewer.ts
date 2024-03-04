@@ -6,7 +6,7 @@ import { Stats } from "./stats.js";
 import { AnimationTimer } from "./animationTimer.js";
 import { TransformableValues } from "./transformableValues.js";
 import { WorkerMessage, getMessageBody, getMessageHeader, sendMessageToWorker } from "./workers/workerInterface.js";
-import { StatesTransformer } from "./statesTransformer.js";
+import { TransformerBuilder } from "./transformerBuilder.js";
 import { SelectionManager } from "./selectionTools/selectionManager.js";
 
 // provides access to gl constants
@@ -275,7 +275,7 @@ export class Viewer {
         this._animationTimer.loop = false
     }
 
-    public updateProgamsTransformers(transformers : StatesTransformer){
+    public updateProgamsTransformers(transformers : TransformerBuilder){
         this.shaderProgram.updateProgramTransformers(transformers.generateTransformersBlock());
     }
 

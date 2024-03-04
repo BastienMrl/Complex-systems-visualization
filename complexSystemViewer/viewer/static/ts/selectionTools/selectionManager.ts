@@ -1,5 +1,5 @@
 import { MultipleMeshInstances } from "../mesh.js";
-import { StatesTransformer } from "../statesTransformer.js";
+import { TransformerBuilder } from "../transformerBuilder.js";
 import { Viewer } from "../viewer.js";
 import { SelectionBoxTool } from "./selectionBox.js";
 import { SelectionBrushTool } from "./selectionBrush.js";
@@ -55,7 +55,7 @@ export class SelectionManager{
         this._tools.forEach(e => e.setMeshes(meshes));
     }
 
-    public setTransformer(transformer : StatesTransformer){
+    public setTransformer(transformer : TransformerBuilder){
         this._tools.forEach(e => e.setTransformer(transformer));
     }
     

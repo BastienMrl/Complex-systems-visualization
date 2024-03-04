@@ -1,15 +1,15 @@
 import { TransformableValues } from "../transformableValues.js";
-import { SocketHandler } from "./socketHandler.js";
+import { SocketManager } from "./socketManager.js";
 export class StatesBuffer {
     _states;
     _transformedValues;
-    _socketHandler;
+    _socketManager;
     _isInitialized;
     constructor() {
         this._states = [];
         this._transformedValues = new TransformableValues();
-        this._socketHandler = SocketHandler.getInstance();
-        this._socketHandler.onDataReceived = function (data) {
+        this._socketManager = SocketManager.getInstance();
+        this._socketManager.onDataReceived = function (data) {
             this.onStateReceived(data);
         }.bind(this);
         this._isInitialized = false;
@@ -25,14 +25,14 @@ export class StatesBuffer {
         return values;
     }
     initializeElements(nbElements) {
-        this._socketHandler.stop();
+        this._socketManager.stop();
         this._isInitialized = false;
         this._transformedValues.reshape(nbElements);
-        this._socketHandler.requestEmptyInstance(nbElements);
-        this._socketHandler.start(nbElements);
+        this._socketManager.requestEmptyInstance(nbElements);
+        this._socketManager.start(nbElements);
     }
     requestState() {
-        this._socketHandler.requestData();
+        this._socketManager.requestData();
     }
     onStateReceived(data) {
         this._states = data;

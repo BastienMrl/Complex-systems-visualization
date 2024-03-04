@@ -1,12 +1,12 @@
 import { Viewer } from "../viewer.js";
 import { MultipleMeshInstances } from "../mesh.js";
-import { StatesTransformer } from "../statesTransformer.js";
+import { TransformerBuilder } from "../transformerBuilder.js";
 import { Vec3 } from "../ext/glMatrix/vec3.js";
 
 
 export abstract class SelectionTool{
     protected _meshes : MultipleMeshInstances;
-    protected _transformer : StatesTransformer;
+    protected _transformer : TransformerBuilder;
     protected _viewer : Viewer;
 
     public mouseX : number;
@@ -35,7 +35,7 @@ export abstract class SelectionTool{
         this._currentMask = new Float32Array(this._meshes.nbInstances).fill(0);
     }
 
-    public setTransformer(transformer : StatesTransformer){
+    public setTransformer(transformer : TransformerBuilder){
         this._transformer = transformer;
     }
 
