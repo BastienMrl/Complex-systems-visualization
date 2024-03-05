@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod 
+from abc import ABC, abstractmethod, abstractproperty
 import jax.numpy as jnp
 import jax.lax as lax
 import jax.random
@@ -57,7 +57,7 @@ class Simulation(ABC):
     def getParamById(self, id:str):
         for p in self.parameters:
             if p.id_param == id:
-                return p
+                return p.value
         return None
         
     def applyInteraction(self, id : str, mask : jnp.ndarray):
