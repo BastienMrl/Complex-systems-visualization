@@ -6,7 +6,6 @@ import jax.scipy as jsp
 import numpy as np
 import typing as t
 from functools import partial
-import matplotlib.pyplot as plt
 import math
 import chex
 
