@@ -93,7 +93,7 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
             jax.random.uniform(state_seed, (40, 40, 1))
         )
 
-        print("prep state")
+        #print("prep state")
         state = GridState(A0)
 
         params = LeniaSimulation.default_parameters
@@ -102,7 +102,7 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
             if p.id_param == "gridSize" :
                 p.value = SX
 
-        print("prep sim")
+        #print("prep sim")
         lenia = LeniaSimulation(init_states=[state], init_params=params)
         self.sim = lenia
 
@@ -110,7 +110,7 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
     async def sendOneStep(self):
         t0 = time.time()
         await self.send(bytes_data=orjson.dumps(self.sim.to_JSON_object()))
-        print("Data sent - ", 1000*(time.time()-t0), "ms\n")
+        #print("Data sent - ", 1000*(time.time()-t0), "ms\n")
         self.sim.step()
 
 
