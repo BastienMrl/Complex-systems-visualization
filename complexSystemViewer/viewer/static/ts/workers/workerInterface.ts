@@ -4,12 +4,16 @@ export enum WorkerMessage {
     RESET = "reset",
     VALUES = "values",
     READY = "ready",
-    UPDATE_RULES = "update_r"
+    UPDATE_RULES = "update_r",
+    APPLY_INTERACTION = "send_interaction"
 }
 
-export function sendMessageToWorker(worker : Worker, header : WorkerMessage, message? : any){
-    let data = [header, message];
-    worker.postMessage(data);
+export function sendMessageToWorker(worker : Worker, header : WorkerMessage, message? : any, transfer? : Transferable[]){
+    if (transfer != undefined)
+        worker.postMessage([header, message], {transfer : transfer});
+    else{
+        worker.postMessage([header, message]);
+    }
 }
 
 export function sendMessageToWindow(header : WorkerMessage, data? : any, transfer? : Transferable[]){
@@ -19,10 +23,10 @@ export function sendMessageToWindow(header : WorkerMessage, data? : any, transfe
         postMessage([header, data]);
 }
 
-export function getMessageHeader(data : any) : WorkerMessage{
-    return data[0] as WorkerMessage;
+export function getMessageHeader(e : MessageEvent<any>) : WorkerMessage{
+    return e.data[0] as WorkerMessage;
 }
 
-export function getMessageBody(data : any) : any{
-    return data[1];
+export function getMessageBody(e : MessageEvent<any>) : any{
+    return e.data[1];
 }

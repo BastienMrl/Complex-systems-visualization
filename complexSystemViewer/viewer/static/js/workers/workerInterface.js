@@ -6,10 +6,14 @@ export var WorkerMessage;
     WorkerMessage["VALUES"] = "values";
     WorkerMessage["READY"] = "ready";
     WorkerMessage["UPDATE_RULES"] = "update_r";
+    WorkerMessage["APPLY_INTERACTION"] = "send_interaction";
 })(WorkerMessage || (WorkerMessage = {}));
-export function sendMessageToWorker(worker, header, message) {
-    let data = [header, message];
-    worker.postMessage(data);
+export function sendMessageToWorker(worker, header, message, transfer) {
+    if (transfer != undefined)
+        worker.postMessage([header, message], { transfer: transfer });
+    else {
+        worker.postMessage([header, message]);
+    }
 }
 export function sendMessageToWindow(header, data, transfer) {
     if (transfer != undefined)
@@ -17,9 +21,9 @@ export function sendMessageToWindow(header, data, transfer) {
     else
         postMessage([header, data]);
 }
-export function getMessageHeader(data) {
-    return data[0];
+export function getMessageHeader(e) {
+    return e.data[0];
 }
-export function getMessageBody(data) {
-    return data[1];
+export function getMessageBody(e) {
+    return e.data[1];
 }

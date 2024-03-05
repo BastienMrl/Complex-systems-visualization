@@ -3,11 +3,12 @@ import jax.numpy as jnp
 import jax.lax as lax
 import jax.random
 from .param import *
+from .interaction import *
 import numpy as np
 import time
 class Simulation(ABC):   
 
-    def __init__(self, id :int, init_states = None, init_params  = None): 
+    def __init__(self, id : int, init_states = None, init_params  = None): 
         self.s_id = None
         self.current_states = None
         self.parameters = None
@@ -30,6 +31,8 @@ class Simulation(ABC):
         else :
             pass
             #raise ValueError("Initial parameters can't be None")
+        
+        self.interaction : Interaction = [Interaction("toLife")]
     
     @abstractmethod
     def step(self) : 
@@ -57,6 +60,15 @@ class Simulation(ABC):
                 return p
         return None
         
+    def applyInteraction(self, id : str, mask : jnp.ndarray):
+        interaction : None | Interaction = None
+        for element in self.interaction:
+            if element.id == id:
+                interaction = element
+        if interaction == None :
+            return
+
+        interaction.apply(mask, self.current_states)
         
         
         

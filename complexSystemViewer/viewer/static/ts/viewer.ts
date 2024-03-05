@@ -6,8 +6,8 @@ import { Stats } from "./stats.js";
 import { AnimationTimer } from "./animationTimer.js";
 import { TransformableValues } from "./transformableValues.js";
 import { WorkerMessage, getMessageBody, getMessageHeader, sendMessageToWorker } from "./workers/workerInterface.js";
-import { StatesTransformer } from "./statesTransformer.js";
-import { PickingTool } from "./pickingTool.js";
+import { TransformerBuilder } from "./transformerBuilder.js";
+import { SelectionManager } from "./selectionTools/selectionManager.js";
 
 // provides access to gl constants
 const gl = WebGL2RenderingContext
@@ -29,7 +29,7 @@ export class Viewer {
     private _multipleInstances : MultipleMeshInstances;
 
 
-    private _pickingTool : PickingTool;
+    private _selectionManager : SelectionManager;
 
     private _lastTime : number= 0;
 
@@ -62,7 +62,7 @@ export class Viewer {
         this._animationTimer = new AnimationTimer(0.15, false);
         this._animationIds = [null, null];
 
-        this._pickingTool = new PickingTool(this);
+        this._selectionManager = new SelectionManager(this);
         
         this._currentValue = null;
         this._transmissionWorker = new Worker("/static/js/workers/transmissionWorker.js", {type : "module"});
@@ -76,6 +76,7 @@ export class Viewer {
     // initialization methods
     public async initialization(srcVs : string, srcFs : string, nbInstances : number){
         await this.shaderProgram.generateProgram(srcVs, srcFs);
+        
         this.context.useProgram(this.shaderProgram.program);
         
         this.context.viewport(0, 0, this.canvas.width, this.canvas.height);
@@ -97,7 +98,7 @@ export class Viewer {
         await this.initCurrentVisu(nbInstances);
         this._drawable = true;
     }
-
+    
     public async initCurrentVisu(nbElements : number){
         this._drawable = false;
         this._currentValue = null;
@@ -116,7 +117,7 @@ export class Viewer {
         if (this._multipleInstances != null)
             delete this._multipleInstances;
         this._multipleInstances = new MultipleMeshInstances(this.context, values);
-        this._pickingTool.setMeshes(this._multipleInstances);
+        this._selectionManager.setMeshes(this._multipleInstances);
         await this._multipleInstances.loadMesh("/static/models/cube_div_1.obj");
     }
 
@@ -138,8 +139,8 @@ export class Viewer {
 
 
 
-    public get pickingTool() : PickingTool {
-        return this._pickingTool;
+    public get selectionManager() : SelectionManager {
+        return this._selectionManager;
     }
 
     public get transmissionWorker() : Worker {
@@ -224,7 +225,7 @@ export class Viewer {
         // picking
         if (this._drawable){
             this._stats.startPickingTimer();
-            // let id = this._pickingTool.getMeshesId(this.mouseX, this.mouseY, this.canvas.width, this.canvas.height, this.camera);
+            // let id = this._selectionManager.getMeshesId(this.mouseX, this.mouseY, this.canvas.width, this.canvas.height, this.camera);
             // this._multipleInstances.setMouseOver(id);
             this._stats.stopPickingTimer();
         }
@@ -250,11 +251,11 @@ export class Viewer {
     }
 
     private onTransmissionWorkerMessage(e : MessageEvent<any>){
-        switch(getMessageHeader(e.data)){
+        switch(getMessageHeader(e)){
             case WorkerMessage.READY:
                 break;
             case WorkerMessage.VALUES:
-                let data = getMessageBody(e.data)
+                let data = getMessageBody(e)
                 this._currentValue = TransformableValues.fromValues(data[0], data[1]);
                 break;
         }
@@ -274,8 +275,11 @@ export class Viewer {
         this._animationTimer.loop = false
     }
 
-    public updateProgamsTransformers(transformers : StatesTransformer){
+    public updateProgamsTransformers(transformers : TransformerBuilder){
         this.shaderProgram.updateProgramTransformers(transformers.generateTransformersBlock());
     }
 
+    public sendInteractionRequest(mask : Float32Array){
+        sendMessageToWorker(this._transmissionWorker, WorkerMessage.APPLY_INTERACTION, mask, [mask.buffer]);
+    }
 }
