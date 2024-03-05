@@ -1,11 +1,6 @@
 {% load static %}
-<div id="configurationPanel" class="withTransition">
-    <select name="model" id="modelSelector">
-        {% for name in modelsName %}
-        <option value="{{name}}">{{name}}</option>
-        {% endfor %}
-    </select>
-    {% include "rulesItem.html" %}
+<div id="visualizationPanel" class="withTransition configurationPanel">
+    <h3>Visualization</h3>
     {% for transformer, parameters in transformers.items %}
         {% if transformer.displayedByDefault %}
             {% include "transformers/transformerItem.html"%}
@@ -36,7 +31,7 @@
         </div>
     </div>
 </div>
-<div id="foldButton" class="withTransition">
+<div id="foldVisualizationPanelButton" class="foldButton withTransition">
     <svg class="w-6 h-6 text-gray-800 dark:text-white withTransition" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="m9 5 7 7-7 7"/>
   </svg>

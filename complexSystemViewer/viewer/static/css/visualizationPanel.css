@@ -1,0 +1,89 @@
+#visualizationPanel{
+    top: 0px;
+    bottom: 0px;
+    right: 0px;
+}
+
+
+#configurationPanel>select{
+    margin: 10px;
+    box-shadow: 0px 0px 0px;
+}
+
+#foldVisualizationPanelButton {
+    right: 350px;
+    border-radius: 15px 0px 0px 15px;
+}
+
+.slideRight {
+    transform: translate(350px);
+}
+
+.slideRight svg {
+    transform: rotate(180deg);
+}
+
+.visualizationInput {
+    margin-top: 0px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.visualizationInput > select {
+    height: 27px;
+    margin-top: 20px;
+}
+
+.visualizationInput .transformerParam {
+    display: flex;
+    flex-direction: column;
+}
+
+#addTransformerItem {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: var(--color-dark);
+    color: var(--color-lighter);
+}
+
+#buttonAddTransformer {
+    background-color: transparent;
+    border: none;
+    padding-top: 0px;
+}
+
+#buttonAddTransformer svg {
+    width: 30px;
+    height: 30px;
+}
+
+#addTransformerForm {
+    margin-top: 15px;
+    display: flex;
+    align-items: flex-start;
+}
+
+#addTransformerForm select {
+    height: 30px;
+    box-shadow: 0px 0px 0px;
+}
+
+.transformerParam .NR {
+    flex-direction: column;
+}
+
+.transformerParam .NR div{
+    margin-bottom: 10px;
+}
+
+.transformerParam .NR div:last-of-type {
+    margin-bottom: 0px;
+}
+
+.transformerParam .parameterItem {
+    margin: 5px;
+    padding-left: 5px;
+    border-left: solid var(--color-light) 1px;
+}

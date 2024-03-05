@@ -1,6 +1,25 @@
 {% load static %}
 <header>
     <h1>ALife Simulator</h1>
+
+    <div id="stats">
+        <div id="renderingFps" class="statItem">
+            FPS : NaN
+        </div>
+        <div id="totalMs" class="statItem">
+            Total : Nan
+        </div>
+        <div id="renderingMs" class="statItem">
+            Rendering : NaN
+        </div>
+        <div id="pickingMs" class="statItem">
+            Picking : Nan
+        </div>
+        <div id="updateMs" class="statItem">
+            Update : Nan
+        </div>
+    </div>
+
     <div id="headerAction">
         <button id="buttonPlay">
             <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">

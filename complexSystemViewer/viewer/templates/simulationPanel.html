@@ -1,0 +1,24 @@
+{% load static %}
+
+<div id="simulationPanel" class="configurationPanel withTransition">
+    <h3>Simulation</h3>
+    <div id="modelSelectorContainer" class="simulationItem">
+        <label for="modelSelector">Selected model</label> 
+        <select name="model" id="modelSelector">
+            {% for name in modelsName %}
+            <option value="{{name}}">{{name}}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div id="toolList" class="simulationItem">
+        {% for tool in toolsList %}
+            {% include "toolBarItems/baseTool.html" %}
+        {% endfor %}
+    </div>
+    {% include "rulesItem.html" %}
+</div>
+<div id="foldSimulationPanelButton" class="foldButton withTransition">
+    <svg class="w-6 h-6 text-gray-800 dark:text-white withTransition" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="m9 5 7 7-7 7"/>
+  </svg>
+</div>

@@ -100,9 +100,11 @@ export class UserInterface {
         
         let animationTimerEl = (document.querySelector('#animationTimer') as HTMLDivElement);
         
-        let configurationPanel = (document.getElementById("configurationPanel") as HTMLDivElement);
+        let visualizationPanel = (document.getElementById("visualizationPanel") as HTMLDivElement);
+        let simulationPanel = (document.getElementById("simulationPanel") as HTMLDivElement);
 
-        let foldButton = (document.getElementById("foldButton") as HTMLDivElement);
+        let foldVisualizationPanelButton = (document.getElementById("foldVisualizationPanelButton") as HTMLDivElement);
+        let foldSimulationPanelButton = (document.getElementById("foldSimulationPanelButton") as HTMLDivElement);
         
         let gridSizeInput = (document.querySelector("input[paramId=gridSize]") as HTMLInputElement);
         let birthMinInput = (document.querySelector("input[paramId=birthMin]") as HTMLInputElement);
@@ -150,9 +152,14 @@ export class UserInterface {
                 animationTimerEl.style.display = 'none';
         });
 
-        foldButton.addEventListener("click", () => {
-            configurationPanel.classList.toggle("hidden")
-            foldButton.classList.toggle("hidden")
+        foldVisualizationPanelButton.addEventListener("click", () => {
+            visualizationPanel.classList.toggle("slideRight")
+            foldVisualizationPanelButton.classList.toggle("slideRight")
+        });
+
+        foldSimulationPanelButton.addEventListener("click", () => {
+            simulationPanel.classList.toggle("slideLeft")
+            foldSimulationPanelButton.classList.toggle("slideLeft")
         });
 
         gridSizeInput.addEventListener("change", async () => {
@@ -419,7 +426,7 @@ class AnimationInterface{
     constructor(viewer : Viewer){
         this._viewer = viewer;
         //.... AnimationCurves ....
-        // default animation curve is linear
+        // Default animation curve is easeOut, without any bind it would be fc0
         this._viewer.bindAnimationCurve(AnimableValue.COULEUR, AnimationFuction.easeOut);
         this._viewer.bindAnimationCurve(AnimableValue.POSITION, AnimationFuction.easeOut);
 
@@ -444,17 +451,17 @@ class AnimationInterface{
         optionAll.setAttribute("animationFunction","easeOut");
         select.appendChild(optionAll);
 
-        for(let funcName in AnimationFuction){
+        //Iterate over all the function in AnimationFunction
+        for(let animFunction of Object.values(AnimationFuction)){
             let canvas = document.createElement("canvas") as HTMLCanvasElement;
             canvas.width = 80;
             canvas.height = 120;
-            canvas.title = funcName;
+            canvas.title = animFunction.name;
 
             let ctx = canvas.getContext("2d");
             ctx.lineWidth = 3;
             ctx.strokeStyle = "#0a3b49";
             ctx.beginPath();
-            let animFunction = AnimationFuction.retrieveFunction(funcName)
             let path = new Path2D()
             let offset = 0;
             let y = animFunction(1/canvas.width)*canvas.width
@@ -469,14 +476,14 @@ class AnimationInterface{
             ctx.setTransform(1,0,0,1, 0,-offset + 3);
             ctx.stroke(path);
             let container = document.createElement("div");
-            container.id = funcName;
+            container.id = animFunction.name;
             container.classList.add("afGridItem");
-            if(funcName == "easeOut")
+            if(animFunction.name == "easeOut")
                 container.classList.add("active")
             container.appendChild(canvas);
 
             let name = document.createElement("h5");
-            name.innerText = funcName;
+            name.innerText = animFunction.name;
             container.appendChild(name)
 
             container.addEventListener("click", () => {
@@ -485,14 +492,15 @@ class AnimationInterface{
                     for(let i=0; i<animationKeysValue.length/2;i++){
                         this._viewer.bindAnimationCurve(i, animFunction);
                     }
+                }else{
+                    this._viewer.bindAnimationCurve(animableProperty, animFunction);
                 }
-                this._viewer.bindAnimationCurve(animableProperty, animFunction);
                 let predActive = document.getElementsByClassName("afGridItem active")[0]
                 if(predActive){
                     predActive.classList.remove("active")
                 }
                 container.classList.add("active")
-                select.children[select.selectedIndex].setAttribute("animationFunction",funcName)
+                select.children[select.selectedIndex].setAttribute("animationFunction",animFunction.name)
             });
             animationItem.appendChild(container);
         }

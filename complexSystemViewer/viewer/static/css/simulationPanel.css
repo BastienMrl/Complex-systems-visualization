@@ -1,0 +1,67 @@
+#simulationPanel{
+    width: 350px;
+    top: 0px;
+    bottom: 0px;
+    left: 0px;
+    direction: rtl;
+}
+
+div#modelSelectorContainer {
+    color: var(--color-lighter);
+}
+
+div#modelSelectorContainer label {
+    margin-right: 10px;
+}
+
+select#modelSelector {
+    box-shadow: 0px 0px 0px;
+}
+
+.simulationItem {
+    direction: ltr;
+}
+
+#foldSimulationPanelButton {
+    left: 350px;
+    border-radius: 0px 15px 15px 0px;
+}
+
+#foldSimulationPanelButton svg {
+    transform: rotate(180deg);
+}
+
+.slideLeft {
+    transform: translate(-350px);
+}
+
+.slideLeft svg {
+    transform: rotate(0deg) !important;
+}
+
+#toolList {
+    width: 100%;
+    background-color: var(--color-midDark);
+    display: flex;
+    margin: 10px 0px;
+    justify-content: center;
+    direction: ltr;
+}
+
+.tool {
+    margin: 5px;
+    width: 30px;
+    height: 30px;
+    background-color: var(--color-light);
+    border-radius: 3px;
+    transition: background-color 0.1s ease-in-out;
+}
+
+.tool:hover, .tool.toolActive {
+    background-color: var(--color-lighter);
+    cursor: pointer;
+}
+
+.tool img {
+    width: 100%;
+}
