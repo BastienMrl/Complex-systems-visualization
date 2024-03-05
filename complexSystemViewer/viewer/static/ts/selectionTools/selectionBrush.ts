@@ -7,6 +7,8 @@ export enum BrushShape{
 }
 
 export class SelectionBrushTool extends SelectionTool{
+    private static readonly _radiusMin = 0;
+    private static readonly _radiusMax = 10;
 
     private _interactionButton : number;
     private _shape : BrushShape;
@@ -30,13 +32,43 @@ export class SelectionBrushTool extends SelectionTool{
         }
         this._prevId = null;
         this._idValues = new Map<number, number>();
+
+        // Temporary
+        window.addEventListener('keydown', e => {
+            if (e.code == 'ArrowUp')
+                this.setBrushRadius(this._radius + 1);
+            else if (e.code == 'ArrowDown') 
+                this.setBrushRadius(this._radius - 1);
+            else if (e.code == 'ArrowLeft' || e.code == 'ArrowRight'){
+                let shape = this._shape == BrushShape.CIRCLE ? BrushShape.SQUARE : BrushShape.CIRCLE;
+                this.setBrushShape(shape);
+            }
+
+        });
+    }
+
+    public setBrushRadius(radius : number){
+        if (radius < SelectionBrushTool._radiusMin)
+            this._radius = SelectionBrushTool._radiusMin;
+        else if (radius > SelectionBrushTool._radiusMax)
+            this._radius = SelectionBrushTool._radiusMax;
+        else
+            this._radius = radius;
+        this.updateCurrentMouseOver();
+    }
+
+    public setBrushShape(shape : BrushShape){
+        this._shape = shape;
+        this.updateCurrentMouseOver();
     }
 
     protected onMouseMove(e: MouseEvent): void {
-        if (!this._mouseDown)
+        if (!this._mouseDown){
+            this.updateCurrentMouseOver();
             return;
-
-        if (this._currentId != null){
+        }
+        
+        else if (this._currentId != null){
             let path = [this._currentId];
             if (this._prevId != null)
                 path = this.getPath(this._prevId, this._currentId);
@@ -44,6 +76,19 @@ export class SelectionBrushTool extends SelectionTool{
             this.fillCurrentValues(path);
         }  
         this.onCurrentSelectionChanged(Array.from(this._idValues.keys()));
+    }
+
+    protected updateCurrentMouseOver(){
+        if (this._mouseDown)
+            return;
+        this._idValues.clear();
+
+        if (this._currentId == null)
+            this.onCurrentSelectionChanged(null);
+        else{
+            this.fillCurrentValues([this._currentId]);
+            this.onCurrentSelectionChanged(Array.from(this._idValues.keys()));
+        }
     }
     
     protected onMouseDown(e: MouseEvent): void {

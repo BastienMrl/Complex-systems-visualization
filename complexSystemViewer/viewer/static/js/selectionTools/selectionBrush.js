@@ -5,6 +5,8 @@ export var BrushShape;
     BrushShape[BrushShape["CIRCLE"] = 1] = "CIRCLE";
 })(BrushShape || (BrushShape = {}));
 export class SelectionBrushTool extends SelectionTool {
+    static _radiusMin = 0;
+    static _radiusMax = 10;
     _interactionButton;
     _shape;
     _radius;
@@ -24,11 +26,37 @@ export class SelectionBrushTool extends SelectionTool {
         };
         this._prevId = null;
         this._idValues = new Map();
+        // Temporary
+        window.addEventListener('keydown', e => {
+            if (e.code == 'ArrowUp')
+                this.setBrushRadius(this._radius + 1);
+            else if (e.code == 'ArrowDown')
+                this.setBrushRadius(this._radius - 1);
+            else if (e.code == 'ArrowLeft' || e.code == 'ArrowRight') {
+                let shape = this._shape == BrushShape.CIRCLE ? BrushShape.SQUARE : BrushShape.CIRCLE;
+                this.setBrushShape(shape);
+            }
+        });
+    }
+    setBrushRadius(radius) {
+        if (radius < SelectionBrushTool._radiusMin)
+            this._radius = SelectionBrushTool._radiusMin;
+        else if (radius > SelectionBrushTool._radiusMax)
+            this._radius = SelectionBrushTool._radiusMax;
+        else
+            this._radius = radius;
+        this.updateCurrentMouseOver();
+    }
+    setBrushShape(shape) {
+        this._shape = shape;
+        this.updateCurrentMouseOver();
     }
     onMouseMove(e) {
-        if (!this._mouseDown)
+        if (!this._mouseDown) {
+            this.updateCurrentMouseOver();
             return;
-        if (this._currentId != null) {
+        }
+        else if (this._currentId != null) {
             let path = [this._currentId];
             if (this._prevId != null)
                 path = this.getPath(this._prevId, this._currentId);
@@ -36,6 +64,17 @@ export class SelectionBrushTool extends SelectionTool {
             this.fillCurrentValues(path);
         }
         this.onCurrentSelectionChanged(Array.from(this._idValues.keys()));
+    }
+    updateCurrentMouseOver() {
+        if (this._mouseDown)
+            return;
+        this._idValues.clear();
+        if (this._currentId == null)
+            this.onCurrentSelectionChanged(null);
+        else {
+            this.fillCurrentValues([this._currentId]);
+            this.onCurrentSelectionChanged(Array.from(this._idValues.keys()));
+        }
     }
     onMouseDown(e) {
         if (e.button != this._interactionButton)
