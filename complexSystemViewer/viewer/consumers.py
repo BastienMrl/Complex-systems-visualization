@@ -128,14 +128,14 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
             case "Start":
                 if self.isConnected:
                     
-                    await self.initLenia(text_data_json["params"])
+                    await self.initGOL(text_data_json["params"])
             case "Stop":
                 if self.isConnected:
                     
                     self.sim = None
             case "RequestData":
                 if self.isConnected :
-                    await self.sendOneStepLenia()
+                    await self.sendOneStepGOL()
             case "EmptyGrid":
                 if self.isConnected:
                     await self.emptyGrid(text_data_json["params"])
@@ -166,7 +166,7 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
 
         print("prep sim")
         gol = GOLSimulation(init_states=[state])
-        gol.pa
+        
         self.sim = gol
 
     async def sendOneStepGOL(self):
