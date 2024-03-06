@@ -81,14 +81,11 @@ export class UserInterface {
         let simulationPanel = document.getElementById("simulationPanel");
         let foldVisualizationPanelButton = document.getElementById("foldVisualizationPanelButton");
         let foldSimulationPanelButton = document.getElementById("foldSimulationPanelButton");
-        let gridSizeInput = document.querySelector("input[paramId=gridSize]");
-        let birthMinInput = document.querySelector("input[paramId=birthMin]");
-        let birthMaxInput = document.querySelector("input[paramId=birthMax]");
-        let survivalMinInput = document.querySelector("input[paramId=survivalMin]");
-        let survivalMaxInput = document.querySelector("input[paramId=survivalMax]");
         let toolButtons = document.getElementsByClassName("tool");
         let addTransformerButton = document.getElementById('buttonAddTransformer');
         let animableSelect = document.getElementById("animableSelect");
+        let modelSelector = document.getElementById("modelSelector");
+        let gridSizeInput = document.querySelector("input[paramid=\"gridSize\"]");
         playButton.addEventListener('click', () => {
             this._viewer.startVisualizationAnimation();
             console.log("START");
@@ -148,9 +145,8 @@ export class UserInterface {
         addTransformerButton.addEventListener("click", (e) => {
             e.preventDefault();
             let transformertype = document.getElementById("transformerTypeSelector").value;
-            let selectedModel = document.getElementById("modelSelector").value;
             let xhttp = new XMLHttpRequest();
-            xhttp.open("GET", "addTranformerURL/" + selectedModel + "/" + transformertype, true);
+            xhttp.open("GET", "addTranformerURL/" + modelSelector.value + "/" + transformertype, true);
             xhttp.onreadystatechange = function () {
                 if (this.readyState == 4 && this.status == 200) {
                     let domParser = new DOMParser();
@@ -168,21 +164,39 @@ export class UserInterface {
             let funcName = animableSelect.children[animableSelect.selectedIndex].getAttribute("animationFunction");
             document.getElementById(funcName).classList.add("active");
         });
-        let sendSimuRules = () => {
-            let birthMin = birthMinInput.valueAsNumber;
-            let birthMax = birthMaxInput.valueAsNumber;
-            let survivalMin = survivalMinInput.valueAsNumber;
-            let survivalMax = survivalMaxInput.valueAsNumber;
-            let params = JSON.stringify({
-                "birth": [birthMin, birthMax],
-                "survival": [survivalMin, survivalMax]
+        modelSelector.addEventListener("change", () => {
+            let xhttp = new XMLHttpRequest();
+            xhttp.open("GET", "changeModel/" + modelSelector.value, true);
+            xhttp.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    let domParser = new DOMParser();
+                    let updateRules = domParser.parseFromString(this.responseText, "text/html").body.childNodes[0];
+                    let prevRules = document.getElementById("rules");
+                    prevRules.parentElement.appendChild(updateRules);
+                    prevRules.parentElement.removeChild(prevRules);
+                    superthis.initRulesListener();
+                }
+            };
+            xhttp.send();
+        });
+        this.initRulesListener();
+    }
+    initRulesListener() {
+        let paramsInputRule = document.querySelectorAll("#rules .parameterItem input");
+        let sendSimuRules = (e) => {
+            let input = e.target;
+            let paramId = input.getAttribute("paramid");
+            let paramIdSplited = paramId.split('_');
+            let json = JSON.stringify({
+                "paramId": paramIdSplited[0],
+                "subparam": paramIdSplited[1],
+                "value": Number.parseFloat(input.value)
             });
-            sendMessageToWorker(this._viewer.transmissionWorker, WorkerMessage.UPDATE_RULES, params);
+            sendMessageToWorker(this._viewer.transmissionWorker, WorkerMessage.UPDATE_RULES, json);
         };
-        birthMinInput.addEventListener("change", sendSimuRules);
-        birthMaxInput.addEventListener("change", sendSimuRules);
-        survivalMinInput.addEventListener("change", sendSimuRules);
-        survivalMaxInput.addEventListener("change", sendSimuRules);
+        paramsInputRule.forEach((input) => {
+            input.addEventListener("change", sendSimuRules);
+        });
     }
     initTransformers() {
         this._transformers = new TransformersInterface(this._viewer);

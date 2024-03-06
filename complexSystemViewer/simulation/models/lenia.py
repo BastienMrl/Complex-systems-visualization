@@ -32,41 +32,8 @@ class LeniaSimulation(Simulation):
             FloatParam(id_p="sigma", name="Sigma",
                     default_value=0.65, min_value=0.0, max_value=1.0, step=0.05),
             IntParam(id_p="gridSize", name="Grid size",
-                    default_value=50, min_value=0, step=1),
-            RangeIntParam(id_p="birth", name="Birth",
-                        min_param= IntParam(
-                            id_p="",
-                            name="",
-                            default_value=3,
-                            min_value=0,
-                            max_value=8,
-                            step=1
-                        ),
-                        max_param= IntParam(
-                            id_p="",
-                            name="",
-                            default_value=3,
-                            min_value=0,
-                            max_value=8,
-                            step=1
-                        )),
-            RangeIntParam(id_p="survival", name="Survival",
-                        min_param= IntParam(
-                            id_p="",
-                            name="",
-                            default_value=2,
-                            min_value=0,
-                            max_value=8,
-                            step=1
-                        ),
-                        max_param= IntParam(
-                            id_p="",
-                            name="",
-                            default_value=3,
-                            min_value=0,
-                            max_value=8,
-                            step=1
-                      ))]
+                    default_value=50, min_value=0, step=1)
+            ]
     def __init__(self, init_states = None, init_params = default_parameters): 
         super().__init__(0, init_states, init_params)
         
@@ -95,12 +62,6 @@ class LeniaSimulation(Simulation):
 
         self.RT = ReintegrationTracking(SX, SY, self.getParamById('dt'), 
             self.getParamById('dd'), self.getParamById('sigma'), "wall")#TODO 
-
-        
-
-        
-        
-       
 
     def step(self) :
 

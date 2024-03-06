@@ -35,8 +35,7 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
         match message:
             case "Start":
                 if self.isConnected:
-                    
-                    await self.initLenia(text_data_json["params"])
+                    await self.initGOL(text_data_json["params"])
             case "Stop":
                 if self.isConnected:
                     
@@ -116,17 +115,18 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
 
 
     async def updateRules(self, params):
-        rules = orjson.loads(params)
-        for rule in rules:
-            match rule:
-                case "birth":
-                    parameter : RangeIntParam = self.sim.getParamById("birth")
-                    parameter.min_param.value = rules[rule][0]
-                    parameter.max_param.value = rules[rule][1]
-                case "survival":
-                    parameter : RangeIntParam = self.sim.getParamById("survival")
-                    parameter.min_param.value = rules[rule][0]
-                    parameter.max_param.value = rules[rule][1]
+        json = orjson.loads(params)
+        self.sim.updateParam(json)
+        #for rule in rules:
+        #    match rule:
+        #        case "birth":
+        #            parameter : RangeIntParam = self.sim.getParamById("birth")
+        #            parameter.min_param.value = rules[rule][0]
+        #            parameter.max_param.value = rules[rule][1]
+        #        case "survival":
+        #            parameter : RangeIntParam = self.sim.getParamById("survival")
+        #            parameter.min_param.value = rules[rule][0]
+        #            parameter.max_param.value = rules[rule][1]
 
 
     async def applyInteraction(self, mask):

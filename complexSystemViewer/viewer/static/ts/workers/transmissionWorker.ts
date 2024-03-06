@@ -13,7 +13,6 @@ class TransmissionWorker{
     }
 
     private onMessage(e : MessageEvent<any>) : void {
-        console.log(getMessageHeader(e))
         switch(getMessageHeader(e)){
             case WorkerMessage.INIT_SOCKET:
                 this.initSocket(getMessageBody(e));
