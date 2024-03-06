@@ -69,6 +69,10 @@ class Simulation(ABC):
             return
 
         interaction.apply(mask, self.current_states)
+
+    @abstractmethod
+    def set_current_state_from_array(self, new_state):
+        pass
         
         
         

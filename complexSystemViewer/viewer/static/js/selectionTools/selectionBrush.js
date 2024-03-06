@@ -6,7 +6,7 @@ export var BrushShape;
 })(BrushShape || (BrushShape = {}));
 export class SelectionBrushTool extends SelectionTool {
     static _radiusMin = 0;
-    static _radiusMax = 10;
+    static _radiusMax = 30;
     _interactionButton;
     _shape;
     _radius;
@@ -87,6 +87,8 @@ export class SelectionBrushTool extends SelectionTool {
         if (e.button != this._interactionButton || !this._mouseDown)
             return;
         this._mouseDown = false;
+        this._viewer.sendInteractionRequest(new Float32Array(this._currentMask));
+        this.onCurrentSelectionChanged(null);
     }
     getPath(fromId, targetId) {
         if (fromId == null || !Number.isInteger(fromId))

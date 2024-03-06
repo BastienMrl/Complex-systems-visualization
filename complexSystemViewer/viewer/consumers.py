@@ -36,7 +36,7 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
             case "Start":
                 if self.isConnected:
                     
-                    await self.initLenia(text_data_json["params"])
+                    await self.initGOL(text_data_json["params"])
             case "Stop":
                 if self.isConnected:
                     
@@ -52,7 +52,9 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
                     await self.updateRules(text_data_json["params"])
             case "ApplyInteraction":
                 if self.isConnected:
-                    await self.applyInteraction(text_data_json["mask"])
+                    t = time.time()
+                    await self.applyInteraction(text_data_json["mask"], text_data_json["currentStates"])
+                    print("time = ", (1000 * (time.time() - t)), "ms")
                     
 
     async def emptyGrid(self, nbInstances):
@@ -129,7 +131,8 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
                     parameter.max_param.value = rules[rule][1]
 
 
-    async def applyInteraction(self, mask):
+    async def applyInteraction(self, mask, currentValues):
+        self.sim.set_current_state_from_array(currentValues)
         mask_jnp = jnp.array(mask).reshape(self.sim.width, self.sim.height)
         self.sim.applyInteraction("toLife", mask_jnp)
         
