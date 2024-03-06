@@ -15,6 +15,20 @@ header h1 {
     color: white;
 }
 
+div#stats {
+    display: flex;
+}
+
+div.statItem {
+    width: 140px;
+    margin: 5px;
+    padding: 5px;
+    background-color: var(--color-light);
+    font-family: Inria-Regular;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
 header #headerAction {
     display: flex;
     align-items: center;

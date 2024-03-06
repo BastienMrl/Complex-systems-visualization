@@ -7,4 +7,8 @@ class Interaction():
 
     def apply(self, mask : jnp.ndarray, states : list[State]):
         input = mask >= 0.1
-        states[0].grid = jnp.logical_or(states[0].grid, input).astype(jnp.float32)
+        if (len(states[0].grid.shape) == 3):
+            input = jnp.expand_dims(input, 2)
+            states[0].grid = jnp.where(input > 0, input, states[0].grid)
+        else :
+            states[0].grid = jnp.logical_or(states[0].grid, input).astype(jnp.float32)

@@ -1,0 +1,108 @@
+.configurationPanel > h3{
+    margin: 10px 0px;
+   color: var(--color-lighter);
+}
+
+.withTransition {
+    transition: transform 330ms ease-out;
+}
+
+.foldButton {
+    width: 20px;
+    height: 60px;
+    position: absolute;
+    top: calc(50% - 30px);
+    background-color: var(--color-dark);
+    display: flex;
+    stroke: var(--color-lighter);
+}
+
+.foldButton svg {
+    color: var(--color-lighter);
+}
+
+.foldButton:hover {
+    cursor: pointer;
+}
+
+.configurationPanel {
+    width: 350px;
+    background-color: var(--color-dark);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-y: scroll;
+    position: absolute;
+}
+
+.configurationItem {
+    position: relative;
+    background-color: var(--color-lighter);
+    margin: 10px;
+    margin-bottom: 0px;
+    padding: 10px;
+    width: calc(100% - 40px);
+    border-radius: 3px;
+}
+
+.configurationItem .deleteButton {
+    position: absolute;
+    background-color: transparent;
+    border: none;
+    top: 0px;
+    right: 0px;
+    padding: 3px;
+}
+
+.configurationItem .deleteButton svg{
+    width: 30px;
+    height: 30px;
+}
+
+.configurationItem .deleteButton:hover {
+    cursor:pointer;
+}
+
+.configurationItem:last-child {
+    margin-bottom: 10px;
+}
+
+.configurationItem * {
+    margin: 0px;
+}
+
+.parametersList, .visualizationInput {
+    margin: 10px;
+    padding-left: 10px;
+    border-left: solid var(--color-light) 1px;
+}
+
+.parameterItem {
+    display: flex;
+    margin: 10px;
+}
+
+.parameterItem * {
+    margin-right: 10px;
+    display: flex;
+
+}
+
+input,button,select {
+    border: none;
+    border-radius: 4px;
+}
+
+input, select {
+    box-shadow: 0px 2px 10px var(--color-light);
+}
+
+input[type=number] {
+    width: 50px;
+    height: 20px;
+    text-align: center;
+}
+
+input[type=number]:focus {
+    outline: none;
+}

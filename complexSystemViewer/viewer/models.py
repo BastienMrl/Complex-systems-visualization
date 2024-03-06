@@ -12,22 +12,11 @@ class ALifeModel(models.Model):
         return self.transformerType.split('/')
     def __str__(self):
         return self.name
-    
-class ConfigurationItem(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+class TransformerItem(models.Model):
     idHtml = models.CharField(max_length=128)
     name = models.CharField(max_length=128)
     aLifeModel = models.ForeignKey(ALifeModel, on_delete=models.CASCADE)
-    def __str__(self):
-        return self.name + " of " + self.aLifeModel.name
-
-class RulesConfiguration(ConfigurationItem):
-    def __str__(self) :
-        return "Rules of " + self.aLifeModel.__str__()
-    def getIdHtml(self):
-        return self.aLifeModel.__str__() + "srules"
-
-class TransformerItem(ConfigurationItem):
     description = models.CharField(max_length=1024)
     outputType = models.CharField(max_length=128, default="POSITION_X")
     transformerType = models.CharField(max_length=128, default="COLOR")
@@ -35,46 +24,48 @@ class TransformerItem(ConfigurationItem):
     isDeletable = models.BooleanField(default=True)
     def __str__(self):
         return self.name + " of " + self.aLifeModel.__str__()
-
-class ParamType(models.TextChoices):
-        NUMBERRANGE = "NR",
-        NUMBERVALUE = "NV",
-        COLORVALUE = "CV",
-        SELECTIONVALUE = "SV"
     
 class Parameter(models.Model):
     paramId = models.CharField(max_length=128, null=True)
     name = models.CharField(max_length=128)
-    configurationItem = models.ForeignKey(ConfigurationItem, on_delete=models.CASCADE)
+    transformer = models.ForeignKey(TransformerItem, on_delete=models.CASCADE)
     objects = InheritanceManager()
     
     def __str__(self):
-        return self.name + " from " + self.configurationItem.__str__()
+        return self.name + " from " + self.transformer.__str__()
         
 class NumberRangeParameter(Parameter):
     minDefaultValue = models.FloatField()
     maxDefaultValue = models.FloatField()
     step = models.FloatField()
-    type = ParamType.NUMBERRANGE
+    
+    def type(self):
+        return "NR"
     
 class NumberParameter(Parameter):
     defaultValue = models.FloatField()
     step = models.FloatField()
     minValue = models.FloatField(null=True, blank=True)
     maxValue = models.FloatField(null=True, blank=True)
-    type = ParamType.NUMBERVALUE
+    
+    def type(self):
+        return "NV"
     
 class ColorParameter(Parameter):
     hexDefaultValue = models.CharField(max_length=7)
-    type = ParamType.COLORVALUE
+    
+    def type(self):
+        return "CV"
     
 class SelectionParameter(Parameter):
     options = models.CharField(max_length=512, help_text="Wrote options separate with '/'")
     defaultValue = models.SmallIntegerField(default=0)
-    type = ParamType.SELECTIONVALUE
     
     def getoptionsList(self):
         return self.options.split(sep='/')
+    
+    def type(self):
+        return "SV"
     
 class Tool(models.Model):
     name = models.CharField(max_length=128)

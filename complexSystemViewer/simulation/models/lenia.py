@@ -4,171 +4,127 @@ import jax.lax as lax
 import jax.random
 import jax.scipy as jsp
 import numpy as np
-import chex
 import typing as t
 from functools import partial
-import matplotlib.pyplot as plt
 import math
+import chex
+
 
 from ..simulation import * 
 class LeniaSimulation(Simulation): 
     lenia = None
+    c_param=None
     name = "Lenia"
-    def __init__(self, init_states = None, init_params = None): 
+    #test 
+    default_parameters = [
+            IntParam(id_p="number_of_kernels", name="Number of kernels",
+                    default_value=10, min_value=1, step=1),
+            IntParam(id_p="C", name="C",
+                    default_value=1, min_value=1, step=1),
+            IntParam(id_p="dd", name="dd",
+                    default_value=5, min_value=1, step=1),
+            IntParam(id_p="n", name="n",
+                    default_value=2, min_value=1, step=1),
+            FloatParam(id_p="dt", name="dt",
+                    default_value=0.05, min_value=0.1, max_value=1., step=0.1),
+            FloatParam(id_p="theta_A", name="Theta A",
+                    default_value=2.0, min_value=0.0, max_value=2.0, step=0.1),
+            FloatParam(id_p="sigma", name="Sigma",
+                    default_value=0.65, min_value=0.0, max_value=1.0, step=0.05),
+            IntParam(id_p="gridSize", name="Grid size",
+                    default_value=50, min_value=0, step=1),
+            RangeIntParam(id_p="birth", name="Birth",
+                        min_param= IntParam(
+                            id_p="",
+                            name="",
+                            default_value=3,
+                            min_value=0,
+                            max_value=8,
+                            step=1
+                        ),
+                        max_param= IntParam(
+                            id_p="",
+                            name="",
+                            default_value=3,
+                            min_value=0,
+                            max_value=8,
+                            step=1
+                        )),
+            RangeIntParam(id_p="survival", name="Survival",
+                        min_param= IntParam(
+                            id_p="",
+                            name="",
+                            default_value=2,
+                            min_value=0,
+                            max_value=8,
+                            step=1
+                        ),
+                        max_param= IntParam(
+                            id_p="",
+                            name="",
+                            default_value=3,
+                            min_value=0,
+                            max_value=8,
+                            step=1
+                      ))]
+    def __init__(self, init_states = None, init_params = default_parameters): 
         super().__init__(0, init_states, init_params)
-        number_of_kernels = 10 #@param {type:"raw"}
-        nb_k = number_of_kernels
-        SX = SY = int(math.sqrt(size))
-        C = int(1) # @param {type : "integer"}
-        dt = 0.2 # @param
-        theta_A = 2.0 # @param
-        sigma = 0.65 #@param
-        M = np.ones((C, C), dtype=int) * nb_k
-        nb_k = int(M.sum())
-        c0, c1 = conn_from_matrix( M )
-        config = Config(SX=SX, SY=SY, nb_k=nb_k, C=C, c0=c0, c1=c1, 
-                        dt=dt, theta_A=theta_A, dd=5, sigma=sigma)
-        self.lenia = Lenia(config)
+        
+        self.nb_k = self.getParamById("number_of_kernels")
+        SX = SY = self.getParamById("gridSize")
+        
+        self.M = np.ones((self.getParamById("C"), self.getParamById("C")), dtype=int) * self.nb_k
+        self.nb_k = int(self.M.sum())
+        self.c0, self.c1 = conn_from_matrix( self.M )
+        
+        #config = Config(SX=SX, SY=SY, nb_k=nb_k, C=C, c0=c0, c1=c1, 
+        #                dt=dt, theta_A=theta_A, dd=5, sigma=sigma)
+
+        
+
+
+        self.rule_space = RuleSpace(self.nb_k)
+
+        self.kernel_computer = KernelComputer(SX, SY, self.nb_k)
+
+        seed = 10
+        key = jax.random.PRNGKey(seed)
+        params_seed, state_seed = jax.random.split(key)
+        params = self.rule_space.sample(params_seed)
+        self.c_params = self.kernel_computer(params)
+
+        self.RT = ReintegrationTracking(SX, SY, self.getParamById('dt'), 
+            self.getParamById('dd'), self.getParamById('sigma'), "wall")#TODO 
+
+        
+
+        
+        
        
 
     def step(self) :
-        pass
 
-    def declare_params() : #TODO
-        paramlist = list()
+        A = self.current_states[0].grid
 
-        paramlist.append(Param('kill', type_p, name, value))
+        fA = jnp.fft.fft2(A, axes=(0,1))  # (x,y,c)
 
+        fAk = fA[:, :, self.c0]  # (x,y,k)
 
+        U = jnp.real(jnp.fft.ifft2(self.c_params.fK * fAk, axes=(0,1)))  # (x,y,k)
 
+        U = growth(U, self.c_params.m, self.c_params.s) * self.c_params.h  # (x,y,k)
 
-        ####################
-class Lenia :
+        U = jnp.dstack([ U[:, :, self.c1[c]].sum(axis=-1) for c in range(self.getParamById('C')) ])  # (x,y,c)
 
-    """class building the main functions of Flow Lenia
+        nA = jnp.clip(A + self.getParamById("dt") * U, 0., 1.)
+        self.current_states[0].grid = nA
+        
+
     
-    Attributes:
-        config (FL_Config): config of the system
-        kernel_computer (KernelComputer): kernel computer
-        rollout_fn (Callable): rollout function
-        RT (ReintegrationTracking): Description
-        rule_space (RuleSpace): Rule space of the system
-        step_fn (Callable): system step function
-    """
-    
-    #------------------------------------------------------------------------------
 
-    def __init__(self, config: Config):
-        """
-        Args:
-            config (Config): config of the system
-        """
-        self.config = config
 
-        self.rule_space = RuleSpace(config.nb_k)
 
-        self.kernel_computer = KernelComputer(self.config.SX, self.config.SY, self.config.nb_k)
 
-        self.RT = ReintegrationTracking(self.config.SX, self.config.SY, self.config.dt, 
-            self.config.dd, self.config.sigma, self.config.border)
-
-        self.step_fn = self._build_step_fn()
-
-        self.rollout_fn = self._build_rollout()
-
-    #------------------------------------------------------------------------------
-
-    def __call__(self, state: State, params: CompiledParams)->State:
-        """callback to step function
-        
-        Args:
-            state (State): Description
-            params (CompiledParams): Description
-        
-        Returns:
-            State: Description
-        """
-        return self.step_fn(state, params)
-
-    #------------------------------------------------------------------------------
-
-    def _build_step_fn(self)->t.Callable[[State, CompiledParams], State]:
-        """Build step function of the system according to config
-        
-        Returns:
-            t.Callable[[State, CompiledParams], State]: step function which outputs next state 
-            given a state and params
-        """
-
-        def step(state: State, params: CompiledParams)->State:
-            """
-            Main step
-            
-            Args:
-                state (State): state of the system
-                params (CompiledParams): params
-            
-            Returns:
-                State: new state of the system
-            
-            """
-            #---------------------------Original Lenia------------------------------------
-            A = state.A
-
-            fA = jnp.fft.fft2(A, axes=(0,1))  # (x,y,c)
-
-            fAk = fA[:, :, self.config.c0]  # (x,y,k)
-
-            U = jnp.real(jnp.fft.ifft2(params.fK * fAk, axes=(0,1)))  # (x,y,k)
-
-            U = growth(U, params.m, params.s) * params.h  # (x,y,k)
-
-            U = jnp.dstack([ U[:, :, self.config.c1[c]].sum(axis=-1) for c in range(self.config.C) ])  # (x,y,c)
-
-            #-------------------------------FLOW------------------------------------------
-
-            nA = jnp.clip(A + self.config.dt * U, 0., 1.)
-
-            return State(A=nA)
-
-        return step
-
-    #------------------------------------------------------------------------------
-
-    def _build_rollout(self)->t.Callable[[CompiledParams, State, int], t.Tuple[State, State]]:
-        """build rollout function
-        
-        Returns:
-            t.Callable[[CompiledParams, State, int], t.Tuple[State, State]]: Description
-        """
-        def scan_step(carry: t.Tuple[State, CompiledParams], x)->t.Tuple[t.Tuple[State, CompiledParams], State]:
-            """Summary
-            
-            Args:
-                carry (t.Tuple[State, CompiledParams]): Description
-                x (TYPE): Description
-            
-            Returns:
-                t.Tuple[t.Tuple[State, CompiledParams], State]: Description
-            """
-            state, params = carry
-            nstate = jax.jit(self.step_fn)(state, params)
-            return (nstate, params), nstate
-
-        def rollout(params: CompiledParams, init_state: State, steps: int) -> t.Tuple[State, State]:
-            """Summary
-            
-            Args:
-                params (CompiledParams): Description
-                init_state (State): Description
-                steps (int): Description
-            
-            Returns:
-                t.Tuple[State, State]: Description
-            """
-            return jax.lax.scan(scan_step, (init_state, params), None, length = steps)
-
-        return rollout
 
 def sigmoid(x):
     return 0.5 * (jnp.tanh(x / 2) + 1)

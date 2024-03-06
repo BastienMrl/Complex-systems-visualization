@@ -77,8 +77,10 @@ export class UserInterface {
         let restartButton = document.querySelector('#buttonRestart');
         let timerButton = document.querySelector('#buttonTimer');
         let animationTimerEl = document.querySelector('#animationTimer');
-        let configurationPanel = document.getElementById("configurationPanel");
-        let foldButton = document.getElementById("foldButton");
+        let visualizationPanel = document.getElementById("visualizationPanel");
+        let simulationPanel = document.getElementById("simulationPanel");
+        let foldVisualizationPanelButton = document.getElementById("foldVisualizationPanelButton");
+        let foldSimulationPanelButton = document.getElementById("foldSimulationPanelButton");
         let gridSizeInput = document.querySelector("input[paramId=gridSize]");
         let birthMinInput = document.querySelector("input[paramId=birthMin]");
         let birthMaxInput = document.querySelector("input[paramId=birthMax]");
@@ -114,9 +116,13 @@ export class UserInterface {
             else
                 animationTimerEl.style.display = 'none';
         });
-        foldButton.addEventListener("click", () => {
-            configurationPanel.classList.toggle("hidden");
-            foldButton.classList.toggle("hidden");
+        foldVisualizationPanelButton.addEventListener("click", () => {
+            visualizationPanel.classList.toggle("slideRight");
+            foldVisualizationPanelButton.classList.toggle("slideRight");
+        });
+        foldSimulationPanelButton.addEventListener("click", () => {
+            simulationPanel.classList.toggle("slideLeft");
+            foldSimulationPanelButton.classList.toggle("slideLeft");
         });
         gridSizeInput.addEventListener("change", async () => {
             this._nbElements = gridSizeInput.value ** 2;
@@ -353,7 +359,7 @@ class AnimationInterface {
     constructor(viewer) {
         this._viewer = viewer;
         //.... AnimationCurves ....
-        // default animation curve is linear
+        // Default animation curve is easeOut, without any bind it would be fc0
         this._viewer.bindAnimationCurve(AnimableValue.COULEUR, AnimationFuction.easeOut);
         this._viewer.bindAnimationCurve(AnimableValue.POSITION, AnimationFuction.easeOut);
         this.initAnimationItem();
@@ -374,16 +380,16 @@ class AnimationInterface {
         optionAll.innerText = "TOUS";
         optionAll.setAttribute("animationFunction", "easeOut");
         select.appendChild(optionAll);
-        for (let funcName in AnimationFuction) {
+        //Iterate over all the function in AnimationFunction
+        for (let animFunction of Object.values(AnimationFuction)) {
             let canvas = document.createElement("canvas");
             canvas.width = 80;
             canvas.height = 120;
-            canvas.title = funcName;
+            canvas.title = animFunction.name;
             let ctx = canvas.getContext("2d");
             ctx.lineWidth = 3;
             ctx.strokeStyle = "#0a3b49";
             ctx.beginPath();
-            let animFunction = AnimationFuction.retrieveFunction(funcName);
             let path = new Path2D();
             let offset = 0;
             let y = animFunction(1 / canvas.width) * canvas.width;
@@ -398,13 +404,13 @@ class AnimationInterface {
             ctx.setTransform(1, 0, 0, 1, 0, -offset + 3);
             ctx.stroke(path);
             let container = document.createElement("div");
-            container.id = funcName;
+            container.id = animFunction.name;
             container.classList.add("afGridItem");
-            if (funcName == "easeOut")
+            if (animFunction.name == "easeOut")
                 container.classList.add("active");
             container.appendChild(canvas);
             let name = document.createElement("h5");
-            name.innerText = funcName;
+            name.innerText = animFunction.name;
             container.appendChild(name);
             container.addEventListener("click", () => {
                 let animableProperty = Number.parseInt(select.value);
@@ -413,13 +419,15 @@ class AnimationInterface {
                         this._viewer.bindAnimationCurve(i, animFunction);
                     }
                 }
-                this._viewer.bindAnimationCurve(animableProperty, animFunction);
+                else {
+                    this._viewer.bindAnimationCurve(animableProperty, animFunction);
+                }
                 let predActive = document.getElementsByClassName("afGridItem active")[0];
                 if (predActive) {
                     predActive.classList.remove("active");
                 }
                 container.classList.add("active");
-                select.children[select.selectedIndex].setAttribute("animationFunction", funcName);
+                select.children[select.selectedIndex].setAttribute("animationFunction", animFunction.name);
             });
             animationItem.appendChild(container);
         }
