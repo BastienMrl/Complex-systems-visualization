@@ -58,8 +58,6 @@ export abstract class SelectionTool{
 
     public receiveMouseUpEvent(e : MouseEvent) : void {
         this.onMouseUp(e);
-        this._viewer.sendInteractionRequest(new Float32Array(this._currentMask));
-        this.onCurrentSelectionChanged(null);
     }
 
 

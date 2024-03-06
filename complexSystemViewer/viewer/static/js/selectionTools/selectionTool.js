@@ -35,8 +35,6 @@ export class SelectionTool {
     }
     receiveMouseUpEvent(e) {
         this.onMouseUp(e);
-        this._viewer.sendInteractionRequest(new Float32Array(this._currentMask));
-        this.onCurrentSelectionChanged(null);
     }
     // protected methods
     onCurrentSelectionChanged(selection) {

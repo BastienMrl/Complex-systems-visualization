@@ -40,6 +40,8 @@ export class SelectionBoxTool extends SelectionTool{
         if (e.button != this._interactionButton || !this._mouseDown)
             return;
         this._mouseDown = false;
+        this._viewer.sendInteractionRequest(new Float32Array(this._currentMask));
+        this.onCurrentSelectionChanged(null);
     }
 
     protected onMouseDown(e : MouseEvent){

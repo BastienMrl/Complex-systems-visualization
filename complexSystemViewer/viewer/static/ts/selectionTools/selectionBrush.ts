@@ -8,7 +8,7 @@ export enum BrushShape{
 
 export class SelectionBrushTool extends SelectionTool{
     private static readonly _radiusMin = 0;
-    private static readonly _radiusMax = 10;
+    private static readonly _radiusMax = 30;
 
     private _interactionButton : number;
     private _shape : BrushShape;
@@ -104,6 +104,8 @@ export class SelectionBrushTool extends SelectionTool{
         if (e.button != this._interactionButton || !this._mouseDown)
             return;
         this._mouseDown = false;
+        this._viewer.sendInteractionRequest(new Float32Array(this._currentMask));
+        this.onCurrentSelectionChanged(null);
     }
 
     private getPath(fromId : number, targetId : number) : Array<number>{
