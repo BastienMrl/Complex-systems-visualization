@@ -64,6 +64,7 @@ export class SocketManager {
         };
     }
     onMessage(e) {
+        console.log("SOCKET HANDLER : Message received");
         var promise = e.data.text();
         promise.then(value => {
             const data = JSON.parse(value);
@@ -148,10 +149,14 @@ export class SocketManager {
             this._awaitingRequests.push(this.applyInteraction.bind(this, mask));
             return;
         }
+        let values = new Array(currentValues.length);
+        currentValues.forEach((e, i) => {
+            values[i] = Array.from(e);
+        });
         this._socket.send(JSON.stringify({
             'message': this._applyInteractionMessage,
             'mask': Array.from(mask),
-            'currentStates': currentValues
+            'currentStates': values
         }));
     }
 }

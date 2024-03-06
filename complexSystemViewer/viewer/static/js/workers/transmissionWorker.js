@@ -11,12 +11,12 @@ class TransmissionWorker {
         onmessage = this.onMessage.bind(this);
     }
     onMessage(e) {
-        console.log(getMessageHeader(e));
         switch (getMessageHeader(e)) {
             case WorkerMessage.INIT_SOCKET:
                 this.initSocket(getMessageBody(e));
                 break;
             case WorkerMessage.GET_VALUES:
+                console.log("TRANSMISSION: get value message received");
                 this.sendValues();
                 break;
             case WorkerMessage.RESET:
@@ -64,8 +64,15 @@ class TransmissionWorker {
     async applyInteraction(data) {
         if (!this._socketManager.isConnected)
             await this.waitSocketConnection();
+        this._statesBuffer.flush();
         let values = TransformableValues.fromArray(data.slice(1));
         this._socketManager.applyInteraction(data[0], values.getBackendValues());
+        this._statesBuffer.requestState();
+        while (!this._statesBuffer.hasNewValue) {
+            await new Promise(resolve => setTimeout(resolve, 1));
+        }
+        ;
+        this.sendValues();
     }
 }
 const url = 'ws://'

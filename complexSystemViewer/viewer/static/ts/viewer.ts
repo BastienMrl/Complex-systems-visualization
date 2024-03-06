@@ -38,10 +38,13 @@ export class Viewer {
 
     private _animationTimer : AnimationTimer;
     private _animationIds : [number, number];
+    private _needAnimationPlayOnReceived : boolean = false;
+    private _needOneAnimationLoop : boolean = false;
 
 
     private _transmissionWorker : Worker;
     private _currentValue : TransformableValues | null;
+    private _nextValue : TransformableValues | null;
 
     private _drawable : boolean;
 
@@ -65,6 +68,7 @@ export class Viewer {
         this._selectionManager = new SelectionManager(this);
         
         this._currentValue = null;
+        this._nextValue = null;
         this._transmissionWorker = new Worker("/static/js/workers/transmissionWorker.js", {type : "module"});
         this._transmissionWorker.onmessage = this.onTransmissionWorkerMessage.bind(this);
 
@@ -104,12 +108,12 @@ export class Viewer {
         this._currentValue = null;
         sendMessageToWorker(this._transmissionWorker, WorkerMessage.RESET, nbElements);
         
-        while (this._currentValue == null){
+        while (this._nextValue == null){
             await new Promise(resolve => setTimeout(resolve, 1));
         };
 
-        let values = this._currentValue;
-        await this.initMesh(values);
+        this._currentValue = this._nextValue;
+        await this.initMesh(this._currentValue);
         this._drawable = true;
     }
 
@@ -165,10 +169,13 @@ export class Viewer {
     }
     
     private updateScene(){
-        if (this._currentValue == null)
+        console.log("Update")
+        if (this._nextValue == null){
             return;
+        }
         this._stats.startUpdateTimer();
-        this._multipleInstances.updateStates(this._currentValue)
+        this._multipleInstances.updateStates(this._nextValue)
+        this._currentValue = TransformableValues.fromInstance(this._nextValue);
         this.context.finish();
         this._stats.stopUpdateTimer();
         sendMessageToWorker(this._transmissionWorker, WorkerMessage.GET_VALUES);
@@ -255,8 +262,19 @@ export class Viewer {
             case WorkerMessage.READY:
                 break;
             case WorkerMessage.VALUES:
+                console.log("MAIN : value received")
                 let data = getMessageBody(e)
-                this._currentValue = TransformableValues.fromArray(data);
+                this._nextValue = TransformableValues.fromArray(data);
+                if (this._needAnimationPlayOnReceived){
+                    this._needAnimationPlayOnReceived = false;
+                    this._needOneAnimationLoop = false;
+                    this.startVisualizationAnimation();
+                }
+                else if (!this._animationTimer.isRunning && this._needOneAnimationLoop){
+                    this._needOneAnimationLoop = false;
+                    this.updateScene();
+                    this.startOneAnimationLoop();
+                }
                 break;
         }
     }
@@ -267,12 +285,20 @@ export class Viewer {
     }
 
     public startVisualizationAnimation() {
+        this.updateScene();
         this._animationTimer.loop = true;
         this._animationTimer.play();
     }
 
     public stopVisualizationAnimation() {
+        this._multipleInstances.updateStates(this._currentValue);
+        this._animationTimer.stop();
+    }
+
+    public startOneAnimationLoop() {
         this._animationTimer.loop = false
+        // TODO set duration
+        this._animationTimer.play();
     }
 
     public updateProgamsTransformers(transformers : TransformerBuilder){
@@ -280,7 +306,15 @@ export class Viewer {
     }
 
     public sendInteractionRequest(mask : Float32Array){
+        if (this._animationTimer.isRunning){
+            this.stopVisualizationAnimation();
+            this._needAnimationPlayOnReceived = true;
+        }
+        let t = performance.now();
+        this._multipleInstances.updateStates(this._currentValue);
+        this._needOneAnimationLoop = true;
         sendMessageToWorker(this._transmissionWorker, WorkerMessage.APPLY_INTERACTION,
                             [mask].concat(this._currentValue.toArray()), [mask.buffer].concat(this._currentValue.toArrayBuffers()));
+        console.log("time = ", performance.now() - t, " ms");
     }
 }

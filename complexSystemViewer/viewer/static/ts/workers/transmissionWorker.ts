@@ -14,12 +14,12 @@ class TransmissionWorker{
     }
 
     private onMessage(e : MessageEvent<any>) : void {
-        console.log(getMessageHeader(e))
         switch(getMessageHeader(e)){
             case WorkerMessage.INIT_SOCKET:
                 this.initSocket(getMessageBody(e));
                 break;
             case WorkerMessage.GET_VALUES:
+                console.log("TRANSMISSION: get value message received")
                 this.sendValues();
                 break;
             case WorkerMessage.RESET:
@@ -72,9 +72,19 @@ class TransmissionWorker{
     private async applyInteraction(data : Array<Float32Array>){
         if (!this._socketManager.isConnected)
             await this.waitSocketConnection();
+        
+        this._statesBuffer.flush();
 
         let values = TransformableValues.fromArray(data.slice(1));
         this._socketManager.applyInteraction(data[0], values.getBackendValues());
+        this._statesBuffer.requestState();
+
+        while (!this._statesBuffer.hasNewValue){
+            await new Promise(resolve => setTimeout(resolve, 1));
+        };
+
+        
+        this.sendValues();
     }
 
 }

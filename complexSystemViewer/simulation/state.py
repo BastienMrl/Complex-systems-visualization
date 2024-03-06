@@ -72,4 +72,3 @@ class GridState(State) :
 
     def set_grid(self, grid) : 
         self.grid = grid
-        self.update_particles()

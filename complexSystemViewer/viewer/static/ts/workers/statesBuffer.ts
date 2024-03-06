@@ -7,6 +7,8 @@ export class StatesBuffer{
     private _states : Float32Array[];
     private _transformedValues : TransformableValues;
 
+    private _isNewValues : boolean = false;
+
 
     private _socketManager : SocketManager;
     private _isInitialized : boolean;
@@ -31,8 +33,19 @@ export class StatesBuffer{
     public get values() : TransformableValues{
         let values = this._transformedValues;
         this._transformedValues = TransformableValues.fromInstance(values);
-        this.requestState();
+        if (this._isNewValues){
+            this._isNewValues = false;
+            this.requestState();
+        }
         return values;
+    }
+
+    public get hasNewValue() : boolean {
+        return this._isNewValues;
+    }
+
+    public flush(){
+        this._isNewValues = false;
     }
 
     
@@ -54,6 +67,7 @@ export class StatesBuffer{
         this._states = data;
         this.transformState();
         this._isInitialized = true;
+        this._isNewValues = true;
     }
 
 

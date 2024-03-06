@@ -37,15 +37,11 @@ export class UserInterface {
     initMouseKeyHandlers() {
         // LeftMouseButtonDown
         this._viewer.canvas.addEventListener('mousedown', (e) => {
-            if (e.button == 0)
-                console.log("leftMousePressed");
             if (e.button == 1)
                 this._wheelPressed = true;
         });
         // LeftMouseButtonUp
         this._viewer.canvas.addEventListener('mouseup', (e) => {
-            if (e.button == 0)
-                console.log("leftMouseUp");
             if (e.button == 1)
                 this._wheelPressed = false;
         });
