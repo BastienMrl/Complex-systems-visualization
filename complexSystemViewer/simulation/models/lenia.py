@@ -12,10 +12,6 @@ import chex
 
 from ..simulation import * 
 class LeniaSimulation(Simulation): 
-    lenia = None
-    c_param=None
-    name = "Lenia"
-    #test 
     default_parameters = [
             IntParam(id_p="number_of_kernels", name="Number of kernels",
                     default_value=10, min_value=1, step=1),
@@ -68,7 +64,7 @@ class LeniaSimulation(Simulation):
                             step=1
                       ))]
     def __init__(self, init_states = None, init_params = default_parameters): 
-        super().__init__(0, init_states, init_params)
+        super().__init__(init_states, init_params)
         
         self.nb_k = self.getParamById("number_of_kernels")
         SX = SY = self.getParamById("gridSize")

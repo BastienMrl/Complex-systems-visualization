@@ -11,6 +11,7 @@ class Paramtype(Enum):
     NUMBERVALUE = 'NV'
     COLORVALUE = 'CV'
     SELECTIONVALUE = 'SV'
+    BOOLVALUE='BV'
 
 
 
@@ -125,5 +126,18 @@ class RangeIntParam(Param):
             "maxMaximumValue" : self.max_param.max_value,
             "minStep" : self.min_param.step,
             "maxStep" : self.max_param.step,
+        })
+        return superParam
+    
+class BoolParam(Param):
+    def __init__(self, id_p: str, name: str, default_value : bool):
+        super().__init__(id_p, Paramtype.BOOLVALUE, name)
+        self.value = default_value
+        self.default_value = default_value
+    
+    def get_param(self):
+        superParam = super().get_param()
+        superParam.update({
+            "defaultValue" : self.default_value,
         })
         return superParam

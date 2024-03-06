@@ -69,20 +69,7 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
 
 
     async def initGOL(self, nbInstances):
-        key = jax.random.PRNGKey(1701)
-        nb = nbInstances
-        row = int(math.sqrt(nb))
-        grid = jax.random.uniform(key, (1, row, row, 1))
-        grid = jnp.round(grid)
-        grid = jnp.transpose(grid, [0, 3, 1, 2])
-
-        #print("prep state")
-        state = GridState(grid)
-
-        #print("prep sim")
-        gol = GOLSimulation(init_states=[state])
-        
-        self.sim = gol
+        self.sim = GOLSimulation(random_start=True)
 
 
     async def initLenia(self, nbInstances):
