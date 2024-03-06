@@ -256,7 +256,7 @@ export class Viewer {
                 break;
             case WorkerMessage.VALUES:
                 let data = getMessageBody(e)
-                this._currentValue = TransformableValues.fromValues(data[0], data[1]);
+                this._currentValue = TransformableValues.fromArray(data);
                 break;
         }
     }
@@ -280,6 +280,7 @@ export class Viewer {
     }
 
     public sendInteractionRequest(mask : Float32Array){
-        sendMessageToWorker(this._transmissionWorker, WorkerMessage.APPLY_INTERACTION, mask, [mask.buffer]);
+        sendMessageToWorker(this._transmissionWorker, WorkerMessage.APPLY_INTERACTION,
+                            [mask].concat(this._currentValue.toArray()), [mask.buffer].concat(this._currentValue.toArrayBuffers()));
     }
 }

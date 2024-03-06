@@ -143,14 +143,15 @@ export class SocketManager {
             'params': params
         }));
     }
-    applyInteraction(mask) {
+    applyInteraction(mask, currentValues) {
         if (!this._isConnected) {
             this._awaitingRequests.push(this.applyInteraction.bind(this, mask));
             return;
         }
         this._socket.send(JSON.stringify({
             'message': this._applyInteractionMessage,
-            'mask': Array.from(mask)
+            'mask': Array.from(mask),
+            'currentStates': currentValues
         }));
     }
 }

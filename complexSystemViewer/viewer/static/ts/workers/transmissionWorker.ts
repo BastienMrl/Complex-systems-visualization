@@ -1,3 +1,4 @@
+import { TransformableValues } from "../transformableValues.js";
 import { SocketManager } from "./socketManager.js";
 import { StatesBuffer } from "./statesBuffer.js";
 import { WorkerMessage, sendMessageToWindow, getMessageBody, getMessageHeader } from "./workerInterface.js";
@@ -43,7 +44,7 @@ class TransmissionWorker{
         if (!this._socketManager.isConnected)
             await this.waitSocketConnection();
         let values = this._statesBuffer.values;
-        sendMessageToWindow(WorkerMessage.VALUES, [values.states, values.translations], [values.states.buffer, values.translations.buffer]);
+        sendMessageToWindow(WorkerMessage.VALUES, values.toArray(), values.toArrayBuffers());
     }
     
     private async resetSimulation(nbElements : number){
@@ -68,10 +69,12 @@ class TransmissionWorker{
         this._socketManager.changeSimuRules(params)
     }
 
-    private async applyInteraction(mask : Float32Array){
+    private async applyInteraction(data : Array<Float32Array>){
         if (!this._socketManager.isConnected)
             await this.waitSocketConnection();
-        this._socketManager.applyInteraction(mask);
+
+        let values = TransformableValues.fromArray(data.slice(1));
+        this._socketManager.applyInteraction(data[0], values.getBackendValues());
     }
 
 }

@@ -58,13 +58,6 @@ export class StatesBuffer{
 
 
     public transformState(){
-        this._transformedValues.states = new Float32Array(this._states[2])
-
-        this._states[0].forEach((e, i) =>{
-            this._transformedValues.translations[i * 3] = e;
-        });
-        this._states[1].forEach((e, i) =>{
-            this._transformedValues.translations[i * 3 + 1] = e;
-        })
+        this._transformedValues.setWithBackendValues(this._states);
     }
 }

@@ -167,14 +167,15 @@ export class SocketManager {
         }));
     }
 
-    public applyInteraction(mask : Float32Array){
+    public applyInteraction(mask : Float32Array, currentValues : Array<Float32Array>){
         if (!this._isConnected){
             this._awaitingRequests.push(this.applyInteraction.bind(this, mask));
             return;
         }
         this._socket.send(JSON.stringify({
             'message' : this._applyInteractionMessage,
-            'mask' : Array.from(mask)
+            'mask' : Array.from(mask),
+            'currentStates' : currentValues
         }));
     }
     
