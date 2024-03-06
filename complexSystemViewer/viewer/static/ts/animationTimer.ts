@@ -5,6 +5,8 @@ export class AnimationTimer{
     public loop : boolean;
     private _isRunning : boolean;
 
+    private _timeoutId : number;
+
     private _callback : () => void;
 
     private _defaultInterpolationCurve : (time : number) => number;
@@ -51,10 +53,11 @@ export class AnimationTimer{
             return;
         this._startingTime = performance.now();
         this._isRunning = true;
-        setTimeout(this.onTimeout.bind(this), this._duration);
+        this._timeoutId = setTimeout(this.onTimeout.bind(this), this._duration);
     }
 
     public stop(){
+        clearTimeout(this._timeoutId);
         this._isRunning = false;
     }
 

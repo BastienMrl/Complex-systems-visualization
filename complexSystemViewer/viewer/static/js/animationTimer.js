@@ -3,6 +3,7 @@ export class AnimationTimer {
     _startingTime;
     loop;
     _isRunning;
+    _timeoutId;
     _callback;
     _defaultInterpolationCurve;
     _interpolationCurves;
@@ -39,9 +40,10 @@ export class AnimationTimer {
             return;
         this._startingTime = performance.now();
         this._isRunning = true;
-        setTimeout(this.onTimeout.bind(this), this._duration);
+        this._timeoutId = setTimeout(this.onTimeout.bind(this), this._duration);
     }
     stop() {
+        clearTimeout(this._timeoutId);
         this._isRunning = false;
     }
     // returns id
