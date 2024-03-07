@@ -55,6 +55,9 @@ class GOLSimulation(Simulation):
                             [1, 1, 1]])[:, :, jnp.newaxis, jnp.newaxis]
         self.kernel = jnp.transpose(self.kernel, [3, 2, 0, 1]) 
 
+        self.interactions : list[Interaction] = [Interaction("toLife", golInteractionReplacement)]
+
+
     def step(self) :
         state =  self.current_states[0]
         grid = state.grid
