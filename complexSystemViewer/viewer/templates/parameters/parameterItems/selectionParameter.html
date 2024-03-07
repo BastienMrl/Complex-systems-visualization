@@ -4,7 +4,7 @@
 
 {% block valueControl %}
 
-<select name="{{param.name}}" paramId="{{param.paramId}}">
+<selectparamId="{{param.paramId}}">
     {% for option in param.getoptionsList %}
         <option value="{{option}}" {% if forloop.counter0==param.defaultValue %} selected {% endif %}>{{option}}</option>
     {% endfor %}

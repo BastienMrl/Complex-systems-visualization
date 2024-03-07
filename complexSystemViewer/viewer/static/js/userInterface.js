@@ -183,10 +183,22 @@ export class UserInterface {
             let input = e.target;
             let paramId = input.getAttribute("paramid");
             let paramIdSplited = paramId.split('_');
+            let value;
+            switch (input.type) {
+                case "checkbox":
+                    value = input.checked;
+                    break;
+                case "number":
+                    value = Number.parseFloat(input.value);
+                    break;
+                default:
+                    value = input.value;
+                    break;
+            }
             let json = JSON.stringify({
                 "paramId": paramIdSplited[0],
                 "subparam": paramIdSplited[1],
-                "value": Number.parseFloat(input.value)
+                "value": value
             });
             sendMessageToWorker(this._viewer.transmissionWorker, WorkerMessage.UPDATE_RULES, json);
         };
@@ -232,7 +244,6 @@ export class TransformersInterface {
         const deleteButton = element.getElementsByClassName("deleteButton")[0];
         const transformType = this.getTransformType(element);
         const paramsElements = this.getParamsElements(element);
-        console.log(paramsElements);
         let params = [];
         paramsElements.forEach(e => {
             params.push(e.value);
@@ -257,7 +268,6 @@ export class TransformersInterface {
                 this._currentTransformerBuilder.removeTransformer(id);
                 deleteButton.parentElement.remove();
                 this.updateProgram();
-                console.log("deleted");
             });
         }
     }
