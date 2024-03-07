@@ -5,12 +5,12 @@
 {% block valueControl %}
     <div>
         <h4>min</h4>
-        <input type="number" paramId="{{param.paramId}}_min" name="{{param.name}}Min" step="{{param.minStep}}" 
+        <input type="number" paramId="{{param.paramId}}_min" step="{{param.minStep}}" 
         value="{{param.minDefaultValue}}" min="{{param.minMinimumValue}}" max="{{param.minMaximumValue}}"/>
     </div>
     <div>
         <h4>max</h4>
-        <input type="number" paramId="{{param.paramId}}_max" name="{{param.name}}Max" step="{{param.maxStep}}"
+        <input type="number" paramId="{{param.paramId}}_max" step="{{param.maxStep}}"
         value="{{param.maxDefaultValue}}" min="{{param.maxMinimumValue}}" max="{{param.maxMaximumValue}}"/>
     </div>
 {% endblock valueControl %}

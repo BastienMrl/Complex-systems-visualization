@@ -166,4 +166,6 @@ class BoolParam(Param):
         return superParam
 
     def set_param(self, json):
+        print(json)
         self.value = json["value"]
+        print(self.value)

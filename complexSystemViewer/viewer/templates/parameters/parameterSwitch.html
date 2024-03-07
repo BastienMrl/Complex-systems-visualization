@@ -7,4 +7,6 @@
     {% include "parameters/parameterItems/selectionParameter.html"%}
 {% elif param.type == "CV" %}
     {% include "parameters/parameterItems/colorParameter.html"%}
+{% elif param.type == "BV" %}
+    {% include "parameters/parameterItems/booleanParameter.html"%}
 {% endif %}
