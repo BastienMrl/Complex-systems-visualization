@@ -46,6 +46,10 @@ class Param(ABC):
             "name": self.name,
             "type": str(self.type_param.value)
         }
+        
+    @abstractmethod
+    def set_param(self, json): 
+        pass
 
 
         
@@ -70,6 +74,10 @@ class FloatParam(Param):
         })
         return superParam
     
+    def set_param(self, json):
+        self.value = json["value"]
+        
+    
 class IntParam(Param):
     def __init__(self, id_p , name, default_value : int, min_value:int = None, max_value:int = None, step:int = None):
         super().__init__(id_p, Paramtype.NUMBERVALUE, name)
@@ -88,6 +96,9 @@ class IntParam(Param):
             "step": self.step
         })
         return superParam
+    
+    def set_param(self, json):
+        self.value = json["value"]
 
 class RangeFloatParam(Param):
     def __init__(self, id_p : str, name : str, min_param : FloatParam, max_param : FloatParam):
@@ -109,6 +120,12 @@ class RangeFloatParam(Param):
         })
         return superParam
     
+    def set_param(self, json):
+        if json["subparam"] == "min":
+            self.min_param.value = json["value"]
+        elif json["subparam"] == "max":
+            self.max_param.value = json["value"]
+    
 class RangeIntParam(Param):
     def __init__(self, id_p : str, name : str, min_param : IntParam, max_param : IntParam):
         super().__init__(id_p, Paramtype.NUMBERRANGE, name)
@@ -129,6 +146,12 @@ class RangeIntParam(Param):
         })
         return superParam
     
+    def set_param(self, json):
+        if json["subparam"] == "min":
+            self.min_param.value = json["value"]
+        elif json["subparam"] == "max":
+            self.max_param.value = json["value"]
+    
 class BoolParam(Param):
     def __init__(self, id_p: str, name: str, default_value : bool):
         super().__init__(id_p, Paramtype.BOOLVALUE, name)
@@ -141,3 +164,6 @@ class BoolParam(Param):
             "defaultValue" : self.default_value,
         })
         return superParam
+
+    def set_param(self, json):
+        self.value = json["value"]

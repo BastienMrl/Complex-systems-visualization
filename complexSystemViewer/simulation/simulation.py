@@ -62,6 +62,11 @@ class Simulation(ABC):
             if p.id_param == id:
                 return p.value
         return None
+    
+    def updateParam(self, json):
+        for p in self.parameters:
+            if p.id_param == json["paramId"]:
+                p.set_param(json)
         
     def applyInteraction(self, id : str, mask : jnp.ndarray):
         interaction : None | Interaction = None

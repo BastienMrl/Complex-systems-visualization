@@ -157,7 +157,6 @@ export class SocketManager {
     }
 
     public changeSimuRules(params: any){
-        console.log(this);
         if (!this._isConnected){
             this._awaitingRequests.push(this.changeSimuRules.bind(this, params));
             return;

@@ -101,12 +101,6 @@ export class UserInterface {
 
         let foldVisualizationPanelButton = (document.getElementById("foldVisualizationPanelButton") as HTMLDivElement);
         let foldSimulationPanelButton = (document.getElementById("foldSimulationPanelButton") as HTMLDivElement);
-        
-        let gridSizeInput = (document.querySelector("input[paramId=gridSize]") as HTMLInputElement);
-        let birthMinInput = (document.querySelector("input[paramId=birthMin]") as HTMLInputElement);
-        let birthMaxInput = (document.querySelector("input[paramId=birthMax]") as HTMLInputElement);
-        let survivalMinInput = (document.querySelector("input[paramId=survivalMin]") as HTMLInputElement);
-        let survivalMaxInput = (document.querySelector("input[paramId=survivalMax]") as HTMLInputElement);
 
         let toolButtons = (document.getElementsByClassName("tool") as HTMLCollectionOf<HTMLDivElement>);
 
@@ -114,6 +108,9 @@ export class UserInterface {
 
         let animableSelect = (document.getElementById("animableSelect") as HTMLSelectElement);
 
+        let modelSelector = (document.getElementById("modelSelector") as HTMLSelectElement);
+
+        let gridSizeInput = (document.querySelector("input[paramid=\"gridSize\"]") as HTMLInputElement);
 
         playButton.addEventListener('click', () => {
             this._viewer.startVisualizationAnimation();
@@ -183,9 +180,8 @@ export class UserInterface {
         addTransformerButton.addEventListener("click", (e) => {
             e.preventDefault();
             let transformertype = (document.getElementById("transformerTypeSelector") as HTMLSelectElement).value
-            let selectedModel = (document.getElementById("modelSelector") as HTMLSelectElement).value
             let xhttp = new XMLHttpRequest()
-            xhttp.open("GET", "addTranformerURL/" + selectedModel + "/" + transformertype, true);
+            xhttp.open("GET", "addTranformerURL/" + modelSelector.value + "/" + transformertype, true);
             xhttp.onreadystatechange = function() {
                 if(this.readyState == 4 && this.status == 200){
                     let domParser = new DOMParser();
@@ -204,23 +200,44 @@ export class UserInterface {
             let funcName = animableSelect.children[animableSelect.selectedIndex].getAttribute("animationFunction");
             document.getElementById(funcName).classList.add("active");
         });
-        let sendSimuRules = () =>{
-            let birthMin : number = birthMinInput.valueAsNumber;
-            let birthMax : number = birthMaxInput.valueAsNumber;
-            let survivalMin : number = survivalMinInput.valueAsNumber;
-            let survivalMax : number = survivalMaxInput.valueAsNumber;
 
-            let params = JSON.stringify({
-                "birth": [birthMin, birthMax],
-                "survival": [survivalMin, survivalMax]
-            });
-            sendMessageToWorker(this._viewer.transmissionWorker, WorkerMessage.UPDATE_RULES, params);
+        modelSelector.addEventListener("change", () => {
+            let xhttp = new XMLHttpRequest()
+            xhttp.open("GET", "changeModel/" + modelSelector.value, true);
+            xhttp.onreadystatechange = function() {
+                if(this.readyState == 4 && this.status == 200){
+                    let domParser = new DOMParser();
+                    let updateRules = domParser.parseFromString(this.responseText, "text/html").body.childNodes[0] as HTMLDivElement;
+                    let prevRules = document.getElementById("rules") as HTMLDivElement;
+                    prevRules.parentElement.appendChild(updateRules)
+                    prevRules.parentElement.removeChild(prevRules)
+                    superthis.initRulesListener()
+                }
+            }
+            xhttp.send();
+        })
+
+        this.initRulesListener()
+
+    }
+
+    private initRulesListener(){
+        let paramsInputRule = document.querySelectorAll("#rules .parameterItem input");
+        let sendSimuRules = (e) =>{
+            let input = (e.target as HTMLInputElement)
+            let paramId = input.getAttribute("paramid");
+            let paramIdSplited = paramId.split('_')
+            let json = JSON.stringify({
+                "paramId":paramIdSplited[0],
+                "subparam":paramIdSplited[1],
+                "value": Number.parseFloat(input.value)
+            })
+            sendMessageToWorker(this._viewer.transmissionWorker, WorkerMessage.UPDATE_RULES, json);
         }
-        birthMinInput.addEventListener("change", sendSimuRules);
-        birthMaxInput.addEventListener("change", sendSimuRules);
-        survivalMinInput.addEventListener("change", sendSimuRules);
-        survivalMaxInput.addEventListener("change", sendSimuRules);
 
+        paramsInputRule.forEach( (input)=>{
+            input.addEventListener("change", sendSimuRules)
+        });
     }
 
     private initTransformers(){

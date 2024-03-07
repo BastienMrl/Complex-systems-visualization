@@ -29,41 +29,7 @@ class LeniaSimulation(Simulation):
             FloatParam(id_p="theta_A", name="Theta A",
                     default_value=2.0, min_value=0.0, max_value=2.0, step=0.1),
             FloatParam(id_p="sigma", name="Sigma",
-                    default_value=0.65, min_value=0.0, max_value=1.0, step=0.05),
-            RangeIntParam(id_p="birth", name="Birth",
-                        min_param= IntParam(
-                            id_p="",
-                            name="",
-                            default_value=3,
-                            min_value=0,
-                            max_value=8,
-                            step=1
-                        ),
-                        max_param= IntParam(
-                            id_p="",
-                            name="",
-                            default_value=3,
-                            min_value=0,
-                            max_value=8,
-                            step=1
-                        )),
-            RangeIntParam(id_p="survival", name="Survival",
-                        min_param= IntParam(
-                            id_p="",
-                            name="",
-                            default_value=2,
-                            min_value=0,
-                            max_value=8,
-                            step=1
-                        ),
-                        max_param= IntParam(
-                            id_p="",
-                            name="",
-                            default_value=3,
-                            min_value=0,
-                            max_value=8,
-                            step=1
-                      ))]
+                    default_value=0.65, min_value=0.0, max_value=1.0, step=0.05)]
     def __init__(self, init_states = None, init_params = default_parameters): 
         super().__init__(init_states, init_params)
         
@@ -92,8 +58,6 @@ class LeniaSimulation(Simulation):
         else:
             self.init_default_sim()
 
-
-        
 
     def set_current_state_from_array(self, new_state):
         pass

@@ -133,7 +133,6 @@ export class SocketManager {
         }));
     }
     changeSimuRules(params) {
-        console.log(this);
         if (!this._isConnected) {
             this._awaitingRequests.push(this.changeSimuRules.bind(this, params));
             return;
