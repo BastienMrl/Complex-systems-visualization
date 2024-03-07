@@ -35,11 +35,9 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
         match message:
             case "Start":
                 if self.isConnected:
-                    
-                    await self.initGOL(text_data_json["params"])
+                    await self.initLenia()
             case "Stop":
                 if self.isConnected:
-                    
                     self.sim = None
             case "RequestData":
                 if self.isConnected :
@@ -68,32 +66,12 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
         await self.send(bytes_data=orjson.dumps(data))
 
 
-    async def initGOL(self, nbInstances):
-        self.sim = GOLSimulation(random_start=True)
+    async def initGOL(self):
+        self.sim = GOLSimulation()
 
 
-    async def initLenia(self, nbInstances):
-        seed = 10
-        key = jax.random.PRNGKey(seed)
-        params_seed, state_seed = jax.random.split(key)
-        SX = SY = int(math.sqrt(nbInstances))
-        mx, my = SX//2, SY//2 # center coordinated
-        A0 = jnp.zeros((SX, SY, 1)).at[mx-20:mx+20, my-20:my+20, :].set(
-            jax.random.uniform(state_seed, (40, 40, 1))
-        )
-
-        #print("prep state")
-        state = GridState(A0)
-
-        params = LeniaSimulation.default_parameters
-
-        for p in params :
-            if p.id_param == "gridSize" :
-                p.value = SX
-
-        #print("prep sim")
-        lenia = LeniaSimulation(init_states=[state], init_params=params)
-        self.sim = lenia
+    async def initLenia(self):
+        self.sim = LeniaSimulation()
 
 
     async def sendOneStep(self):

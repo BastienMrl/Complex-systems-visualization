@@ -11,7 +11,7 @@ class GOLSimulation(Simulation):
     default_parameters = [
         BoolParam(id_p="randomStart", name="Random start", default_value=False),
         IntParam(id_p="gridSize", name="Grid size",
-                 default_value=50, min_value=0, step=1),
+                 default_value=200, min_value=0, step=1),
         RangeIntParam(id_p="birth", name="Birth",
                       min_param= IntParam(
                           id_p="",
@@ -47,7 +47,7 @@ class GOLSimulation(Simulation):
                           step=1
                       ))]
 
-    def __init__(self, init_states = None, init_params = default_parameters, random_start = True): 
+    def __init__(self, init_states = None, init_params = default_parameters): 
         super().__init__()
         self.parameters = init_params
         self.kernel = jnp.zeros((3, 3, 1, 1), dtype=jnp.float32)
@@ -83,14 +83,6 @@ class GOLSimulation(Simulation):
             cdt_1 = jnp.logical_or(cdt_1, out == 10+i)
         out = jnp.logical_or(cdt_1, cdt_2)
 
-        #10 = cell alive 
-        # cdt_1 = out == 12 #stay alive if 2 n
-        # cdt_2 = out == 13
-        # cdt_3 = out == 3    #spawn if 3 n
-        # out = jnp.logical_or(cdt_1, cdt_2)
-        # out = jnp.logical_or(out, cdt_3)
-
-
         state.set_grid(out.astype(jnp.float32))
 
     def set_current_state_from_array(self, new_state):
@@ -106,7 +98,7 @@ class GOLSimulation(Simulation):
 
     def init_default_sim(self):
         size = self.getParamById("gridSize")
-        grid = jnp.ones((1, 1, size, size))
+        grid = jnp.zeros((1, 1, size, size))
         state = GridState(grid)
         self.current_states = [state]
         self.width = size

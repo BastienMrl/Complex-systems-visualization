@@ -13,6 +13,9 @@ import chex
 from ..simulation import * 
 class LeniaSimulation(Simulation): 
     default_parameters = [
+            BoolParam(id_p="randomStart", name="Random start", default_value=True),
+            IntParam(id_p="gridSize", name="Grid size",
+                    default_value=200, min_value=0, step=1),
             IntParam(id_p="number_of_kernels", name="Number of kernels",
                     default_value=10, min_value=1, step=1),
             IntParam(id_p="C", name="C",
@@ -27,8 +30,6 @@ class LeniaSimulation(Simulation):
                     default_value=2.0, min_value=0.0, max_value=2.0, step=0.1),
             FloatParam(id_p="sigma", name="Sigma",
                     default_value=0.65, min_value=0.0, max_value=1.0, step=0.05),
-            IntParam(id_p="gridSize", name="Grid size",
-                    default_value=50, min_value=0, step=1),
             RangeIntParam(id_p="birth", name="Birth",
                         min_param= IntParam(
                             id_p="",
@@ -67,32 +68,55 @@ class LeniaSimulation(Simulation):
         super().__init__(init_states, init_params)
         
         self.nb_k = self.getParamById("number_of_kernels")
-        SX = SY = self.getParamById("gridSize")
+        size = self.getParamById("gridSize")
+        SX = SY = size
         
         self.M = np.ones((self.getParamById("C"), self.getParamById("C")), dtype=int) * self.nb_k
         self.nb_k = int(self.M.sum())
         self.c0, self.c1 = conn_from_matrix( self.M )
-        
-        #config = Config(SX=SX, SY=SY, nb_k=nb_k, C=C, c0=c0, c1=c1, 
-        #                dt=dt, theta_A=theta_A, dd=5, sigma=sigma)
-
-        
-
-
+    
         self.rule_space = RuleSpace(self.nb_k)
-
         self.kernel_computer = KernelComputer(SX, SY, self.nb_k)
-
         seed = 10
         key = jax.random.PRNGKey(seed)
         params_seed, state_seed = jax.random.split(key)
         params = self.rule_space.sample(params_seed)
         self.c_params = self.kernel_computer(params)
 
-        self.RT = ReintegrationTracking(SX, SY, self.getParamById('dt'), 
-            self.getParamById('dd'), self.getParamById('sigma'), "wall")#TODO 
+        if init_states != None:
+            self.current_states = init_states
+            self.width = init_states[0].width
+            self.height = init_states[0].height
+        elif self.getParamById("randomStart"):
+            self.init_random_sim(size, state_seed)
+        else:
+            self.init_default_sim()
+
 
         
+
+    def set_current_state_from_array(self, new_state):
+        pass
+
+
+    def init_default_sim(self):
+        size = self.getParamById("gridSize")
+        grid = jnp.zeros((size, size, 1))
+        state = GridState(grid)
+        self.current_states = [state]
+        self.width = size
+        self.height = size
+
+    def init_random_sim(self, size, state_seed):
+        SX = SY = size
+        mx, my = SX//2, SY//2 # center coordinated
+        A0 = jnp.zeros((SX, SY, 1)).at[mx-math.floor(SX/8):mx+math.ceil(SX/8), my-math.floor(SY/8):my+math.ceil(SY/8), :].set(
+            jax.random.uniform(state_seed, (SX//4, SY//4, 1))
+        )
+        state = GridState(A0)
+        self.current_states = [state]
+        self.width = size
+        self.height = size
 
         
         
@@ -115,7 +139,7 @@ class LeniaSimulation(Simulation):
         nA = jnp.clip(A + self.getParamById("dt") * U, 0., 1.)
         self.current_states[0].grid = nA
         
-
+    
     
 
 
