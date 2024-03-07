@@ -34,6 +34,10 @@ class Simulation(ABC):
         self.interaction : Interaction = [Interaction("toLife")]
     
     @abstractmethod
+    def initSimulation(self):
+        pass
+
+    @abstractmethod
     def step(self) : 
         pass
 

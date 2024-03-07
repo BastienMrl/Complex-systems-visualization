@@ -202,6 +202,7 @@ export class UserInterface {
         });
 
         modelSelector.addEventListener("change", () => {
+            sendMessageToWorker(this._viewer.transmissionWorker, WorkerMessage.CHANGE_SIMULATION, modelSelector.value);
             let xhttp = new XMLHttpRequest()
             xhttp.open("GET", "changeModel/" + modelSelector.value, true);
             xhttp.onreadystatechange = function() {
@@ -216,9 +217,7 @@ export class UserInterface {
             }
             xhttp.send();
         })
-
         this.initRulesListener()
-
     }
 
     private initRulesListener(){

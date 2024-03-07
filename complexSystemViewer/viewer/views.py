@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from .models import ALifeModel, TransformerItem, Parameter, Tool
 from simulation.models.game_of_life import GOLSimulation
-from simulation.modelManager import ModelEnum, ModelManager
+from .modelManager import ModelEnum, ModelManager
 
 # Create your views here.
 def index(request):

@@ -13,7 +13,7 @@ import chex
 from ..simulation import * 
 class LeniaSimulation(Simulation): 
     default_parameters = [
-            BoolParam(id_p="randomStart", name="Random start", default_value=True),
+            BoolParam(id_p="randomStart", name="Random start", default_value=False),
             IntParam(id_p="gridSize", name="Grid size",
                     default_value=200, min_value=0, step=1),
             IntParam(id_p="number_of_kernels", name="Number of kernels",
@@ -30,9 +30,14 @@ class LeniaSimulation(Simulation):
                     default_value=2.0, min_value=0.0, max_value=2.0, step=0.1),
             FloatParam(id_p="sigma", name="Sigma",
                     default_value=0.65, min_value=0.0, max_value=1.0, step=0.05)]
+    
+    
     def __init__(self, init_states = None, init_params = default_parameters): 
-        super().__init__(init_states, init_params)
-        
+        super().__init__()
+        self.initSimulation(init_states, init_params)
+           
+    def initSimulation(self, init_states = None, init_params = default_parameters):
+        self.parameters = init_params
         self.nb_k = self.getParamById("number_of_kernels")
         size = self.getParamById("gridSize")
         SX = SY = size

@@ -7,6 +7,7 @@ export var WorkerMessage;
     WorkerMessage["READY"] = "ready";
     WorkerMessage["UPDATE_RULES"] = "update_r";
     WorkerMessage["APPLY_INTERACTION"] = "send_interaction";
+    WorkerMessage["CHANGE_SIMULATION"] = "change_simulation";
 })(WorkerMessage || (WorkerMessage = {}));
 export function sendMessageToWorker(worker, header, message, transfer) {
     if (transfer != undefined)

@@ -26,10 +26,13 @@ class TransmissionWorker{
                 this.resetSimulation(getMessageBody(e));
                 break;
             case WorkerMessage.UPDATE_RULES:
-                this.changeSimulationRules(getMessageBody(e));
+                this.updateSimulationRules(getMessageBody(e));
                 break;
             case WorkerMessage.APPLY_INTERACTION:
                 this.applyInteraction(getMessageBody(e));
+                break;
+            case WorkerMessage.CHANGE_SIMULATION:
+                this.changeSimulation(getMessageBody(e));
                 break;
         }
     }
@@ -63,10 +66,10 @@ class TransmissionWorker{
         };
     }
 
-    private async changeSimulationRules(params : any){
+    private async updateSimulationRules(params : any){
         if (!this._socketManager.isConnected)
             await this.waitSocketConnection();
-        this._socketManager.changeSimuRules(params)
+        this._socketManager.updateSimuRules(params)
     }
 
     private async applyInteraction(data : Array<Float32Array>){
@@ -87,6 +90,12 @@ class TransmissionWorker{
         this.sendValues();
     }
 
+    private async changeSimulation(nameSimu : any){
+        if (!this._socketManager.isConnected)
+            await this.waitSocketConnection();
+        
+        this._socketManager.changeSimu(nameSimu);
+    }
 }
 
 const url = 

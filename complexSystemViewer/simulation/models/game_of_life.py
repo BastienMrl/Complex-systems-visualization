@@ -49,6 +49,9 @@ class GOLSimulation(Simulation):
 
     def __init__(self, init_states = None, init_params = default_parameters): 
         super().__init__()
+        self.initSimulation(init_states, init_params)
+
+    def initSimulation(self, init_states = None, init_params = default_parameters):
         self.parameters = init_params
         self.kernel = jnp.zeros((3, 3, 1, 1), dtype=jnp.float32)
         self.kernel += jnp.array([[1, 1, 1],

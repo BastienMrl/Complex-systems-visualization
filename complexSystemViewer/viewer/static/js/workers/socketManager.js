@@ -5,8 +5,9 @@ export class SocketManager {
     _stopMessage = "Stop";
     _requestDataMessage = "RequestData";
     _requestEmptyGridMessage = "EmptyGrid";
-    _changeRulesMessage = "ChangeRules";
+    _updateRulesMessage = "UpdateRules";
     _applyInteractionMessage = "ApplyInteraction";
+    _changeSimuMessage = "ChangeSimulation";
     // These functions must be defined by the owner
     _onDataReceived;
     _onStart;
@@ -132,15 +133,26 @@ export class SocketManager {
             'params': params
         }));
     }
-    changeSimuRules(params) {
+    updateSimuRules(params) {
         if (!this._isConnected) {
-            this._awaitingRequests.push(this.changeSimuRules.bind(this, params));
+            this._awaitingRequests.push(this.updateSimuRules.bind(this, params));
             return;
         }
         ;
         this._socket.send(JSON.stringify({
-            'message': this._changeRulesMessage,
+            'message': this._updateRulesMessage,
             'params': params
+        }));
+    }
+    changeSimu(name) {
+        if (!this._isConnected) {
+            this._awaitingRequests.push(this.changeSimu.bind(this, name));
+            return;
+        }
+        ;
+        this._socket.send(JSON.stringify({
+            'message': this._changeSimuMessage,
+            'simuName': name
         }));
     }
     applyInteraction(mask, currentValues) {

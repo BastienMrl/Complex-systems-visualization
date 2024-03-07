@@ -161,6 +161,7 @@ export class UserInterface {
             document.getElementById(funcName).classList.add("active");
         });
         modelSelector.addEventListener("change", () => {
+            sendMessageToWorker(this._viewer.transmissionWorker, WorkerMessage.CHANGE_SIMULATION, modelSelector.value);
             let xhttp = new XMLHttpRequest();
             xhttp.open("GET", "changeModel/" + modelSelector.value, true);
             xhttp.onreadystatechange = function () {

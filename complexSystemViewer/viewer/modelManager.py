@@ -9,7 +9,7 @@ class ModelEnum(Enum):
 class ModelManager(object):
 
     @staticmethod
-    def get_simulation_model(model_name : str, states):
+    def get_simulation_model(model_name : str, states = None):
         match model_name :
             case "Gol":
                 return GOLSimulation(init_states=states)

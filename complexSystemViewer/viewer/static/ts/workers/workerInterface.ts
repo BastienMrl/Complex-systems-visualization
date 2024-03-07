@@ -5,7 +5,8 @@ export enum WorkerMessage {
     VALUES = "values",
     READY = "ready",
     UPDATE_RULES = "update_r",
-    APPLY_INTERACTION = "send_interaction"
+    APPLY_INTERACTION = "send_interaction",
+    CHANGE_SIMULATION = "change_simulation"
 }
 
 export function sendMessageToWorker(worker : Worker, header : WorkerMessage, message? : any, transfer? : Transferable[]){
