@@ -69,6 +69,9 @@ class GOLSimulation(Simulation):
             self.init_default_sim() 
 
 
+        self.interactions : list[Interaction] = [Interaction("toLife", golInteractionReplacement)]
+
+
     def step(self) :
         state =  self.current_states[0]
         grid = state.grid
@@ -89,14 +92,12 @@ class GOLSimulation(Simulation):
         state.set_grid(out.astype(jnp.float32))
 
     def set_current_state_from_array(self, new_state):
-        t = time.time()
         state = new_state[2]
         width = self.current_states[0].width
         height = self.current_states[0].height
         grid = jnp.asarray(state, dtype=jnp.float32).reshape((width, height))
         grid = jnp.expand_dims(grid, (0, 1))
         self.current_states[0].set_grid(grid)
-        print("set current state = ", (1000 * (time.time() - t)), "ms")
 
 
     def init_default_sim(self):

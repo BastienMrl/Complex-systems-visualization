@@ -117,7 +117,6 @@ export class Viewer {
         this.context.viewport(0, 0, this.canvas.width, this.canvas.height);
     }
     updateScene() {
-        console.log("Update");
         if (this._nextValue == null) {
             return;
         }
@@ -190,10 +189,9 @@ export class Viewer {
             case WorkerMessage.READY:
                 break;
             case WorkerMessage.VALUES:
-                console.log("MAIN : value received");
                 let data = getMessageBody(e);
                 this._nextValue = TransformableValues.fromArray(data);
-                if (this._needAnimationPlayOnReceived) {
+                if (!this._animationTimer.isRunning && this._needAnimationPlayOnReceived) {
                     this._needAnimationPlayOnReceived = false;
                     this._needOneAnimationLoop = false;
                     this.startVisualizationAnimation();
@@ -211,6 +209,11 @@ export class Viewer {
         this._animationIds[type] = id;
     }
     startVisualizationAnimation() {
+        if (this._animationTimer.isRunning) {
+            if (!this._animationTimer.loop)
+                this._animationTimer.loop = true;
+            return;
+        }
         this.updateScene();
         this._animationTimer.loop = true;
         this._animationTimer.play();
@@ -220,6 +223,8 @@ export class Viewer {
         this._animationTimer.stop();
     }
     startOneAnimationLoop() {
+        if (this._animationTimer.isRunning)
+            return;
         this._animationTimer.loop = false;
         // TODO set duration
         this._animationTimer.play();
@@ -228,14 +233,14 @@ export class Viewer {
         this.shaderProgram.updateProgramTransformers(transformers.generateTransformersBlock());
     }
     sendInteractionRequest(mask) {
-        if (this._animationTimer.isRunning) {
+        if (this._animationTimer.isRunning && this._animationTimer.loop) {
             this.stopVisualizationAnimation();
             this._needAnimationPlayOnReceived = true;
         }
-        let t = performance.now();
+        else {
+            this._needOneAnimationLoop = true;
+        }
         this._multipleInstances.updateStates(this._currentValue);
-        this._needOneAnimationLoop = true;
         sendMessageToWorker(this._transmissionWorker, WorkerMessage.APPLY_INTERACTION, [mask].concat(this._currentValue.toArray()), [mask.buffer].concat(this._currentValue.toArrayBuffers()));
-        console.log("time = ", performance.now() - t, " ms");
     }
 }

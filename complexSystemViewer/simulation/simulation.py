@@ -30,9 +30,8 @@ class Simulation(ABC):
         else :
             pass
             #raise ValueError("Initial parameters can't be None")
-        
-        self.interaction : Interaction = [Interaction("toLife")]
-    
+        self.interactions : list[Interaction] = None
+            
     @abstractmethod
     def initSimulation(self):
         pass
@@ -74,7 +73,7 @@ class Simulation(ABC):
         
     def applyInteraction(self, id : str, mask : jnp.ndarray):
         interaction : None | Interaction = None
-        for element in self.interaction:
+        for element in self.interactions:
             if element.id == id:
                 interaction = element
         if interaction == None :

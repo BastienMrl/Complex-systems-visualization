@@ -1,7 +1,6 @@
 import { TransformableValues } from "../transformableValues.js";
 import { SocketManager } from "./socketManager.js";
 
-
 export class StatesBuffer{
 
     private _states : Float32Array[];

@@ -50,7 +50,6 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
                 if self.isConnected:
                     t = time.time()
                     await self.applyInteraction(text_data_json["mask"], text_data_json["currentStates"])
-                    print("time = ", (1000 * (time.time() - t)), "ms")
             case "ChangeSimulation":
                 if self.isConnected:
                     self.sim = None
@@ -71,7 +70,7 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
     async def sendOneStep(self):
         t0 = time.time()
         await self.send(bytes_data=orjson.dumps(self.sim.to_JSON_object()))
-        #print("Data sent - ", 1000*(time.time()-t0), "ms\n")
+        # print("Data sent - ", 1000*(time.time()-t0), "ms\n")
         self.sim.step()
 
 
@@ -89,8 +88,10 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
 
     async def applyInteraction(self, mask, currentValues):
         self.sim.set_current_state_from_array(currentValues)
-        mask_jnp = jnp.array(mask).reshape(self.sim.width, self.sim.height)
+        mask_jnp = jnp.asarray(mask, dtype=jnp.float32)
+        mask_jnp = mask_jnp.reshape(self.sim.width, self.sim.height)
         self.sim.applyInteraction("toLife", mask_jnp)
+        await self.send(bytes_data=orjson.dumps(self.sim.to_JSON_object()))
         
 
     

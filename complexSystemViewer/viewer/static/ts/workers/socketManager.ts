@@ -83,7 +83,6 @@ export class SocketManager {
     }
 
     private onMessage(e : MessageEvent<any>) {
-        console.log("SOCKET HANDLER : Message received")
         var promise = e.data.text()
         promise.then(value => {
             const data : any = JSON.parse(value);
@@ -188,11 +187,14 @@ export class SocketManager {
         currentValues.forEach((e, i) => {
             values[i] = Array.from(e);
         });
-        this._socket.send(JSON.stringify({
+
+        let string = JSON.stringify({
             'message' : this._applyInteractionMessage,
             'mask' : Array.from(mask),
             'currentStates' : values
-        }));
+        });
+        
+        this._socket.send(string);
     }
     
 }
