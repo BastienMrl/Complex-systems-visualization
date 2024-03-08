@@ -14,7 +14,7 @@ from ..simulation import *
 class LeniaSimulation(Simulation):
 
     initialization_parameters = [
-        BoolParam(id_p="randomStart", name="Random start", default_value=False),
+        BoolParam(id_p="randomStart", name="Random start", default_value=True),
         IntParam(id_p="gridSize", name="Grid size",
                  default_value=200, min_value=0, step=1),
         FloatParam(id_p="dt", name="dt",

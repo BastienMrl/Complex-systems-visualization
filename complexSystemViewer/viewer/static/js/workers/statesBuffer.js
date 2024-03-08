@@ -11,6 +11,7 @@ export class StatesBuffer {
         this._transformedValues = new TransformableValues();
         this._socketManager = SocketManager.getInstance();
         this._socketManager.onDataReceived = function (data) {
+            console.log("LOOOOOOOOOODGF");
             this.onStateReceived(data);
         }.bind(this);
         this._isInitialized = false;
@@ -35,11 +36,9 @@ export class StatesBuffer {
         this._isNewValues = false;
     }
     initializeElements(nbElements) {
-        this._socketManager.stop();
         this._isInitialized = false;
         this._transformedValues.reshape(nbElements);
-        this._socketManager.requestEmptyInstance(nbElements);
-        this._socketManager.start(nbElements);
+        this._socketManager.resetSimulation(nbElements);
     }
     requestState() {
         this._socketManager.requestData();

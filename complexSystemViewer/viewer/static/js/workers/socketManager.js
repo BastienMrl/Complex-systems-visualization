@@ -1,19 +1,17 @@
 export class SocketManager {
     // Singleton
     static _instance;
-    _startMesssage = "Start";
-    _stopMessage = "Stop";
     _requestDataMessage = "RequestData";
-    _requestEmptyGridMessage = "EmptyGrid";
-    _updateRulesMessage = "UpdateRules";
-    _applyInteractionMessage = "ApplyInteraction";
+    _resetSimulationMessage = "ResetSimulation";
     _changeSimuMessage = "ChangeSimulation";
+    _updateInitParams = "UpdateInitParams";
+    _updateRulesMessage = "UpdateRule";
+    _applyInteractionMessage = "ApplyInteraction";
     // These functions must be defined by the owner
     _onDataReceived;
     _onStart;
     _onStop;
     //..............................................
-    _isRunning;
     _isConnected;
     _socket;
     _awaitingRequests;
@@ -30,10 +28,6 @@ export class SocketManager {
         if (!SocketManager._instance)
             SocketManager._instance = new SocketManager();
         return SocketManager._instance;
-    }
-    // getter
-    get isRunning() {
-        return this._isRunning;
     }
     get isConnected() {
         return this._isConnected;
@@ -89,46 +83,21 @@ export class SocketManager {
     // public methods
     async connectSocket(url) {
         this._socket = new WebSocket(url);
-        this._isRunning = false;
         this.connectSocketEvents();
     }
-    // params could be "Model" + "instance parameters"
-    start(params) {
-        if (this._isRunning)
-            return;
-        this._socket.send(JSON.stringify({
-            'message': this._startMesssage,
-            'params': params
-        }));
-        this._isRunning = true;
-        this._onStart();
-    }
-    stop() {
-        if (!this._isRunning)
-            return;
-        this._socket.send(JSON.stringify({
-            'message': this._stopMessage
-        }));
-        this._isRunning = false;
-        this._onStop();
-    }
     requestData() {
-        if (!this._isRunning)
-            return;
         this._socket.send(JSON.stringify({
             'message': this._requestDataMessage
         }));
     }
-    requestEmptyInstance(params) {
+    resetSimulation(params) {
         if (!this._isConnected) {
-            this._awaitingRequests.push(this.requestEmptyInstance.bind(this, params));
+            this._awaitingRequests.push(this.resetSimulation.bind(this, params));
             return;
         }
         ;
-        if (this._isRunning)
-            return;
         this._socket.send(JSON.stringify({
-            'message': this._requestEmptyGridMessage,
+            'message': this._resetSimulationMessage,
             'params': params
         }));
     }
@@ -140,6 +109,17 @@ export class SocketManager {
         ;
         this._socket.send(JSON.stringify({
             'message': this._updateRulesMessage,
+            'params': params
+        }));
+    }
+    updateInitParams(params) {
+        if (!this._isConnected) {
+            this._awaitingRequests.push(this.updateInitParams.bind(this, params));
+            return;
+        }
+        ;
+        this._socket.send(JSON.stringify({
+            'message': this._updateInitParams,
             'params': params
         }));
     }

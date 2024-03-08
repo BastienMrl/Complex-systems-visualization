@@ -19,7 +19,6 @@ export class SocketManager {
     private _onStop : () => void;
     //..............................................
 
-    private _isRunning : boolean;
     private _isConnected : boolean;
     private _socket : WebSocket;
 
@@ -40,12 +39,6 @@ export class SocketManager {
         if (!SocketManager._instance)
             SocketManager._instance = new SocketManager();
         return SocketManager._instance;
-    }
-    
-    // getter
-    public get isRunning() : boolean{
-        return this._isRunning;
-    
     }
 
     public get isConnected() : boolean{
@@ -113,12 +106,10 @@ export class SocketManager {
     // public methods
     public async connectSocket(url : string | URL){
         this._socket = new WebSocket(url);
-        this._isRunning = false;
         this.connectSocketEvents();
     }
 
     public requestData(){
-        if (!this._isRunning) return;
         this._socket.send(JSON.stringify({
             'message' : this._requestDataMessage
         }));
@@ -129,7 +120,7 @@ export class SocketManager {
             this._awaitingRequests.push(this.resetSimulation.bind(this, params));
             return;
         };
-        if (this._isRunning) return;
+        
         this._socket.send(JSON.stringify({
             'message' : this._resetSimulationMessage,
             'params' : params

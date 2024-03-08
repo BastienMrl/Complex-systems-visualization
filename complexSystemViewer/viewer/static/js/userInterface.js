@@ -33,6 +33,7 @@ export class UserInterface {
         this.initInterfaceHandlers();
         this.initTransformers();
         this.initAnimationCurves();
+        this._viewer.initCurrentVisu(this._nbElements);
     }
     initMouseKeyHandlers() {
         // LeftMouseButtonDown
@@ -81,7 +82,6 @@ export class UserInterface {
         let addTransformerButton = document.getElementById('buttonAddTransformer');
         let animableSelect = document.getElementById("animableSelect");
         let modelSelector = document.getElementById("modelSelector");
-        let gridSizeInput = document.querySelector("input[paramid=\"gridSize\"]");
         playButton.addEventListener('click', () => {
             this._viewer.startVisualizationAnimation();
             console.log("START");
@@ -92,7 +92,8 @@ export class UserInterface {
         });
         restartButton.addEventListener('click', () => {
             this._viewer.stopVisualizationAnimation();
-            this._viewer.initCurrentVisu(this._nbElements);
+            let gridSize = document.querySelector("input[paramId=gridSize]").value;
+            this._viewer.initCurrentVisu(Number.parseInt(gridSize) ** 2);
             console.log("RESTART");
         });
         animationTimerEl.addEventListener('mouseleave', () => {
@@ -116,10 +117,6 @@ export class UserInterface {
         foldSimulationPanelButton.addEventListener("click", () => {
             simulationPanel.classList.toggle("slideLeft");
             foldSimulationPanelButton.classList.toggle("slideLeft");
-        });
-        gridSizeInput.addEventListener("change", async () => {
-            this._nbElements = gridSizeInput.value ** 2;
-            this._viewer.initCurrentVisu(this._nbElements);
         });
         for (let i = 0; i < toolButtons.length; i++) {
             toolButtons.item(i).addEventListener("click", () => {
@@ -148,8 +145,8 @@ export class UserInterface {
                     let domParser = new DOMParser();
                     let newTransformer = domParser.parseFromString(this.responseText, "text/html").body.childNodes[0];
                     newTransformer.id = newTransformer.id + (nbAddedTransformer += 1);
-                    let CP = document.getElementById("configurationPanel");
-                    CP.insertBefore(newTransformer, CP.lastChild.previousSibling);
+                    let VP = document.getElementById("visualizationPanel");
+                    VP.insertBefore(newTransformer, VP.lastChild.previousSibling);
                     superthis._transformers.addTransformerFromElement(newTransformer);
                 }
             };
@@ -167,44 +164,60 @@ export class UserInterface {
             xhttp.onreadystatechange = function () {
                 if (this.readyState == 4 && this.status == 200) {
                     let domParser = new DOMParser();
-                    let updateRules = domParser.parseFromString(this.responseText, "text/html").body.childNodes[0];
+                    let updateRules = domParser.parseFromString(this.responseText, "text/html").body.childNodes;
+                    console.log(updateRules);
                     let prevRules = document.getElementById("rules");
-                    prevRules.parentElement.appendChild(updateRules);
-                    prevRules.parentElement.removeChild(prevRules);
-                    superthis.initRulesListener();
+                    let prevConfigSet = document.querySelectorAll(".configurationItem.simulationItem");
+                    updateRules.forEach((elem) => {
+                        prevRules.parentElement.appendChild(elem);
+                    });
+                    prevConfigSet.forEach((elem) => {
+                        elem.remove();
+                    });
+                    superthis.initSimulationItem();
                 }
             };
             xhttp.send();
         });
-        this.initRulesListener();
+        this.initSimulationItem();
     }
-    initRulesListener() {
-        let paramsInputRule = document.querySelectorAll("#rules .parameterItem input");
-        let sendSimuRules = (e) => {
-            let input = e.target;
-            let paramId = input.getAttribute("paramid");
-            let paramIdSplited = paramId.split('_');
-            let value;
-            switch (input.type) {
-                case "checkbox":
-                    value = input.checked;
-                    break;
-                case "number":
-                    value = Number.parseFloat(input.value);
-                    break;
-                default:
-                    value = input.value;
-                    break;
-            }
-            let json = JSON.stringify({
-                "paramId": paramIdSplited[0],
-                "subparam": paramIdSplited[1],
-                "value": value
-            });
-            sendMessageToWorker(this._viewer.transmissionWorker, WorkerMessage.UPDATE_RULES, json);
+    initSimulationItem() {
+        // ADD LISTENER FOR RULES ITEMS
+        let rulesInputs = document.querySelectorAll("#rules .parameterItem input");
+        let rulesInputsHandler = (e) => {
+            sendMessageToWorker(this._viewer.transmissionWorker, WorkerMessage.UPDATE_RULES, this.parseInputToJson(e.target));
         };
-        paramsInputRule.forEach((input) => {
-            input.addEventListener("change", sendSimuRules);
+        rulesInputs.forEach((input) => {
+            input.addEventListener("change", rulesInputsHandler);
+        });
+        // ADD LISTENER FOR INIT_PARAMS
+        let initParamInput = document.querySelectorAll("#initParam .parameterItem input");
+        let initParamInputsHandler = (e) => {
+            sendMessageToWorker(this._viewer.transmissionWorker, WorkerMessage.UPDATE_INIT_PARAM, this.parseInputToJson(e.target));
+        };
+        initParamInput.forEach((input) => {
+            input.addEventListener("change", initParamInputsHandler);
+        });
+    }
+    parseInputToJson(input) {
+        let paramId = input.getAttribute("paramid");
+        let paramIdSplited = paramId.split('_');
+        let value;
+        switch (input.type) {
+            case "checkbox":
+                value = input.checked;
+                break;
+            case "number":
+                value = Number.parseFloat(input.value);
+                break;
+            default:
+                value = input.value;
+                break;
+        }
+        return JSON.stringify({
+            "paramId": paramIdSplited[0],
+            "subparam": paramIdSplited[1],
+            "value": value
         });
     }
     initTransformers() {
@@ -320,8 +333,8 @@ export class TransformersInterface {
             case TransformType.COLOR_R:
             case TransformType.COLOR_G:
             case TransformType.COLOR_B:
-                let min = parent.querySelector("input[paramId=rangeMin]");
-                let max = parent.querySelector("input[paramId=rangeMax]");
+                let min = parent.querySelector("input[paramId=range_min]");
+                let max = parent.querySelector("input[paramId=range_max]");
                 return [min, max];
             case TransformType.POSITION_X:
             case TransformType.POSITION_Y:

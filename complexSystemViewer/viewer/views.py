@@ -12,17 +12,21 @@ def index(request):
     
     toolsList = Tool.objects.filter(aLifeModel=modelSelected.pk)
     
-    rules = GOLSimulation.default_parameters
+    rules = GOLSimulation.default_rules
     rulesParameters = [rule.get_param() for rule in rules]
+    
+    init_p = GOLSimulation.initialization_parameters
+    initParameters = [ip.get_param() for ip in init_p]
     
     transformers = TransformerItem.objects.filter(aLifeModel=modelSelected.pk)
     transformersParam = {}
     for t in transformers:
         param = Parameter.objects.filter(transformer=t.pk).select_subclasses()
         transformersParam[t] = param
-    return render(request, "index.html", {"model":modelSelected , "modelsName":modelsName, "rulesParameters":rulesParameters, "transformers":transformersParam, "toolsList":toolsList}) 
+    return render(request, "index.html", {"model":modelSelected , "modelsName":modelsName, "initParameters":initParameters ,"rulesParameters":rulesParameters, "transformers":transformersParam, "toolsList":toolsList}) 
 
 def addTransformer(request, modelsName, transformerType ):
+    print(modelsName, transformerType)
     model = ALifeModel.objects.filter(name=modelsName).first()
     baseTransformer = TransformerItem.objects.filter(aLifeModel=model, transformerType=transformerType).first()
     param = Parameter.objects.filter(transformer=baseTransformer.id).select_subclasses()
@@ -31,4 +35,7 @@ def addTransformer(request, modelsName, transformerType ):
 def changeModel(request, modelsName):
     rules = ModelManager.get_default_rules(modelsName)
     rulesParameters = [rule.get_param() for rule in rules]
-    return render(request, "rulesItem.html", {"rules":rules, "rulesParameters":rulesParameters})
+    
+    init_p = ModelManager.get_initialization_parameters(modelsName)
+    initParameters = [ip.get_param() for ip in init_p]
+    return render(request, "simulationConfigSet.html", {"rulesParameters":rulesParameters, "initParameters":initParameters})
