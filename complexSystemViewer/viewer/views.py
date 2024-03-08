@@ -29,6 +29,6 @@ def addTransformer(request, modelsName, transformerType ):
     return render(request, "transformers/transformerItem.html", {"transformer":baseTransformer, "parameters":param, "model":model})
 
 def changeModel(request, modelsName):
-    rules = ModelManager.get_default_params(modelsName)
+    rules = ModelManager.get_default_rules(modelsName)
     rulesParameters = [rule.get_param() for rule in rules]
     return render(request, "rulesItem.html", {"rules":rules, "rulesParameters":rulesParameters})

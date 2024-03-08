@@ -1,15 +1,8 @@
 import orjson
-
-import time
 import jax.numpy as jnp
-import math
 from .modelManager import ModelManager
 from channels.generic.websocket import AsyncWebsocketConsumer
-from simulation.models.game_of_life import GOLSimulation
-from simulation.models.lenia import  LeniaSimulation
 from simulation.simulation import Simulation
-
-import time
 
 
 class ViewerConsumerV2(AsyncWebsocketConsumer):
@@ -17,10 +10,12 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
         super().__init__(*args, **kwargs)
         self.isConnected = False
         self.sim : Simulation = None
+        self.init_parameters = None
     
     async def connect(self):
         self.isConnected = True
-        self.sim = GOLSimulation()
+        self.sim = ModelManager.get_simulation_model("Gol")
+        self.init_parameters = ModelManager.get_initialization_parameters("Gol")
         await self.accept()
     
     async def disconnect(self, close_code):
@@ -31,59 +26,50 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
         message = text_data_json["message"]
         print(message)
         match message:
-            case "Start":
-                if self.isConnected:
-                    await self.resetSimulation()
-            case "Stop":
-                if self.isConnected:
-                    self.sim = None
             case "RequestData":
                 if self.isConnected :
                     await self.sendOneStep()
-            case "EmptyGrid":
+            case "ResetSimulation":
                 if self.isConnected:
-                    await self.emptyGrid(text_data_json["params"])
-            case "UpdateRules":
-                if self.isConnected:
-                    await self.updateRules(text_data_json["params"])
-            case "ApplyInteraction":
-                if self.isConnected:
-                    t = time.time()
-                    await self.applyInteraction(text_data_json["mask"], text_data_json["currentStates"])
+                    await self.resetSimulation()
             case "ChangeSimulation":
                 if self.isConnected:
                     self.sim = None
-                    await self.initNewSimulation(text_data_json["simuName"])
-                    
-
-    async def emptyGrid(self, nbInstances):
-        row = int(math.sqrt(nbInstances))
-        grid = [0] * row * row
-        xy = jnp.indices([row, row], dtype=jnp.float32)
-        offset = -(row - 1) / 2.
-        x = ((xy[1].reshape(row * row) + offset) ).tolist()
-        y = ((xy[0].reshape(row * row) + offset) ).tolist()
-        data = [x, y, grid]
-        await self.send(bytes_data=orjson.dumps(data))
-
+                    await self.initNewSimulation(text_data_json["simuName"])       
+            case "UpdateInitParams":
+                    await self.updateInitParams(text_data_json["params"])
+            case "UpdateRule":
+                if self.isConnected:
+                    await self.updateRule(text_data_json["params"])
+            case "ApplyInteraction":
+                if self.isConnected:
+                    await self.applyInteraction(text_data_json["mask"], text_data_json["currentStates"])
 
     async def sendOneStep(self):
-        t0 = time.time()
-        await self.send(bytes_data=orjson.dumps(self.sim.to_JSON_object()))
-        # print("Data sent - ", 1000*(time.time()-t0), "ms\n")
         self.sim.step()
+        await self.send(bytes_data=orjson.dumps(self.sim.to_JSON_object()))
 
 
-    async def updateRules(self, params):
-        self.sim.updateParam(orjson.loads(params))
+    async def updateInitParams(self, params):
+        json = orjson.loads(params)
+        for p in self.init_parameters:
+            if p.id_param == json["paramId"]:
+                p.set_param(json)
+
+
+    async def updateRule(self, params):
+        self.sim.updateRule(orjson.loads(params))
 
 
     async def initNewSimulation(self, name):
-        print(name)
+        self.init_parameters = ModelManager.get_initialization_parameters(name)
         self.sim = ModelManager.get_simulation_model(name)
+        await self.send(bytes_data=orjson.dumps(self.sim.to_JSON_object()))
     
+
     async def resetSimulation(self):
-        self.sim.initSimulation()
+        self.sim.initSimulation(init_param=self.init_parameters)
+        await self.send(bytes_data=orjson.dumps(self.sim.to_JSON_object()))
 
 
     async def applyInteraction(self, mask, currentValues):

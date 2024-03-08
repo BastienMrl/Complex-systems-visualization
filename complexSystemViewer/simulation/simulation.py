@@ -8,9 +8,9 @@ import numpy as np
 import time
 class Simulation(ABC):   
 
-    def __init__(self, init_states = None, init_params  = None): 
+    def __init__(self, init_states = None, rules  = None): 
         self.current_states = None
-        self.parameters = None
+        self.rules = None
         self.width = None
         self.height = None
         # if init_states != None :
@@ -25,15 +25,15 @@ class Simulation(ABC):
         #         raise ValueError("States of a simulation must be of same size")
         
 
-        if init_params != None :
-            self.parameters = init_params
+        if rules != None :
+            self.rules = rules
         else :
             pass
             #raise ValueError("Initial parameters can't be None")
         self.interactions : list[Interaction] = None
             
     @abstractmethod
-    def initSimulation(self):
+    def initSimulation(self, init_states = None, rules = None, init_param = None):
         pass
 
     @abstractmethod
@@ -57,17 +57,17 @@ class Simulation(ABC):
         #print("json obj ok - ", 1000*(time.time()-t0), "ms\n")
         return tsl
 
-    def getParams(self): 
-        return self.parameters
+    def getRules(self): 
+        return self.rules
     
-    def getParamById(self, id:str):
-        for p in self.parameters:
+    def getRuleById(self, id:str):
+        for p in self.rules:
             if p.id_param == id:
                 return p.value
         return None
     
-    def updateParam(self, json):
-        for p in self.parameters:
+    def updateRule(self, json):
+        for p in self.rules:
             if p.id_param == json["paramId"]:
                 p.set_param(json)
         

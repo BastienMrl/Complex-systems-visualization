@@ -5,13 +5,13 @@ export class SocketManager {
     // Singleton
     private static _instance : SocketManager;
 
-    private _startMesssage : string = "Start";
-    private _stopMessage : string = "Stop";
     private _requestDataMessage : string = "RequestData";
-    private _requestEmptyGridMessage : string = "EmptyGrid";
-    private _updateRulesMessage : string = "UpdateRules";
-    private _applyInteractionMessage : string = "ApplyInteraction";
+    private _resetSimulationMessage : string = "ResetSimulation";
     private _changeSimuMessage : string = "ChangeSimulation";
+    private _updateInitParams : string = "UpdateInitParams";
+    private _updateRulesMessage : string = "UpdateRule";
+    private _applyInteractionMessage : string = "ApplyInteraction";
+    
 
     // These functions must be defined by the owner
     private _onDataReceived : (data : any) => void;
@@ -117,26 +117,6 @@ export class SocketManager {
         this.connectSocketEvents();
     }
 
-    // params could be "Model" + "instance parameters"
-    public start(params){
-        if (this._isRunning) return;
-        this._socket.send(JSON.stringify({
-            'message': this._startMesssage,
-            'params' : params
-        }));
-        this._isRunning = true;
-        this._onStart();
-    }
-    
-    public stop(){
-        if (!this._isRunning) return;
-        this._socket.send(JSON.stringify({
-            'message': this._stopMessage
-        }));
-        this._isRunning = false;
-        this._onStop();
-    }
-
     public requestData(){
         if (!this._isRunning) return;
         this._socket.send(JSON.stringify({
@@ -144,14 +124,14 @@ export class SocketManager {
         }));
     }
 
-    public requestEmptyInstance(params : any){
+    public resetSimulation(params : any){
         if (!this._isConnected){
-            this._awaitingRequests.push(this.requestEmptyInstance.bind(this, params));
+            this._awaitingRequests.push(this.resetSimulation.bind(this, params));
             return;
         };
         if (this._isRunning) return;
         this._socket.send(JSON.stringify({
-            'message' : this._requestEmptyGridMessage,
+            'message' : this._resetSimulationMessage,
             'params' : params
         }));
     }
@@ -163,6 +143,17 @@ export class SocketManager {
         };
         this._socket.send(JSON.stringify({
             'message' : this._updateRulesMessage,
+            'params' : params
+        }));
+    }
+
+    public updateInitParams(params: any){
+        if (!this._isConnected){
+            this._awaitingRequests.push(this.updateInitParams.bind(this, params));
+            return;
+        };
+        this._socket.send(JSON.stringify({
+            'message' : this._updateInitParams,
             'params' : params
         }));
     }

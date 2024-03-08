@@ -33,6 +33,8 @@ class TransmissionWorker{
             case WorkerMessage.CHANGE_SIMULATION:
                 this.changeSimulation(getMessageBody(e));
                 break;
+            case WorkerMessage.UPDATE_INIT_PARAM:
+                this.updateInitParams(getMessageBody(e));
         }
     }
 
@@ -68,7 +70,13 @@ class TransmissionWorker{
     private async updateSimulationRules(params : any){
         if (!this._socketManager.isConnected)
             await this.waitSocketConnection();
-        this._socketManager.updateSimuRules(params)
+        this._socketManager.updateSimuRules(params);
+    }
+
+    private async updateInitParams(params : any){
+        if (!this._socketManager.isConnected)
+            await this.waitSocketConnection();
+        this._socketManager.updateInitParams(params);
     }
 
     private async applyInteraction(data : Array<Float32Array>){

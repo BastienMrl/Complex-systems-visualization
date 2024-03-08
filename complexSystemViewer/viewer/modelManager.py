@@ -17,10 +17,18 @@ class ModelManager(object):
                 return LeniaSimulation(init_states=states)
             
     @staticmethod
-    def get_default_params(model_name : str):
+    def get_default_rules(model_name : str):
         match model_name:
             case "Gol":
-                return GOLSimulation.default_parameters
+                return GOLSimulation.default_rules
             case "Lenia":
-                return LeniaSimulation.default_parameters
+                return LeniaSimulation.default_rules
+    
+    @staticmethod
+    def get_initialization_parameters(model_name : str):
+        match model_name:
+            case "Gol":
+                return GOLSimulation.initialization_parameters
+            case "Lenia":
+                return LeniaSimulation.initialization_parameters
 
