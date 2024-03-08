@@ -20,7 +20,6 @@ export class StatesBuffer{
         this._transformedValues = new TransformableValues();
         this._socketManager = SocketManager.getInstance();
         this._socketManager.onDataReceived = function(data : any){
-            console.log("LOOOOOOOOOODGF")
             this.onStateReceived(data);
         }.bind(this);
         this._isInitialized = false;

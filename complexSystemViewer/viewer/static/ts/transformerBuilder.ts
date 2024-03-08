@@ -259,9 +259,7 @@ export class TransformerBuilder{
         if(transformer == null)
             return;
         let variable = transformer.getInputVariable();
-        console.log(this._inputDeclarations.length);
         this.deleteVariableDeclaration(variable);
-        console.log(this._inputDeclarations.length);
         this._transformers.splice(this._transformers.indexOf(transformer), 1);
     }
 

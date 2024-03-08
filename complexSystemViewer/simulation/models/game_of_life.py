@@ -9,7 +9,7 @@ from ..simulation import *
 class GOLSimulation(Simulation): 
 
     initialization_parameters = [
-        BoolParam(id_p="randomStart", name="Random start", default_value=True),
+        BoolParam(id_p="randomStart", name="Random start", default_value=False),
         IntParam(id_p="gridSize", name="Grid size",
                  default_value=200, min_value=0, step=1),
     ]

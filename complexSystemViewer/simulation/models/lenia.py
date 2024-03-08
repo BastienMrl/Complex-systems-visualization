@@ -14,9 +14,9 @@ from ..simulation import *
 class LeniaSimulation(Simulation):
 
     initialization_parameters = [
-        BoolParam(id_p="randomStart", name="Random start", default_value=True),
+        BoolParam(id_p="randomStart", name="Random start", default_value=False),
         IntParam(id_p="gridSize", name="Grid size",
-                 default_value=200, min_value=0, step=1),
+                 default_value=200, min_value=40, step=1),
         FloatParam(id_p="dt", name="dt",
                     default_value=0.05, min_value=0.1, max_value=1., step=0.1)
     ]
@@ -88,8 +88,11 @@ class LeniaSimulation(Simulation):
     def init_random_sim(self, state_seed):
         SX = SY = self.grid_size
         mx, my = SX//2, SY//2 # center coordinated
-        A0 = jnp.zeros((SX, SY, 1)).at[mx-math.floor(SX/8):mx+math.ceil(SX/8), my-math.floor(SY/8):my+math.ceil(SY/8), :].set(
-            jax.random.uniform(state_seed, (SX//4, SY//4, 1))
+        offsetX, offsetY= round(SX/8), round(SY/8)
+
+
+        A0 = jnp.zeros((SX, SY, 1)).at[mx-offsetX:mx+offsetX, my-offsetY:my+offsetY, :].set(
+            jax.random.uniform(state_seed, (2*offsetX, 2*offsetY, 1))
         )
         state = GridState(A0)
         self.current_states = [state]

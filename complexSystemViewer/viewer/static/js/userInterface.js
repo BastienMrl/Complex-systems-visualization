@@ -165,7 +165,6 @@ export class UserInterface {
                 if (this.readyState == 4 && this.status == 200) {
                     let domParser = new DOMParser();
                     let updateRules = domParser.parseFromString(this.responseText, "text/html").body.childNodes;
-                    console.log(updateRules);
                     let prevRules = document.getElementById("rules");
                     let prevConfigSet = document.querySelectorAll(".configurationItem.simulationItem");
                     updateRules.forEach((elem) => {

@@ -6,6 +6,8 @@ from .param import *
 from .interaction import *
 import numpy as np
 import time
+
+
 class Simulation(ABC):   
 
     def __init__(self, init_states = None, rules  = None): 
