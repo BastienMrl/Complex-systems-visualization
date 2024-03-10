@@ -43,7 +43,6 @@ export class UserInterface {
         this.initInterfaceHandlers();
         this.initTransformers();
         this.initAnimationCurves();
-        this._viewer.initCurrentVisu(this._nbElements);
     }
 
     private initMouseKeyHandlers(){
@@ -123,8 +122,7 @@ export class UserInterface {
 
         restartButton.addEventListener('click', () => {
             this._viewer.stopVisualizationAnimation();
-            let gridSize = (document.querySelector("input[paramId=gridSize]") as HTMLInputElement).value;
-            this._viewer.initCurrentVisu(Number.parseInt(gridSize)**2);
+            sendMessageToWorker(this._viewer.transmissionWorker, WorkerMessage.RESET);
             console.log("RESTART");
         });
 

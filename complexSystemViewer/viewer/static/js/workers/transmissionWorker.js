@@ -19,7 +19,7 @@ class TransmissionWorker {
                 this.sendValues();
                 break;
             case WorkerMessage.RESET:
-                this.resetSimulation(getMessageBody(e));
+                this.resetSimulation();
                 break;
             case WorkerMessage.UPDATE_RULES:
                 this.updateSimulationRules(getMessageBody(e));
@@ -42,14 +42,22 @@ class TransmissionWorker {
     async sendValues() {
         if (!this._socketManager.isConnected)
             await this.waitSocketConnection();
+        let isReshaped = this._statesBuffer.isReshaped;
         let values = this._statesBuffer.values;
-        sendMessageToWindow(WorkerMessage.VALUES, values.toArray(), values.toArrayBuffers());
+        if (isReshaped) {
+            sendMessageToWindow(WorkerMessage.VALUES_RESHAPED, values.toArray(), values.toArrayBuffers());
+        }
+        else {
+            sendMessageToWindow(WorkerMessage.VALUES, values.toArray(), values.toArrayBuffers());
+        }
     }
-    async resetSimulation(nbElements) {
+    async resetSimulation() {
         if (!this._socketManager.isConnected)
             await this.waitSocketConnection();
-        this._statesBuffer.initializeElements(nbElements);
-        while (!this._statesBuffer.isReady) {
+        sendMessageToWindow(WorkerMessage.RESET);
+        this._statesBuffer.flush();
+        this._socketManager.resetSimulation();
+        while (!this._statesBuffer.hasNewValue) {
             await new Promise(resolve => setTimeout(resolve, 1));
         }
         this.sendValues();
@@ -69,12 +77,13 @@ class TransmissionWorker {
         if (!this._socketManager.isConnected)
             await this.waitSocketConnection();
         this._socketManager.updateInitParams(params);
+        console.log("init param = ", params);
     }
     async applyInteraction(data) {
         if (!this._socketManager.isConnected)
             await this.waitSocketConnection();
         this._statesBuffer.flush();
-        let values = TransformableValues.fromArray(data.slice(1));
+        let values = TransformableValues.fromValuesAsArray(data.slice(1));
         this._socketManager.applyInteraction(data[0], values.getBackendValues());
         while (!this._statesBuffer.hasNewValue) {
             await new Promise(resolve => setTimeout(resolve, 1));

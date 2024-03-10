@@ -1,7 +1,7 @@
 import { TransformableValues } from "../transformableValues.js";
 import { SocketManager } from "./socketManager.js";
 import { StatesBuffer } from "./statesBuffer.js";
-import { WorkerMessage, sendMessageToWindow, getMessageBody, getMessageHeader } from "./workerInterface.js";
+import { WorkerMessage, sendMessageToWindow, getMessageBody, getMessageHeader, sendMessageToWorker } from "./workerInterface.js";
 
 class TransmissionWorker{
     private _socketManager : SocketManager;
@@ -22,7 +22,7 @@ class TransmissionWorker{
                 this.sendValues();
                 break;
             case WorkerMessage.RESET:
-                this.resetSimulation(getMessageBody(e));
+                this.resetSimulation();
                 break;
             case WorkerMessage.UPDATE_RULES:
                 this.updateSimulationRules(getMessageBody(e));
@@ -47,15 +47,24 @@ class TransmissionWorker{
     private async sendValues(){
         if (!this._socketManager.isConnected)
             await this.waitSocketConnection();
+        let isReshaped = this._statesBuffer.isReshaped;
         let values = this._statesBuffer.values;
-        sendMessageToWindow(WorkerMessage.VALUES, values.toArray(), values.toArrayBuffers());
+
+        if (isReshaped){
+            sendMessageToWindow(WorkerMessage.VALUES_RESHAPED, values.toArray(), values.toArrayBuffers());
+        }
+        else{            
+            sendMessageToWindow(WorkerMessage.VALUES, values.toArray(), values.toArrayBuffers());
+        }
     }
     
-    private async resetSimulation(nbElements : number){
+    private async resetSimulation(){
         if (!this._socketManager.isConnected)
             await this.waitSocketConnection();
-        this._statesBuffer.initializeElements(nbElements);
-        while(!this._statesBuffer.isReady){
+        sendMessageToWindow(WorkerMessage.RESET);
+        this._statesBuffer.flush();
+        this._socketManager.resetSimulation();
+        while(!this._statesBuffer.hasNewValue){
             await new Promise(resolve => setTimeout(resolve, 1));
         }
         this.sendValues();
@@ -77,6 +86,7 @@ class TransmissionWorker{
         if (!this._socketManager.isConnected)
             await this.waitSocketConnection();
         this._socketManager.updateInitParams(params);
+        console.log("init param = ", params)
     }
 
     private async applyInteraction(data : Array<Float32Array>){
@@ -85,7 +95,7 @@ class TransmissionWorker{
         
         this._statesBuffer.flush();
         
-        let values = TransformableValues.fromArray(data.slice(1));
+        let values = TransformableValues.fromValuesAsArray(data.slice(1));
         this._socketManager.applyInteraction(data[0], values.getBackendValues());
         
         while (!this._statesBuffer.hasNewValue){

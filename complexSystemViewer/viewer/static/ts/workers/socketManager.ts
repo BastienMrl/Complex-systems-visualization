@@ -115,15 +115,14 @@ export class SocketManager {
         }));
     }
 
-    public resetSimulation(params : any){
+    public resetSimulation(){
         if (!this._isConnected){
-            this._awaitingRequests.push(this.resetSimulation.bind(this, params));
+            this._awaitingRequests.push(this.resetSimulation.bind(this));
             return;
         };
         
         this._socket.send(JSON.stringify({
             'message' : this._resetSimulationMessage,
-            'params' : params
         }));
     }
 

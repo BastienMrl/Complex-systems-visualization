@@ -66,27 +66,29 @@ export class Viewer {
         this._animationTimer.callback = function () {
             this.updateScene();
         }.bind(this);
-        await this.initCurrentVisu(nbInstances);
+        await this.initCurrentVisu();
         this._drawable = true;
     }
-    async initCurrentVisu(nbElements) {
+    async initCurrentVisu() {
         this._drawable = false;
-        this._currentValue = null;
-        sendMessageToWorker(this._transmissionWorker, WorkerMessage.RESET, nbElements);
+        this._nextValue = null;
+        sendMessageToWorker(this._transmissionWorker, WorkerMessage.RESET);
         while (this._nextValue == null) {
             await new Promise(resolve => setTimeout(resolve, 1));
         }
         ;
-        this._currentValue = this._nextValue;
+        this._currentValue = TransformableValues.fromInstance(this._nextValue);
         await this.initMesh(this._currentValue);
         this._drawable = true;
     }
     async initMesh(values) {
+        this._drawable = false;
         if (this._multipleInstances != null)
             delete this._multipleInstances;
         this._multipleInstances = new MultipleMeshInstances(this.context, values);
         this._selectionManager.setMeshes(this._multipleInstances);
         await this._multipleInstances.loadMesh("/static/models/cube_div_1.obj");
+        this._drawable = true;
     }
     initCamera() {
         const cameraPos = Vec3.fromValues(0., 80., 100.);
@@ -168,12 +170,13 @@ export class Viewer {
             this._stats.stopPickingTimer();
         }
         // rendering
-        this._stats.startRenderingTimer(delta);
-        this.clear();
-        if (this._drawable)
+        if (this._drawable) {
+            this._stats.startRenderingTimer(delta);
+            this.clear();
             this.draw();
-        this.context.finish();
-        this._stats.stopRenderingTimer();
+            this.context.finish();
+            this._stats.stopRenderingTimer();
+        }
     }
     currentSelectionChanged(selection) {
         this._multipleInstances.updateMouseOverBuffer(selection);
@@ -188,20 +191,42 @@ export class Viewer {
         switch (getMessageHeader(e)) {
             case WorkerMessage.READY:
                 break;
-            case WorkerMessage.VALUES:
-                let data = getMessageBody(e);
-                this._nextValue = TransformableValues.fromArray(data);
-                if (!this._animationTimer.isRunning && this._needAnimationPlayOnReceived) {
-                    this._needAnimationPlayOnReceived = false;
-                    this._needOneAnimationLoop = false;
-                    this.startVisualizationAnimation();
-                }
-                else if (!this._animationTimer.isRunning && this._needOneAnimationLoop) {
-                    this._needOneAnimationLoop = false;
-                    this.updateScene();
-                    this.startOneAnimationLoop();
-                }
+            case WorkerMessage.VALUES_RESHAPED:
+                this.onValuesReceived(getMessageBody(e), true);
                 break;
+            case WorkerMessage.VALUES:
+                this.onValuesReceived(getMessageBody(e), false);
+                break;
+            case WorkerMessage.RESET:
+                this.onReset();
+                break;
+        }
+    }
+    async onReset() {
+        this._nextValue = null;
+        while (this._nextValue == null) {
+            await new Promise(resolve => setTimeout(resolve, 1));
+        }
+        ;
+        this._multipleInstances.updateStates(this._nextValue);
+        this._multipleInstances.updateStates(this._nextValue);
+        this._currentValue = TransformableValues.fromInstance(this._nextValue);
+    }
+    onValuesReceived(data, isReshaped = false) {
+        this._nextValue = TransformableValues.fromValuesAsArray(data);
+        if (isReshaped) {
+            this._currentValue = this._nextValue;
+            this.initMesh(this._nextValue);
+        }
+        if (!this._animationTimer.isRunning && this._needAnimationPlayOnReceived) {
+            this._needAnimationPlayOnReceived = false;
+            this._needOneAnimationLoop = false;
+            this.startVisualizationAnimation();
+        }
+        else if (!this._animationTimer.isRunning && this._needOneAnimationLoop) {
+            this._needOneAnimationLoop = false;
+            this.updateScene();
+            this.startOneAnimationLoop();
         }
     }
     bindAnimationCurve(type, fct) {

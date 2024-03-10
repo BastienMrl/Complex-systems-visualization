@@ -39,7 +39,7 @@ export class MultipleMeshInstances{
         this._translationBuffer.initialize(values.translations);
 
         this._stateBuffer = new InstanceAttribBuffer(context);
-        this._stateBuffer.initialize(values.states);
+        this._stateBuffer.initialize(values.states[0]);
     }
 
     // getters
@@ -143,7 +143,7 @@ export class MultipleMeshInstances{
 
     public updateStates(values : TransformableValues){
         this._translationBuffer.updateAttribs(values.translations);
-        this._stateBuffer.updateAttribs(values.states);
+        this._stateBuffer.updateAttribs(values.states[0]);
     }
 
     public updateMouseOverBuffer(indices : Array<number> | null){

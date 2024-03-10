@@ -90,15 +90,14 @@ export class SocketManager {
             'message': this._requestDataMessage
         }));
     }
-    resetSimulation(params) {
+    resetSimulation() {
         if (!this._isConnected) {
-            this._awaitingRequests.push(this.resetSimulation.bind(this, params));
+            this._awaitingRequests.push(this.resetSimulation.bind(this));
             return;
         }
         ;
         this._socket.send(JSON.stringify({
             'message': this._resetSimulationMessage,
-            'params': params
         }));
     }
     updateSimuRules(params) {

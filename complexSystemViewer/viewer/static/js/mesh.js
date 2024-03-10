@@ -24,7 +24,7 @@ export class MultipleMeshInstances {
         this._translationBuffer = new InstanceAttribBuffer(context);
         this._translationBuffer.initialize(values.translations);
         this._stateBuffer = new InstanceAttribBuffer(context);
-        this._stateBuffer.initialize(values.states);
+        this._stateBuffer.initialize(values.states[0]);
     }
     // getters
     get vertPositions() {
@@ -101,7 +101,7 @@ export class MultipleMeshInstances {
     }
     updateStates(values) {
         this._translationBuffer.updateAttribs(values.translations);
-        this._stateBuffer.updateAttribs(values.states);
+        this._stateBuffer.updateAttribs(values.states[0]);
     }
     updateMouseOverBuffer(indices) {
         const arr = new Float32Array(this._nbInstances).fill(0.);

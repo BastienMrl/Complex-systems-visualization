@@ -33,7 +33,6 @@ export class UserInterface {
         this.initInterfaceHandlers();
         this.initTransformers();
         this.initAnimationCurves();
-        this._viewer.initCurrentVisu(this._nbElements);
     }
     initMouseKeyHandlers() {
         // LeftMouseButtonDown
@@ -92,8 +91,7 @@ export class UserInterface {
         });
         restartButton.addEventListener('click', () => {
             this._viewer.stopVisualizationAnimation();
-            let gridSize = document.querySelector("input[paramId=gridSize]").value;
-            this._viewer.initCurrentVisu(Number.parseInt(gridSize) ** 2);
+            sendMessageToWorker(this._viewer.transmissionWorker, WorkerMessage.RESET);
             console.log("RESTART");
         });
         animationTimerEl.addEventListener('mouseleave', () => {

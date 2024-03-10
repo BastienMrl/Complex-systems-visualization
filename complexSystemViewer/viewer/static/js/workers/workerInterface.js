@@ -4,6 +4,7 @@ export var WorkerMessage;
     WorkerMessage["GET_VALUES"] = "get";
     WorkerMessage["RESET"] = "reset";
     WorkerMessage["VALUES"] = "values";
+    WorkerMessage["VALUES_RESHAPED"] = "reshaped";
     WorkerMessage["READY"] = "ready";
     WorkerMessage["UPDATE_RULES"] = "update_r";
     WorkerMessage["APPLY_INTERACTION"] = "send_interaction";

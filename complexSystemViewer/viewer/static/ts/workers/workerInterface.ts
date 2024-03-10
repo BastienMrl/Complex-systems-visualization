@@ -3,11 +3,12 @@ export enum WorkerMessage {
     GET_VALUES = "get",
     RESET = "reset",
     VALUES = "values",
+    VALUES_RESHAPED = "reshaped",
     READY = "ready",
     UPDATE_RULES = "update_r",
     APPLY_INTERACTION = "send_interaction",
     CHANGE_SIMULATION = "change_simulation",
-    UPDATE_INIT_PARAM = "update_init_p"
+    UPDATE_INIT_PARAM = "update_init_p",
 }
 
 export function sendMessageToWorker(worker : Worker, header : WorkerMessage, message? : any, transfer? : Transferable[]){

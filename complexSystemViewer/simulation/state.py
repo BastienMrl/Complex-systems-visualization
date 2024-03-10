@@ -28,7 +28,7 @@ class State(ABC):
 
 
 class GridState(State) :
-    grid = None
+    grid : jnp.ndarray = None
     grid_particle_class : int = None
     
     def __init__(self,grid, grid_particle_class = 0):
@@ -52,7 +52,8 @@ class GridState(State) :
         y_row = [val for val in single_y_row for _ in range(self.width)]
 
         val_rown = grid2d.flatten()
-        l = [x_row, y_row, val_rown.tolist()]
+        domain = [self.width * self.height, self.grid.shape[1]]
+        l = [domain, x_row, y_row, val_rown.tolist()]
         return l
 
         
