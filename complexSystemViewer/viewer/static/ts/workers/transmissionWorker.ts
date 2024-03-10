@@ -44,11 +44,19 @@ class TransmissionWorker{
         await this._socketManager.connectSocket(url);
     }
 
-    private async sendValues(){
+    private async sendValues(waitAnotherStates : boolean = false){
         if (!this._socketManager.isConnected)
             await this.waitSocketConnection();
         let isReshaped = this._statesBuffer.isReshaped;
+        console.log("value is new :", this._statesBuffer.hasNewValue)
         let values = this._statesBuffer.values;
+        console.log("value = ", values);
+        
+        if (waitAnotherStates){
+            while(!this._statesBuffer.hasNewValue){
+                await new Promise(resolve => setTimeout(resolve, 1));
+            }
+        }
 
         if (isReshaped){
             sendMessageToWindow(WorkerMessage.VALUES_RESHAPED, values.toArray(), values.toArrayBuffers());
@@ -56,6 +64,7 @@ class TransmissionWorker{
         else{            
             sendMessageToWindow(WorkerMessage.VALUES, values.toArray(), values.toArrayBuffers());
         }
+
     }
     
     private async resetSimulation(){
@@ -101,8 +110,9 @@ class TransmissionWorker{
         while (!this._statesBuffer.hasNewValue){
             await new Promise(resolve => setTimeout(resolve, 1));
         };
+        
+        await this.sendValues(true);
 
-        await this.sendValues();
     }
 
     private async changeSimulation(nameSimu : any){

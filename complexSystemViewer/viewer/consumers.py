@@ -64,20 +64,17 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
     async def initNewSimulation(self, name):
         self.init_parameters = ModelManager.get_initialization_parameters(name)
         self.sim = ModelManager.get_simulation_model(name)
-        await self.send(bytes_data=orjson.dumps(self.sim.to_JSON_object()))
-    
+        await self.sendOneStep()    
 
     async def resetSimulation(self):
         self.sim.initSimulation(init_param=self.init_parameters)
-        await self.send(bytes_data=orjson.dumps(self.sim.to_JSON_object()))
-
+        await self.sendOneStep()
 
     async def applyInteraction(self, mask, currentValues):
         self.sim.set_current_state_from_array(currentValues)
         mask_jnp = jnp.asarray(mask, dtype=jnp.float32)
         mask_jnp = mask_jnp.reshape(self.sim.width, self.sim.height)
         self.sim.applyInteraction("toLife", mask_jnp)
-        await self.send(bytes_data=orjson.dumps(self.sim.to_JSON_object()))
-        
+        await self.sendOneStep()        
 
     

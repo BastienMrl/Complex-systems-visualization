@@ -72,11 +72,14 @@ export abstract class SelectionTool{
                     this._currentMask[e] = 1.;
             });
         }
-        if (selection instanceof Map){
+        else if (selection instanceof Map){
             this._viewer.currentSelectionChanged(Array.from(selection.keys()));
             selection.forEach((value, key) =>{
                 this._currentMask[key] = value;
             });
+        }
+        else {
+            this._viewer.currentSelectionChanged(null);
         }
     }
 

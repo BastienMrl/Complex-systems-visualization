@@ -74,7 +74,10 @@ export class SelectionBrushTool extends SelectionTool{
                 path = this.getPath(this._prevId, this._currentId);
             this._prevId = this._currentId;
             this.fillCurrentValues(path);
-        }  
+        }
+        else{
+            this._prevId = null;
+        }
         this.onCurrentSelectionChanged(Array.from(this._idValues.keys()));
     }
 
@@ -104,7 +107,8 @@ export class SelectionBrushTool extends SelectionTool{
         if (e.button != this._interactionButton || !this._mouseDown)
             return;
         this._mouseDown = false;
-        this._viewer.sendInteractionRequest(new Float32Array(this._currentMask));
+        if (this._currentMask.length != 0)
+            this._viewer.sendInteractionRequest(new Float32Array(this._currentMask));
         this.onCurrentSelectionChanged(null);
     }
 

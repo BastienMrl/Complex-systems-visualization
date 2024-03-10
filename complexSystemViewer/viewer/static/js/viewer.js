@@ -225,7 +225,7 @@ export class Viewer {
         }
         else if (!this._animationTimer.isRunning && this._needOneAnimationLoop) {
             this._needOneAnimationLoop = false;
-            this.updateScene();
+            this._multipleInstances.updateStates(this._nextValue);
             this.startOneAnimationLoop();
         }
     }
@@ -261,11 +261,12 @@ export class Viewer {
         if (this._animationTimer.isRunning && this._animationTimer.loop) {
             this.stopVisualizationAnimation();
             this._needAnimationPlayOnReceived = true;
+            this._multipleInstances.updateStates(this._currentValue);
         }
         else {
             this._needOneAnimationLoop = true;
         }
-        this._multipleInstances.updateStates(this._currentValue);
-        sendMessageToWorker(this._transmissionWorker, WorkerMessage.APPLY_INTERACTION, [mask].concat(this._currentValue.toArray()), [mask.buffer].concat(this._currentValue.toArrayBuffers()));
+        let values = TransformableValues.fromInstance(this._currentValue);
+        sendMessageToWorker(this._transmissionWorker, WorkerMessage.APPLY_INTERACTION, [mask].concat(values.toArray()), [mask.buffer].concat(values.toArrayBuffers()));
     }
 }
