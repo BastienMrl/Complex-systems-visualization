@@ -52,7 +52,7 @@ class GridState(State) :
         y_row = [val for val in single_y_row for _ in range(self.width)]
 
         val_rown = grid2d.flatten()
-        domain = [self.width * self.height, self.grid.shape[1]]
+        domain = [self.width * self.height, self.grid.size / (self.width * self.height)]
         l = [domain, x_row, y_row, val_rown.tolist()]
         return l
 

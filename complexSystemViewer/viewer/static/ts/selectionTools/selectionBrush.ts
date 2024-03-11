@@ -78,7 +78,7 @@ export class SelectionBrushTool extends SelectionTool{
         else{
             this._prevId = null;
         }
-        this.onCurrentSelectionChanged(Array.from(this._idValues.keys()));
+        this.onCurrentSelectionChanged(this._idValues);
     }
 
     protected updateCurrentMouseOver(){
@@ -90,7 +90,7 @@ export class SelectionBrushTool extends SelectionTool{
             this.onCurrentSelectionChanged(null);
         else{
             this.fillCurrentValues([this._currentId]);
-            this.onCurrentSelectionChanged(Array.from(this._idValues.keys()));
+            this.onCurrentSelectionChanged(this._idValues);
         }
     }
     
@@ -187,7 +187,7 @@ export class SelectionBrushTool extends SelectionTool{
                 let distance = this._radius + 1;
                 switch (this._shape){
                     case BrushShape.SQUARE:
-                        distance = Math.min(absI, absJ);
+                        distance = Math.max(absI, absJ);
                         break;
                     case BrushShape.CIRCLE:
                         distance = Math.sqrt(absI * absI + absJ * absJ);

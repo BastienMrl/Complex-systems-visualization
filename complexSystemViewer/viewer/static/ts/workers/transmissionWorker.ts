@@ -48,14 +48,10 @@ class TransmissionWorker{
         if (!this._socketManager.isConnected)
             await this.waitSocketConnection();
         let isReshaped = this._statesBuffer.isReshaped;
-        console.log("value is new :", this._statesBuffer.hasNewValue)
         let values = this._statesBuffer.values;
-        console.log("value = ", values);
         
         if (waitAnotherStates){
-            while(!this._statesBuffer.hasNewValue){
-                await new Promise(resolve => setTimeout(resolve, 1));
-            }
+            await this.waitNewValues();
         }
 
         if (isReshaped){
@@ -73,9 +69,7 @@ class TransmissionWorker{
         sendMessageToWindow(WorkerMessage.RESET);
         this._statesBuffer.flush();
         this._socketManager.resetSimulation();
-        while(!this._statesBuffer.hasNewValue){
-            await new Promise(resolve => setTimeout(resolve, 1));
-        }
+        await this.waitNewValues();
         this.sendValues();
     }
 
@@ -95,21 +89,18 @@ class TransmissionWorker{
         if (!this._socketManager.isConnected)
             await this.waitSocketConnection();
         this._socketManager.updateInitParams(params);
-        console.log("init param = ", params)
     }
 
     private async applyInteraction(data : Array<Float32Array>){
         if (!this._socketManager.isConnected)
             await this.waitSocketConnection();
         
-        this._statesBuffer.flush();
         
+        this._statesBuffer.flush();
         let values = TransformableValues.fromValuesAsArray(data.slice(1));
         this._socketManager.applyInteraction(data[0], values.getBackendValues());
         
-        while (!this._statesBuffer.hasNewValue){
-            await new Promise(resolve => setTimeout(resolve, 1));
-        };
+        await this.waitNewValues();
         
         await this.sendValues(true);
 
@@ -119,7 +110,18 @@ class TransmissionWorker{
         if (!this._socketManager.isConnected)
             await this.waitSocketConnection();
         
+        this._statesBuffer.flush();
         this._socketManager.changeSimu(nameSimu);
+        
+        await this.waitNewValues();
+        
+        this.sendValues();
+    }
+
+    private async waitNewValues(){
+        while (!this._statesBuffer.hasNewValue){
+            await new Promise(resolve => setTimeout(resolve, 1));
+        };
     }
 }
 

@@ -73,9 +73,14 @@ class LeniaSimulation(Simulation):
         else:
             self.init_default_sim()
 
+        self.interactions : list[Interaction] = [Interaction("toLife", leniaInteraction)]
+
 
     def set_current_state_from_array(self, new_state):
-        pass
+        state = new_state[2]
+        grid = jnp.asarray(state, dtype=jnp.float32).reshape((self.current_states[0].grid.shape))
+        self.current_states[0].set_grid(grid)
+
 
 
     def init_default_sim(self):

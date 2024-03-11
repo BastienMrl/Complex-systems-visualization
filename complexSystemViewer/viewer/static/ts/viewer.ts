@@ -174,8 +174,9 @@ export class Viewer {
             return;
         }
         this._stats.startUpdateTimer();
+        this._currentValue = this._nextValue;
         this._multipleInstances.updateStates(this._nextValue)
-        this._currentValue = TransformableValues.fromInstance(this._nextValue);
+        this._nextValue = null;
         this.context.finish();
         this._stats.stopUpdateTimer();
         sendMessageToWorker(this._transmissionWorker, WorkerMessage.GET_VALUES);
