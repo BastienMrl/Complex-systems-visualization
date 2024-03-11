@@ -15,17 +15,18 @@ class LeniaSimulation(Simulation):
 
     initialization_parameters = [
         BoolParam(id_p="randomStart", name="Random start", default_value=False),
+        IntParam(id_p="seed", name="Seed", default_value=6, min_value=1),
         IntParam(id_p="gridSize", name="Grid size",
                  default_value=200, min_value=40, step=1),
         FloatParam(id_p="dt", name="dt",
-                    default_value=0.05, min_value=0.1, max_value=1., step=0.1)
+                    default_value=0.05, min_value=0.1, max_value=1., step=0.1),
+        IntParam(id_p="C", name="Number of Channels",
+                    default_value=1, min_value=1, max_value=4, step=1)
     ]
 
     default_rules = [
             IntParam(id_p="number_of_kernels", name="Number of kernels",
                     default_value=10, min_value=1, step=1),
-            IntParam(id_p="C", name="C",
-                    default_value=1, min_value=1, step=1),
             IntParam(id_p="dd", name="dd",
                     default_value=5, min_value=1, step=1),
             IntParam(id_p="n", name="n",
@@ -40,11 +41,12 @@ class LeniaSimulation(Simulation):
         super().__init__()
         self.initSimulation(init_states, rules)
            
-    def initSimulation(self, init_states = None, rules = default_rules, init_param = initialization_parameters):
+    def initSimulation(self, init_states : list[State] = None, rules : list[Param] = default_rules, init_param : list[Param]= initialization_parameters):
         
-        self.random_start = [p for p in init_param if p.id_param == "randomStart"][0].value
-        self.grid_size = [p for p in init_param if p.id_param == "gridSize"][0].value
-        self.dt = [p for p in init_param if p.id_param == "dt"][0].value
+        self.random_start : bool = [p for p in init_param if p.id_param == "randomStart"][0].value
+        self.grid_size : int = [p for p in init_param if p.id_param == "gridSize"][0].value
+        self.dt : float = [p for p in init_param if p.id_param == "dt"][0].value
+        self.C : int = [p for p in init_param if p.id_param == "C"][0].value
 
 
         
@@ -52,13 +54,15 @@ class LeniaSimulation(Simulation):
         self.nb_k = self.getRuleById("number_of_kernels")
         SX = SY = self.grid_size
         
-        self.M = np.ones((self.getRuleById("C"), self.getRuleById("C")), dtype=int) * self.nb_k
+        self.M = np.ones((self.C, self.C), dtype=int) * self.nb_k
         self.nb_k = int(self.M.sum())
         self.c0, self.c1 = conn_from_matrix( self.M )
     
         self.rule_space = RuleSpace(self.nb_k)
         self.kernel_computer = KernelComputer(SX, SY, self.nb_k)
-        seed = 10
+
+        seed : int = [p for p in init_param if p.id_param == "seed"][0].value
+        
         key = jax.random.PRNGKey(seed)
         params_seed, state_seed = jax.random.split(key)
         params = self.rule_space.sample(params_seed)
@@ -84,7 +88,7 @@ class LeniaSimulation(Simulation):
 
 
     def init_default_sim(self):
-        grid = jnp.zeros((self.grid_size, self.grid_size, 1))
+        grid = jnp.zeros((self.grid_size, self.grid_size, self.C))
         state = GridState(grid)
         self.current_states = [state]
         self.width = self.grid_size
@@ -96,8 +100,8 @@ class LeniaSimulation(Simulation):
         offsetX, offsetY= round(SX/8), round(SY/8)
 
 
-        A0 = jnp.zeros((SX, SY, 1)).at[mx-offsetX:mx+offsetX, my-offsetY:my+offsetY, :].set(
-            jax.random.uniform(state_seed, (2*offsetX, 2*offsetY, 1))
+        A0 = jnp.zeros((SX, SY, self.C)).at[mx-offsetX:mx+offsetX, my-offsetY:my+offsetY, :].set(
+            jax.random.uniform(state_seed, (2*offsetX, 2*offsetY, self.C))
         )
         state = GridState(A0)
         self.current_states = [state]
@@ -120,7 +124,7 @@ class LeniaSimulation(Simulation):
 
         U = growth(U, self.c_params.m, self.c_params.s) * self.c_params.h  # (x,y,k)
 
-        U = jnp.dstack([ U[:, :, self.c1[c]].sum(axis=-1) for c in range(self.getRuleById('C')) ])  # (x,y,c)
+        U = jnp.dstack([ U[:, :, self.c1[c]].sum(axis=-1) for c in range(self.C) ])  # (x,y,c)
 
         nA = jnp.clip(A + self.dt * U, 0., 1.)
         self.current_states[0].grid = nA

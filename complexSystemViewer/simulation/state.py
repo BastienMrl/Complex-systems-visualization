@@ -41,35 +41,24 @@ class GridState(State) :
 
 
         super().__init__(w, h)
-        self.update_particles()
-
+        
     def to_JSON_object(self):
-        grid2d = np.squeeze(self.grid)
         single_x_row = np.arange(0-(self.width-1)/2, (self.width-1)/2+1).tolist()
         single_y_row = np.arange(0-(self.height-1)/2, (self.height-1)/2+1).tolist()
 
         x_row = single_x_row * self.height
         y_row = [val for val in single_y_row for _ in range(self.width)]
 
-        val_rown = grid2d.flatten()
-        domain = [self.width * self.height, self.grid.size / (self.width * self.height)]
-        l = [domain, x_row, y_row, val_rown.tolist()]
+        domain = [self.width * self.height, self.grid.shape[2]]
+        l = [domain, x_row, y_row]
+
+        print("smdkqfjdml")
+        for i in range(self.grid.shape[2]):
+            print("here")
+            val = self.grid[:, :, i].flatten().tolist()
+            l.append(val)
+
         return l
-
-        
-
-    def update_particles(self) :
-        particles = list()
-        grid2d = jnp.squeeze(self.grid)
-        id_i = 0
-        it = np.nditer(grid2d, order='C', flags=['multi_index'])
-        for cell in it: 
-            
-            y,x= it.multi_index
-            
-            particles.append(Particle(id_i, x-(self.width-1)/2, y-(self.height-1)/2, float(cell), particle_class = self.grid_particle_class, is_aligned_grid =  True))
-            id_i+=1
-        self.particles =  particles
 
     def set_grid(self, grid) : 
         self.grid = grid

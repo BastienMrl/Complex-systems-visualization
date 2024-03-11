@@ -13,7 +13,9 @@ export class MultipleMeshInstances {
     _vertUVs;
     _vertIndices;
     _translationBuffer;
-    _stateBuffer;
+    _stateBuffers;
+    // TODO: defined by the user hardware
+    _nbStates = 4;
     _vao;
     _mouseOverBuffer;
     constructor(context, values) {
@@ -23,8 +25,15 @@ export class MultipleMeshInstances {
         this._vao = this._context.createVertexArray();
         this._translationBuffer = new InstanceAttribBuffer(context);
         this._translationBuffer.initialize(values.translations);
-        this._stateBuffer = new InstanceAttribBuffer(context);
-        this._stateBuffer.initialize(values.states[0]);
+        this._stateBuffers = new Array;
+        values.states.forEach((e, i) => {
+            this._stateBuffers[i] = new InstanceAttribBuffer(context);
+            this._stateBuffers[i].initialize(e);
+        });
+        for (let i = values.nbChannels; i < this._nbStates; i++) {
+            this._stateBuffers[i] = new InstanceAttribBuffer(context);
+            this._stateBuffers[i].initialize(new Float32Array(values.nbElements).fill(0.));
+        }
     }
     // getters
     get vertPositions() {
@@ -73,7 +82,9 @@ export class MultipleMeshInstances {
         // translation
         this._translationBuffer.bindAttribs(ShaderLocation.TRANSLATION_T0, 1, 3, gl.FLOAT, false, 0);
         // states
-        this._stateBuffer.bindAttribs(ShaderLocation.STATE_0_T0, 1, 1, gl.FLOAT, false, 0);
+        for (let i = 0; i < this._nbStates; i++) {
+            this._stateBuffers[i].bindAttribs(ShaderLocation.STATE_0_T0 + 2 * i, 1, 1, gl.FLOAT, false, 0);
+        }
         // mouse over
         this._mouseOverBuffer = this._context.createBuffer();
         const arr = new Float32Array(this._nbInstances).fill(0.);
@@ -100,8 +111,12 @@ export class MultipleMeshInstances {
         aabb[5] = aabb[5] > z ? aabb[5] : z;
     }
     updateStates(values) {
+        if (values == null)
+            return;
         this._translationBuffer.updateAttribs(values.translations);
-        this._stateBuffer.updateAttribs(values.states[0]);
+        values.states.forEach((e, i) => {
+            this._stateBuffers[i].updateAttribs(e);
+        });
     }
     updateMouseOverBuffer(indices) {
         const arr = new Float32Array(this._nbInstances).fill(0.);

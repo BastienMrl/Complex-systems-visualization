@@ -8,15 +8,24 @@ layout (location = 2) in vec2 a_uv;
 
 //.... per mesh  attributes ....
 
-layout(location = 10) in vec3 a_translation_t0;
-layout(location = 11) in vec3 a_translation_t1;
+layout(location = 5) in vec3 a_translation_t0;
+layout(location = 6) in vec3 a_translation_t1;
 
-layout(location = 12) in float a_state_t0;
-layout(location = 13) in float a_state_t1;
+layout(location = 7) in float a_state_0_t0;
+layout(location = 8) in float a_state_0_t1;
+
+layout(location = 9) in float a_state_1_t0;
+layout(location = 10) in float a_state_1_t1;
+
+layout(location = 11) in float a_state_2_t0;
+layout(location = 12) in float a_state_2_t1;
+
+layout(location = 13) in float a_state_3_t0;
+layout(location = 14) in float a_state_3_t1;
 
 
 // selection
-layout (location = 15) in float a_selected;
+layout (location = 4) in float a_selected;
 
 
 out vec3 v_position;

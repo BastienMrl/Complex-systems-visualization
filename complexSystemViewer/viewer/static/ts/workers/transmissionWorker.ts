@@ -42,6 +42,8 @@ class TransmissionWorker{
         if (this._socketManager.isConnected)
             return;
         await this._socketManager.connectSocket(url);
+        await this.waitSocketConnection();
+        this._statesBuffer.requestState();
     }
 
     private async sendValues(waitAnotherStates : boolean = false){
@@ -49,7 +51,6 @@ class TransmissionWorker{
             await this.waitSocketConnection();
         let isReshaped = this._statesBuffer.isReshaped;
         let values = this._statesBuffer.values;
-        
         if (waitAnotherStates){
             await this.waitNewValues();
         }

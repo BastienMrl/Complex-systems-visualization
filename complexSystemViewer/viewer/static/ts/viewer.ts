@@ -8,6 +8,7 @@ import { TransformableValues } from "./transformableValues.js";
 import { WorkerMessage, getMessageBody, getMessageHeader, sendMessageToWorker } from "./workers/workerInterface.js";
 import { TransformerBuilder } from "./transformerBuilder.js";
 import { SelectionManager } from "./selectionTools/selectionManager.js";
+import { UserInterface } from "./userInterface.js";
 
 // provides access to gl constants
 const gl = WebGL2RenderingContext
@@ -77,7 +78,7 @@ export class Viewer {
     }
     
     // initialization methods
-    public async initialization(srcVs : string, srcFs : string, nbInstances : number){
+    public async initialization(srcVs : string, srcFs : string){
         await this.shaderProgram.generateProgram(srcVs, srcFs);
         
         this.context.useProgram(this.shaderProgram.program);
@@ -99,21 +100,11 @@ export class Viewer {
         }.bind(this);
         
         await this.initCurrentVisu();
-        this._drawable = true;
     }
     
     public async initCurrentVisu(){
         this._drawable = false;
-        this._nextValue = null;
         sendMessageToWorker(this._transmissionWorker, WorkerMessage.RESET);
-        
-        while (this._nextValue == null){
-            await new Promise(resolve => setTimeout(resolve, 1));
-        };
-
-        this._currentValue = TransformableValues.fromInstance(this._nextValue);
-        await this.initMesh(this._currentValue);
-        this._drawable = true;
     }
 
     private async initMesh(values : TransformableValues){
@@ -276,6 +267,8 @@ export class Viewer {
     }
 
     private async onReset(){
+        if (this._multipleInstances == null)
+            return;
         this._nextValue = null;
         while (this._nextValue == null){
             await new Promise(resolve => setTimeout(resolve, 1));
@@ -286,11 +279,16 @@ export class Viewer {
         this._currentValue = TransformableValues.fromInstance(this._nextValue);
     }
 
-    public onValuesReceived(data : Array<Float32Array>, isReshaped : boolean = false){
+    public async onValuesReceived(data : Array<Float32Array>, isReshaped : boolean = false){
         this._nextValue = TransformableValues.fromValuesAsArray(data);
         if (isReshaped){
-            this._currentValue = this._nextValue;
-            this.initMesh(this._nextValue)
+            if (this._currentValue == null || this._currentValue.nbElements != this._nextValue.nbElements)
+                await this.initMesh(this._nextValue)
+            if (this._currentValue == null || this._currentValue.nbChannels != this._nextValue.nbChannels){
+                console.log("nb Channels = ", this._nextValue.nbChannels)
+                UserInterface.getInstance().nbChannels = this._nextValue.nbChannels;
+            }
+
         }
         if (!this._animationTimer.isRunning && this._needAnimationPlayOnReceived){
             this._needAnimationPlayOnReceived = false;

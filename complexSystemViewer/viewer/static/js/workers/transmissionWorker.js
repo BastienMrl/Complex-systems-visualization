@@ -38,6 +38,8 @@ class TransmissionWorker {
         if (this._socketManager.isConnected)
             return;
         await this._socketManager.connectSocket(url);
+        await this.waitSocketConnection();
+        this._statesBuffer.requestState();
     }
     async sendValues(waitAnotherStates = false) {
         if (!this._socketManager.isConnected)

@@ -13,10 +13,10 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
         self.init_parameters = None
     
     async def connect(self):
-        self.isConnected = True
-        self.sim = ModelManager.get_simulation_model("Gol")
-        self.init_parameters = ModelManager.get_initialization_parameters("Gol")
         await self.accept()
+        self.init_parameters = ModelManager.get_initialization_parameters("Gol")
+        self.sim = ModelManager.get_simulation_model("Gol")
+        self.isConnected = True
     
     async def disconnect(self, close_code):
         self.isConnected = False

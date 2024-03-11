@@ -15,7 +15,7 @@ async function main(){
     let userInterface = UserInterface.getInstance();
     userInterface.initHandlers(viewer);
     
-    await viewer.initialization("/static/shaders/simple.vert", "/static/shaders/simple.frag", userInterface.nbElements);
+    await viewer.initialization("/static/shaders/simple.vert", "/static/shaders/simple.frag");
     viewer.loopAnimation();
 }
 
