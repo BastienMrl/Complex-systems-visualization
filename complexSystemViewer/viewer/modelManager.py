@@ -20,15 +20,15 @@ class ModelManager(object):
     def get_default_rules(model_name : str):
         match model_name:
             case "Gol":
-                return GOLSimulation.default_rules
+                return GOLSimulation.default_rules.copy()
             case "Lenia":
-                return LeniaSimulation.default_rules
+                return LeniaSimulation.default_rules.copy()
     
     @staticmethod
     def get_initialization_parameters(model_name : str):
         match model_name:
             case "Gol":
-                return GOLSimulation.initialization_parameters
+                return GOLSimulation.initialization_parameters.copy()
             case "Lenia":
-                return LeniaSimulation.initialization_parameters
+                return LeniaSimulation.initialization_parameters.copy()
 
