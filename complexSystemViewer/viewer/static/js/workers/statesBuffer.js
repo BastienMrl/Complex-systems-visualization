@@ -3,6 +3,7 @@ import { SocketManager } from "./socketManager.js";
 export class StatesBuffer {
     _states;
     _transformedValues;
+    _isNewValues = false;
     _socketManager;
     _isInitialized;
     constructor() {
@@ -21,8 +22,17 @@ export class StatesBuffer {
     get values() {
         let values = this._transformedValues;
         this._transformedValues = TransformableValues.fromInstance(values);
-        this.requestState();
+        if (this._isNewValues) {
+            this._isNewValues = false;
+            this.requestState();
+        }
         return values;
+    }
+    get hasNewValue() {
+        return this._isNewValues;
+    }
+    flush() {
+        this._isNewValues = false;
     }
     initializeElements(nbElements) {
         this._socketManager.stop();
@@ -38,14 +48,9 @@ export class StatesBuffer {
         this._states = data;
         this.transformState();
         this._isInitialized = true;
+        this._isNewValues = true;
     }
     transformState() {
-        this._transformedValues.states = new Float32Array(this._states[2]);
-        this._states[0].forEach((e, i) => {
-            this._transformedValues.translations[i * 3] = e;
-        });
-        this._states[1].forEach((e, i) => {
-            this._transformedValues.translations[i * 3 + 1] = e;
-        });
+        this._transformedValues.setWithBackendValues(this._states);
     }
 }

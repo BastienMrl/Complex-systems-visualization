@@ -48,16 +48,12 @@ export class UserInterface {
     private initMouseKeyHandlers(){
         // LeftMouseButtonDown
         this._viewer.canvas.addEventListener('mousedown', (e : MouseEvent) =>{
-            if (e.button == 0)
-                console.log("leftMousePressed");
             if (e.button == 1)
                 this._wheelPressed = true;
         });
 
         // LeftMouseButtonUp
         this._viewer.canvas.addEventListener('mouseup', (e : MouseEvent) => {
-            if (e.button == 0)
-                console.log("leftMouseUp");
             if (e.button == 1)
                 this._wheelPressed = false;
         });
@@ -231,10 +227,23 @@ export class UserInterface {
             let input = (e.target as HTMLInputElement)
             let paramId = input.getAttribute("paramid");
             let paramIdSplited = paramId.split('_')
+            let value;
+            switch(input.type){
+                case "checkbox":
+                    value = input.checked;
+                    break;
+                case "number":
+                    value = Number.parseFloat(input.value);
+                    break;
+                default:
+                    value = input.value;
+                    break;
+            }
+
             let json = JSON.stringify({
                 "paramId":paramIdSplited[0],
                 "subparam":paramIdSplited[1],
-                "value": Number.parseFloat(input.value)
+                "value": value
             })
             sendMessageToWorker(this._viewer.transmissionWorker, WorkerMessage.UPDATE_RULES, json);
         }
@@ -293,7 +302,6 @@ export class TransformersInterface {
         
         const transformType = this.getTransformType(element);
         const paramsElements = this.getParamsElements(element);
-        console.log(paramsElements)
         let params = [];
         paramsElements.forEach(e => {
             params.push(e.value);
@@ -321,7 +329,6 @@ export class TransformersInterface {
                 this._currentTransformerBuilder.removeTransformer(id);
                 deleteButton.parentElement.remove();
                 this.updateProgram();
-                console.log("deleted");
             });
         }
     }

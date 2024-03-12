@@ -11,6 +11,7 @@ class Paramtype(Enum):
     NUMBERVALUE = 'NV'
     COLORVALUE = 'CV'
     SELECTIONVALUE = 'SV'
+    BOOLVALUE='BV'
 
 
 
@@ -47,7 +48,8 @@ class Param(ABC):
         }
         
     @abstractmethod
-    def set_param(self, json): pass
+    def set_param(self, json): 
+        pass
 
 
         
@@ -149,3 +151,21 @@ class RangeIntParam(Param):
             self.min_param.value = json["value"]
         elif json["subparam"] == "max":
             self.max_param.value = json["value"]
+    
+class BoolParam(Param):
+    def __init__(self, id_p: str, name: str, default_value : bool):
+        super().__init__(id_p, Paramtype.BOOLVALUE, name)
+        self.value = default_value
+        self.default_value = default_value
+    
+    def get_param(self):
+        superParam = super().get_param()
+        superParam.update({
+            "defaultValue" : self.default_value,
+        })
+        return superParam
+
+    def set_param(self, json):
+        print(json)
+        self.value = json["value"]
+        print(self.value)

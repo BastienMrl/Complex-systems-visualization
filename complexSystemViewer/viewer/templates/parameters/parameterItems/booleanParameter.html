@@ -1,0 +1,13 @@
+{% extends "parameters/parameterItems/baseParameter.html" %}
+
+{% load static %}
+
+{% block valueControl %}
+
+{% comment "Source" %} The toggle button is from https://www.w3schools.com/howto/howto_css_switch.asp {% endcomment %}
+<label class="switch">
+    <input type="checkbox" paramId="{{param.paramId}}" {% if param.defaultValue %} checked {% endif %} />
+    <span class="slider round"></span>
+</label>
+
+{% endblock valueControl %}

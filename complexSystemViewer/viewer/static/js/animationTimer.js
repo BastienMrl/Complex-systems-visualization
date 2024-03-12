@@ -23,6 +23,9 @@ export class AnimationTimer {
     set duration(duration) {
         this._duration = duration * 1000;
     }
+    get isRunning() {
+        return this._isRunning;
+    }
     onTimeout() {
         if (!this._isRunning)
             return;
@@ -32,6 +35,8 @@ export class AnimationTimer {
             this.play();
     }
     play() {
+        if (this._isRunning)
+            return;
         this._startingTime = performance.now();
         this._isRunning = true;
         setTimeout(this.onTimeout.bind(this), this._duration);

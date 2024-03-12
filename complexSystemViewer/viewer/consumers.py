@@ -35,10 +35,9 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
         match message:
             case "Start":
                 if self.isConnected:
-                    await self.initGOL(text_data_json["params"])
+                    await self.initLenia()
             case "Stop":
                 if self.isConnected:
-                    
                     self.sim = None
             case "RequestData":
                 if self.isConnected :
@@ -51,7 +50,9 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
                     await self.updateRules(text_data_json["params"])
             case "ApplyInteraction":
                 if self.isConnected:
-                    await self.applyInteraction(text_data_json["mask"])
+                    t = time.time()
+                    await self.applyInteraction(text_data_json["mask"], text_data_json["currentStates"])
+                    print("time = ", (1000 * (time.time() - t)), "ms")
                     
 
     async def emptyGrid(self, nbInstances):
@@ -65,45 +66,12 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
         await self.send(bytes_data=orjson.dumps(data))
 
 
-    async def initGOL(self, nbInstances):
-        key = jax.random.PRNGKey(1701)
-        nb = nbInstances
-        row = int(math.sqrt(nb))
-        grid = jax.random.uniform(key, (1, row, row, 1))
-        grid = jnp.round(grid)
-        grid = jnp.transpose(grid, [0, 3, 1, 2])
-
-        #print("prep state")
-        state = GridState(grid)
-
-        #print("prep sim")
-        gol = GOLSimulation(init_states=[state])
-        
-        self.sim = gol
+    async def initGOL(self):
+        self.sim = GOLSimulation()
 
 
-    async def initLenia(self, nbInstances):
-        seed = 10
-        key = jax.random.PRNGKey(seed)
-        params_seed, state_seed = jax.random.split(key)
-        SX = SY = int(math.sqrt(nbInstances))
-        mx, my = SX//2, SY//2 # center coordinated
-        A0 = jnp.zeros((SX, SY, 1)).at[mx-20:mx+20, my-20:my+20, :].set(
-            jax.random.uniform(state_seed, (40, 40, 1))
-        )
-
-        #print("prep state")
-        state = GridState(A0)
-
-        params = LeniaSimulation.default_parameters
-
-        for p in params :
-            if p.id_param == "gridSize" :
-                p.value = SX
-
-        #print("prep sim")
-        lenia = LeniaSimulation(init_states=[state], init_params=params)
-        self.sim = lenia
+    async def initLenia(self):
+        self.sim = LeniaSimulation()
 
 
     async def sendOneStep(self):
@@ -129,7 +97,8 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
         #            parameter.max_param.value = rules[rule][1]
 
 
-    async def applyInteraction(self, mask):
+    async def applyInteraction(self, mask, currentValues):
+        self.sim.set_current_state_from_array(currentValues)
         mask_jnp = jnp.array(mask).reshape(self.sim.width, self.sim.height)
         self.sim.applyInteraction("toLife", mask_jnp)
         

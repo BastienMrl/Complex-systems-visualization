@@ -8,22 +8,21 @@ import numpy as np
 import time
 class Simulation(ABC):   
 
-    def __init__(self, id : int, init_states = None, init_params  = None): 
-        self.s_id = None
+    def __init__(self, init_states = None, init_params  = None): 
         self.current_states = None
         self.parameters = None
         self.width = None
         self.height = None
-        if init_states != None :
-            self.current_states = init_states
-        else : 
-            raise ValueError("Initial State can't be None")
+        # if init_states != None :
+        #     self.current_states = init_states
+        # else : 
+        #     raise ValueError("Initial State can't be None")
         
-        self.width = init_states[0].width
-        self.height = init_states[0].height
-        for state in init_states : 
-            if not jnp.isclose(state.width, self.width) or not jnp.isclose(state.height, self.height):
-                raise ValueError("States of a simulation must be of same size")
+        # self.width = init_states[0].width
+        # self.height = init_states[0].height
+        # for state in init_states : 
+        #     if not jnp.isclose(state.width, self.width) or not jnp.isclose(state.height, self.height):
+        #         raise ValueError("States of a simulation must be of same size")
         
 
         if init_params != None :
@@ -36,6 +35,10 @@ class Simulation(ABC):
     
     @abstractmethod
     def step(self) : 
+        pass
+
+    @abstractmethod
+    def set_current_state_from_array(self, new_state):
         pass
 
     def to_JSON_object(self) :
@@ -74,6 +77,7 @@ class Simulation(ABC):
             return
 
         interaction.apply(mask, self.current_states)
+
         
         
         
