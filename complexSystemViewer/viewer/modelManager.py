@@ -1,4 +1,5 @@
 from enum import Enum
+import copy as cp
 from simulation.models.game_of_life import GOLSimulation
 from simulation.models.lenia import LeniaSimulation
 
@@ -20,15 +21,16 @@ class ModelManager(object):
     def get_default_rules(model_name : str):
         match model_name:
             case "Gol":
-                return GOLSimulation.default_rules.copy()
+                return cp.deepcopy(GOLSimulation.default_rules)
             case "Lenia":
-                return LeniaSimulation.default_rules.copy()
+                return cp.deepcopy(LeniaSimulation.default_rules)
+
     
     @staticmethod
     def get_initialization_parameters(model_name : str):
         match model_name:
             case "Gol":
-                return GOLSimulation.initialization_parameters.copy()
+                return cp.deepcopy(GOLSimulation.initialization_parameters)
             case "Lenia":
-                return LeniaSimulation.initialization_parameters.copy()
+                return cp.deepcopy(LeniaSimulation.initialization_parameters)
 
