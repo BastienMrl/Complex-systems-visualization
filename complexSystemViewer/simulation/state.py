@@ -52,9 +52,7 @@ class GridState(State) :
         domain = [self.width * self.height, self.grid.shape[2]]
         l = [domain, x_row, y_row]
 
-        print("smdkqfjdml")
         for i in range(self.grid.shape[2]):
-            print("here")
             val = self.grid[:, :, i].flatten().tolist()
             l.append(val)
 

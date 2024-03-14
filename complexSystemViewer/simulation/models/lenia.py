@@ -77,11 +77,23 @@ class LeniaSimulation(Simulation):
         else:
             self.init_default_sim()
 
-        self.interactions : list[Interaction] = [Interaction("toLife", leniaInteraction)]
+        def lenia_interaction(mask : jnp.ndarray, states : list[State]):
+            mask = jnp.expand_dims(mask, 2)
+            shape = list(states[0].grid.shape)
+            shape[-1] -= 1
+
+            minus_one = jnp.subtract(jnp.zeros(shape), jnp.ones(shape))
+            
+            mask = jnp.dstack((mask, minus_one))
+
+
+            states[0].grid = jnp.where(mask >= 0, mask, states[0].grid)
+
+        self.interactions : list[Interaction] = [Interaction("toLife", lenia_interaction)]
 
 
     def set_current_state_from_array(self, new_state):
-        state = new_state[2]
+        state = new_state[2:]
         grid = jnp.asarray(state, dtype=jnp.float32).reshape((self.current_states[0].grid.shape))
         self.current_states[0].set_grid(grid)
 

@@ -10,7 +10,7 @@ import time
 
 class Simulation(ABC):   
 
-    def __init__(self, init_states = None, rules  = None): 
+    def __init__(self, init_states : list[State] = None, rules : list[Param]  = None): 
         self.current_states = None
         self.rules = None
         self.width = None
