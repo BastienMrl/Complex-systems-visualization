@@ -133,7 +133,7 @@ export class SocketManager {
             'simuName': name
         }));
     }
-    applyInteraction(mask, currentValues) {
+    applyInteraction(mask, currentValues, id) {
         if (!this._isConnected) {
             this._awaitingRequests.push(this.applyInteraction.bind(this, mask));
             return;
@@ -145,7 +145,8 @@ export class SocketManager {
         let string = JSON.stringify({
             'message': this._applyInteractionMessage,
             'mask': Array.from(mask),
-            'currentStates': values
+            'currentStates': values,
+            'interaction': id
         });
         this._socket.send(string);
     }

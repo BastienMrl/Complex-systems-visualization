@@ -25,7 +25,7 @@ class TransmissionWorker {
                 this.updateSimulationRules(getMessageBody(e));
                 break;
             case WorkerMessage.APPLY_INTERACTION:
-                this.applyInteraction(getMessageBody(e));
+                this.applyInteraction(getMessageBody(e)[1], getMessageBody(e)[0]);
                 break;
             case WorkerMessage.CHANGE_SIMULATION:
                 this.changeSimulation(getMessageBody(e));
@@ -81,12 +81,13 @@ class TransmissionWorker {
             await this.waitSocketConnection();
         this._socketManager.updateInitParams(params);
     }
-    async applyInteraction(data) {
+    async applyInteraction(data, interaction) {
         if (!this._socketManager.isConnected)
             await this.waitSocketConnection();
+        console.log("interaction =", interaction);
         this._statesBuffer.flush();
         let values = TransformableValues.fromValuesAsArray(data.slice(1));
-        this._socketManager.applyInteraction(data[0], values.getBackendValues());
+        this._socketManager.applyInteraction(data[0], values.getBackendValues(), interaction);
         await this.waitNewValues();
         await this.sendValues(true);
     }

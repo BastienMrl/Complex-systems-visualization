@@ -76,13 +76,13 @@ class GOLSimulation(Simulation):
             self.init_default_sim() 
 
         def gol_interaction(mask : jnp.ndarray, states : list[State]):
-            mask = jnp.expand_dims(mask,)
+            mask = jnp.expand_dims(mask, (2))
             to_zero = jnp.logical_not(mask == 0)
             to_one = mask > 0
             states[0].grid = jnp.logical_or(states[0].grid, to_one).astype(jnp.float32)
             states[0].grid = jnp.logical_and(states[0].grid, to_zero).astype(jnp.float32)
 
-        self.interactions : list[Interaction] = [Interaction("toLife", gol_interaction)]
+        self.interactions : list[Interaction] = [Interaction("0", gol_interaction)]
 
 
     def step(self) :

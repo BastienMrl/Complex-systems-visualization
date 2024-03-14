@@ -159,7 +159,7 @@ export class SocketManager {
         }));
     }
 
-    public applyInteraction(mask : Float32Array, currentValues : Array<Float32Array>){
+    public applyInteraction(mask : Float32Array, currentValues : Array<Float32Array>, id : string){
         if (!this._isConnected){
             this._awaitingRequests.push(this.applyInteraction.bind(this, mask));
             return;
@@ -172,8 +172,10 @@ export class SocketManager {
         let string = JSON.stringify({
             'message' : this._applyInteractionMessage,
             'mask' : Array.from(mask),
-            'currentStates' : values
+            'currentStates' : values,
+            'interaction' : id
         });
+
         
         this._socket.send(string);
     }

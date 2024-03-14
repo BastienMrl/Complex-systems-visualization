@@ -43,7 +43,7 @@ class Simulation(ABC):
         pass
 
     @abstractmethod
-    def set_current_state_from_array(self, new_state):
+    def set_current_state_from_array(self, new_state : list[list[float]]):
         pass
 
     def to_JSON_object(self) :

@@ -335,7 +335,7 @@ export class Viewer {
         this.shaderProgram.updateProgramTransformers(transformers.generateTransformersBlock());
     }
 
-    public sendInteractionRequest(mask : Float32Array){
+    public sendInteractionRequest(mask : Float32Array, interaction : string = "0"){
         if (this._animationTimer.isRunning && this._animationTimer.loop){
             this.stopVisualizationAnimation();
             this._needAnimationPlayOnReceived = true;
@@ -346,7 +346,7 @@ export class Viewer {
         }
         let values = TransformableValues.fromInstance(this._currentValue);
         sendMessageToWorker(this._transmissionWorker, WorkerMessage.APPLY_INTERACTION,
-                            [mask].concat(values.toArray()), [mask.buffer].concat(values.toArrayBuffers()));
+                            [interaction, [mask].concat(values.toArray())], [mask.buffer].concat(values.toArrayBuffers()));
     }
 
 }

@@ -256,7 +256,7 @@ export class Viewer {
     updateProgamsTransformers(transformers) {
         this.shaderProgram.updateProgramTransformers(transformers.generateTransformersBlock());
     }
-    sendInteractionRequest(mask) {
+    sendInteractionRequest(mask, interaction = "0") {
         if (this._animationTimer.isRunning && this._animationTimer.loop) {
             this.stopVisualizationAnimation();
             this._needAnimationPlayOnReceived = true;
@@ -266,6 +266,6 @@ export class Viewer {
             this._needOneAnimationLoop = true;
         }
         let values = TransformableValues.fromInstance(this._currentValue);
-        sendMessageToWorker(this._transmissionWorker, WorkerMessage.APPLY_INTERACTION, [mask].concat(values.toArray()), [mask.buffer].concat(values.toArrayBuffers()));
+        sendMessageToWorker(this._transmissionWorker, WorkerMessage.APPLY_INTERACTION, [interaction, [mask].concat(values.toArray())], [mask.buffer].concat(values.toArrayBuffers()));
     }
 }

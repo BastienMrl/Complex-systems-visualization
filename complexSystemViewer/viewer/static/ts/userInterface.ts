@@ -316,7 +316,6 @@ export class TransformersInterface {
             if (oldNumber > this._nbChannels){
                 for (let i = oldNumber - 1; i > this._nbChannels - 1; --i){
                     let selector = "option[value=" + this.getInputNameFromChannelIdx(i) + "]";
-                    console.log("selector = ", selector)
                     select.querySelector(selector).remove();
                 }
             }

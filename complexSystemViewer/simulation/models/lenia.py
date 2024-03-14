@@ -8,6 +8,8 @@ import typing as t
 from functools import partial
 import math
 import chex
+from functools import partial
+
 
 
 from ..simulation import * 
@@ -77,24 +79,41 @@ class LeniaSimulation(Simulation):
         else:
             self.init_default_sim()
 
-        def lenia_interaction(mask : jnp.ndarray, states : list[State]):
+        self.interactions : list[Interaction]= []
+        def lenia_interaction(channel : int, mask : jnp.ndarray, states : list[State]):
             mask = jnp.expand_dims(mask, 2)
-            shape = list(states[0].grid.shape)
-            shape[-1] -= 1
+            shape = list(mask.shape)
 
             minus_one = jnp.subtract(jnp.zeros(shape), jnp.ones(shape))
-            
-            mask = jnp.dstack((mask, minus_one))
+            new_mask = mask if channel == 0 else minus_one
+            if (self.C > 1):
+                for k in range(1, self.C):
+                    if (k == channel):
+                        new_mask = jnp.dstack((new_mask, mask))
+                    else:
+                        new_mask = jnp.dstack((new_mask, minus_one))
 
 
-            states[0].grid = jnp.where(mask >= 0, mask, states[0].grid)
+            states[0].grid = jnp.where(new_mask >= 0, new_mask, states[0].grid)
 
-        self.interactions : list[Interaction] = [Interaction("toLife", lenia_interaction)]
+        for i in range(self.C):
+            self.interactions.append(Interaction(str(i), partial(lenia_interaction, i)))
+
+    def set_current_state_from_array(self, new_state : list[list[float]]):
+        nb_channels = self.current_states[0].grid.shape[-1]
+        shape = list(self.current_states[0].grid.shape)
+        shape[-1] = 1
 
 
-    def set_current_state_from_array(self, new_state):
-        state = new_state[2:]
-        grid = jnp.asarray(state, dtype=jnp.float32).reshape((self.current_states[0].grid.shape))
+        grid = None
+        for i in range(nb_channels):
+            state = new_state[2 + i]
+            state = jnp.asarray(state, dtype=jnp.float32).reshape(shape)
+            if (grid == None):
+                grid = state
+            else:
+                grid = jnp.dstack((grid, state))
+        
         self.current_states[0].set_grid(grid)
 
 
