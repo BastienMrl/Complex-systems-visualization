@@ -30,7 +30,7 @@ export class TransformableValues{
     }
 
     public static fromInstance(values : TransformableValues) : TransformableValues{
-        let instance = new TransformableValues(values.nbElements);
+        let instance = new TransformableValues(values.nbElements, values.nbChannels);
         instance.states = new Array(values._nbChannels);
         values.states.forEach((e, i) => instance.states[i] = new Float32Array(e));
         instance.translations = new Float32Array(values.translations);

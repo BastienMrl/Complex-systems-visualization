@@ -20,12 +20,6 @@ export enum InputType {
     STATE_1,
     STATE_2,
     STATE_3,
-    STATE_4,
-    STATE_5,
-    STATE_6,
-    STATE_7,
-    STATE_8,
-    STATE_9
 }
 
 
@@ -98,44 +92,20 @@ export class TransformerBuilder{
                 normalization_axis = 1;
                 break;
             case InputType.STATE_0:
-                onT0 = ShaderMeshInputs.STATE_T0;
-                onT1 = ShaderMeshInputs.STATE_T1;
+                onT0 = ShaderMeshInputs.STATE_0_T0;
+                onT1 = ShaderMeshInputs.STATE_0_T1;
                 break;
             case InputType.STATE_1:
-                onT0 = ShaderMeshInputs.STATE_T0;
-                onT1 = ShaderMeshInputs.STATE_T1;
+                onT0 = ShaderMeshInputs.STATE_1_T0;
+                onT1 = ShaderMeshInputs.STATE_1_T1;
                 break;
             case InputType.STATE_2:
-                onT0 = ShaderMeshInputs.STATE_T0;
-                onT1 = ShaderMeshInputs.STATE_T1;
+                onT0 = ShaderMeshInputs.STATE_2_T0;
+                onT1 = ShaderMeshInputs.STATE_2_T1;
                 break;
             case InputType.STATE_3:
-                onT0 = ShaderMeshInputs.STATE_T0;
-                onT1 = ShaderMeshInputs.STATE_T1;
-                break;
-            case InputType.STATE_4:
-                onT0 = ShaderMeshInputs.STATE_T0;
-                onT1 = ShaderMeshInputs.STATE_T1;
-                break;
-            case InputType.STATE_5:
-                onT0 = ShaderMeshInputs.STATE_T0;
-                onT1 = ShaderMeshInputs.STATE_T1;
-                break;
-            case InputType.STATE_6:
-                onT0 = ShaderMeshInputs.STATE_T0;
-                onT1 = ShaderMeshInputs.STATE_T1;
-                break;
-            case InputType.STATE_7:
-                onT0 = ShaderMeshInputs.STATE_T0;
-                onT1 = ShaderMeshInputs.STATE_T1;
-                break;
-            case InputType.STATE_8:
-                onT0 = ShaderMeshInputs.STATE_T0;
-                onT1 = ShaderMeshInputs.STATE_T1;
-                break;
-            case InputType.STATE_9:
-                onT0 = ShaderMeshInputs.STATE_T0;
-                onT1 = ShaderMeshInputs.STATE_T1;
+                onT0 = ShaderMeshInputs.STATE_3_T0;
+                onT1 = ShaderMeshInputs.STATE_3_T1;
                 break;
         }
         s += `mix(${onT0}, ${onT1}, ${time});`;
@@ -191,34 +161,16 @@ export class TransformerBuilder{
                 s += "z";
                 break;
             case InputType.STATE_0:
-                s += "s";
+                s += "s_0";
                 break;
             case InputType.STATE_1:
-                s += "s";
+                s += "s_1";
                 break;
             case InputType.STATE_2:
-                s += "s";
+                s += "s_2";
                 break;
             case InputType.STATE_3:
-                s += "s";
-                break;
-            case InputType.STATE_4:
-                s += "s";
-                break;
-            case InputType.STATE_5:
-                s += "s";
-                break;
-            case InputType.STATE_6:
-                s += "s";
-                break;
-            case InputType.STATE_7:
-                s += "s";
-                break;
-            case InputType.STATE_8:
-                s += "s";
-                break;
-            case InputType.STATE_9:
-                s += "s";
+                s += "s_3";
                 break;
         }
         return s;

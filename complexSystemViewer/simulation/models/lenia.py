@@ -8,6 +8,8 @@ import typing as t
 from functools import partial
 import math
 import chex
+from functools import partial
+
 
 
 from ..simulation import * 
@@ -15,17 +17,18 @@ class LeniaSimulation(Simulation):
 
     initialization_parameters = [
         BoolParam(id_p="randomStart", name="Random start", default_value=False),
+        IntParam(id_p="seed", name="Seed", default_value=6, min_value=1),
         IntParam(id_p="gridSize", name="Grid size",
                  default_value=200, min_value=40, step=1),
         FloatParam(id_p="dt", name="dt",
-                    default_value=0.05, min_value=0.1, max_value=1., step=0.1)
+                    default_value=0.05, min_value=0.1, max_value=1., step=0.1),
+        IntParam(id_p="C", name="Number of Channels",
+                    default_value=1, min_value=1, max_value=4, step=1)
     ]
 
     default_rules = [
             IntParam(id_p="number_of_kernels", name="Number of kernels",
                     default_value=10, min_value=1, step=1),
-            IntParam(id_p="C", name="C",
-                    default_value=1, min_value=1, step=1),
             IntParam(id_p="dd", name="dd",
                     default_value=5, min_value=1, step=1),
             IntParam(id_p="n", name="n",
@@ -40,11 +43,12 @@ class LeniaSimulation(Simulation):
         super().__init__()
         self.initSimulation(init_states, rules)
            
-    def initSimulation(self, init_states = None, rules = default_rules, init_param = initialization_parameters):
+    def initSimulation(self, init_states : list[State] = None, rules : list[Param] = default_rules, init_param : list[Param]= initialization_parameters):
         
-        self.random_start = [p for p in init_param if p.id_param == "randomStart"][0].value
-        self.grid_size = [p for p in init_param if p.id_param == "gridSize"][0].value
-        self.dt = [p for p in init_param if p.id_param == "dt"][0].value
+        self.random_start : bool = [p for p in init_param if p.id_param == "randomStart"][0].value
+        self.grid_size : int = [p for p in init_param if p.id_param == "gridSize"][0].value
+        self.dt : float = [p for p in init_param if p.id_param == "dt"][0].value
+        self.C : int = [p for p in init_param if p.id_param == "C"][0].value
 
 
         
@@ -52,13 +56,15 @@ class LeniaSimulation(Simulation):
         self.nb_k = self.getRuleById("number_of_kernels")
         SX = SY = self.grid_size
         
-        self.M = np.ones((self.getRuleById("C"), self.getRuleById("C")), dtype=int) * self.nb_k
+        self.M = np.ones((self.C, self.C), dtype=int) * self.nb_k
         self.nb_k = int(self.M.sum())
         self.c0, self.c1 = conn_from_matrix( self.M )
     
         self.rule_space = RuleSpace(self.nb_k)
         self.kernel_computer = KernelComputer(SX, SY, self.nb_k)
-        seed = 10
+
+        seed : int = [p for p in init_param if p.id_param == "seed"][0].value
+        
         key = jax.random.PRNGKey(seed)
         params_seed, state_seed = jax.random.split(key)
         params = self.rule_space.sample(params_seed)
@@ -73,18 +79,47 @@ class LeniaSimulation(Simulation):
         else:
             self.init_default_sim()
 
-        self.interactions : list[Interaction] = [Interaction("toLife", leniaInteraction)]
+        self.interactions : list[Interaction]= []
+        def lenia_interaction(channel : int, mask : jnp.ndarray, states : list[State]):
+            mask = jnp.expand_dims(mask, 2)
+            shape = list(mask.shape)
+
+            minus_one = jnp.subtract(jnp.zeros(shape), jnp.ones(shape))
+            new_mask = mask if channel == 0 else minus_one
+            if (self.C > 1):
+                for k in range(1, self.C):
+                    if (k == channel):
+                        new_mask = jnp.dstack((new_mask, mask))
+                    else:
+                        new_mask = jnp.dstack((new_mask, minus_one))
 
 
-    def set_current_state_from_array(self, new_state):
-        state = new_state[2]
-        grid = jnp.asarray(state, dtype=jnp.float32).reshape((self.current_states[0].grid.shape))
+            states[0].grid = jnp.where(new_mask >= 0, new_mask, states[0].grid)
+
+        for i in range(self.C):
+            self.interactions.append(Interaction(str(i), partial(lenia_interaction, i)))
+
+    def set_current_state_from_array(self, new_state : list[list[float]]):
+        nb_channels = self.current_states[0].grid.shape[-1]
+        shape = list(self.current_states[0].grid.shape)
+        shape[-1] = 1
+
+
+        grid = None
+        for i in range(nb_channels):
+            state = new_state[2 + i]
+            state = jnp.asarray(state, dtype=jnp.float32).reshape(shape)
+            if (grid == None):
+                grid = state
+            else:
+                grid = jnp.dstack((grid, state))
+        
         self.current_states[0].set_grid(grid)
 
 
 
     def init_default_sim(self):
-        grid = jnp.zeros((self.grid_size, self.grid_size, 1))
+        grid = jnp.zeros((self.grid_size, self.grid_size, self.C))
         state = GridState(grid)
         self.current_states = [state]
         self.width = self.grid_size
@@ -96,8 +131,8 @@ class LeniaSimulation(Simulation):
         offsetX, offsetY= round(SX/8), round(SY/8)
 
 
-        A0 = jnp.zeros((SX, SY, 1)).at[mx-offsetX:mx+offsetX, my-offsetY:my+offsetY, :].set(
-            jax.random.uniform(state_seed, (2*offsetX, 2*offsetY, 1))
+        A0 = jnp.zeros((SX, SY, self.C)).at[mx-offsetX:mx+offsetX, my-offsetY:my+offsetY, :].set(
+            jax.random.uniform(state_seed, (2*offsetX, 2*offsetY, self.C))
         )
         state = GridState(A0)
         self.current_states = [state]
@@ -120,7 +155,7 @@ class LeniaSimulation(Simulation):
 
         U = growth(U, self.c_params.m, self.c_params.s) * self.c_params.h  # (x,y,k)
 
-        U = jnp.dstack([ U[:, :, self.c1[c]].sum(axis=-1) for c in range(self.getRuleById('C')) ])  # (x,y,c)
+        U = jnp.dstack([ U[:, :, self.c1[c]].sum(axis=-1) for c in range(self.C) ])  # (x,y,c)
 
         nA = jnp.clip(A + self.dt * U, 0., 1.)
         self.current_states[0].grid = nA

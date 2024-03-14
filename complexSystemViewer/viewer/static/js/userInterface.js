@@ -24,6 +24,9 @@ export class UserInterface {
             UserInterface._instance = new UserInterface();
         return UserInterface._instance;
     }
+    set nbChannels(nb) {
+        this._transformers.setNumberOfStatesOutput(nb);
+    }
     get nbElements() {
         return this._nbElements;
     }
@@ -137,7 +140,7 @@ export class UserInterface {
             e.preventDefault();
             let transformertype = document.getElementById("transformerTypeSelector").value;
             let xhttp = new XMLHttpRequest();
-            xhttp.open("GET", "addTranformerURL/" + modelSelector.value + "/" + transformertype, true);
+            xhttp.open("GET", "addTranformerURL/" + transformertype, true);
             xhttp.onreadystatechange = function () {
                 if (this.readyState == 4 && this.status == 200) {
                     let domParser = new DOMParser();
@@ -244,14 +247,55 @@ export class UserInterface {
 export class TransformersInterface {
     _viewer;
     _currentTransformerBuilder;
+    _nbChannels;
     constructor(viewer) {
         this._viewer = viewer;
         this._currentTransformerBuilder = new TransformerBuilder();
+        this._nbChannels = 1;
         this._viewer.selectionManager.setTransformer(this._currentTransformerBuilder);
+    }
+    setNumberOfStatesOutput(nb) {
+        let oldNumber = this._nbChannels;
+        this._nbChannels = nb;
+        console.log("old Number = ", oldNumber, "current = ", this._nbChannels);
+        document.querySelectorAll("div[transformer]").forEach((e) => {
+            let select = e.getElementsByClassName("visualizationInput")[0].querySelector("select");
+            if (oldNumber > this._nbChannels) {
+                for (let i = oldNumber - 1; i > this._nbChannels - 1; --i) {
+                    let selector = "option[value=" + this.getInputNameFromChannelIdx(i) + "]";
+                    select.querySelector(selector).remove();
+                }
+            }
+            else {
+                for (let i = oldNumber; i < this._nbChannels; ++i) {
+                    let text = this.getInputNameFromChannelIdx(i);
+                    let option = new Option(text, text);
+                    select.add(option);
+                }
+            }
+        });
+    }
+    addInputTypeOptionElements(selectElement) {
+        let selected = this.getInputType(selectElement);
+        let addOption = (text) => {
+            let option = new Option(text, text);
+            selectElement.add(option);
+        };
+        if (selected != InputType.POSITION_X)
+            addOption("POSITION_X");
+        if (selected != InputType.POSITION_Y)
+            addOption("POSITION_Y");
+        if (selected != InputType.POSITION_Z)
+            addOption("POSITION_Z");
+        for (let i = 0; i < this._nbChannels; i++) {
+            if (selectElement.value != this.getInputNameFromChannelIdx(i))
+                addOption(this.getInputNameFromChannelIdx(i));
+        }
     }
     addTransformerFromElement(element) {
         const inputElement = this.getInputTypeElement(element);
         const inputType = this.getInputType(inputElement);
+        this.addInputTypeOptionElements(inputElement);
         const deleteButton = element.getElementsByClassName("deleteButton")[0];
         const transformType = this.getTransformType(element);
         const paramsElements = this.getParamsElements(element);
@@ -318,6 +362,26 @@ export class TransformersInterface {
                 return InputType.POSITION_Z;
             case "STATE_0":
                 return InputType.STATE_0;
+            case "STATE_1":
+                return InputType.STATE_1;
+            case "STATE_2":
+                return InputType.STATE_2;
+            case "STATE_3":
+                return InputType.STATE_3;
+        }
+    }
+    getInputNameFromChannelIdx(idx) {
+        switch (idx) {
+            case 0:
+                return "STATE_0";
+            case 1:
+                return "STATE_1";
+            case 2:
+                return "STATE_2";
+            case 3:
+                return "STATE_3";
+            default:
+                return "STATE_0";
         }
     }
     // TODO : fill with right ids

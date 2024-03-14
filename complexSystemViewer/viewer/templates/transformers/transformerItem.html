@@ -13,9 +13,7 @@
     {% endif %}
     <div class="visualizationInput">
     <select>
-        {% for sysOutput in model.getSimOutType %}
-            <option value="{{sysOutput}}" {% if transformer.outputType == sysOutput %} selected {% endif %}>{{sysOutput}}</option>
-        {% endfor %}
+        <option value="{{transformer.outputType}}" selected >{{transformer.outputType}}</option>
     </select>
     <div class="transformerParam">
         {% for param in parameters %}

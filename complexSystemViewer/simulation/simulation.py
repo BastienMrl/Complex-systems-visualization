@@ -10,7 +10,7 @@ import time
 
 class Simulation(ABC):   
 
-    def __init__(self, init_states = None, rules  = None): 
+    def __init__(self, init_states : list[State] = None, rules : list[Param]  = None): 
         self.current_states = None
         self.rules = None
         self.width = None
@@ -43,7 +43,7 @@ class Simulation(ABC):
         pass
 
     @abstractmethod
-    def set_current_state_from_array(self, new_state):
+    def set_current_state_from_array(self, new_state : list[list[float]]):
         pass
 
     def to_JSON_object(self) :

@@ -13,10 +13,10 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
         self.init_parameters = None
     
     async def connect(self):
-        self.isConnected = True
-        self.sim = ModelManager.get_simulation_model("Gol")
-        self.init_parameters = ModelManager.get_initialization_parameters("Gol")
         await self.accept()
+        self.init_parameters = ModelManager.get_initialization_parameters("Gol")
+        self.sim = ModelManager.get_simulation_model("Gol")
+        self.isConnected = True
     
     async def disconnect(self, close_code):
         self.isConnected = False
@@ -43,7 +43,7 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
                     await self.updateRule(text_data_json["params"])
             case "ApplyInteraction":
                 if self.isConnected:
-                    await self.applyInteraction(text_data_json["mask"], text_data_json["currentStates"])
+                    await self.applyInteraction(text_data_json["mask"], text_data_json["currentStates"], text_data_json["interaction"])
 
     async def sendOneStep(self):
         await self.send(bytes_data=orjson.dumps(self.sim.to_JSON_object()))
@@ -70,11 +70,11 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
         self.sim.initSimulation(init_param=self.init_parameters)
         await self.sendOneStep()
 
-    async def applyInteraction(self, mask, currentValues):
+    async def applyInteraction(self, mask : list[float], currentValues : list[list[float]], interaction : str):
         self.sim.set_current_state_from_array(currentValues)
         mask_jnp = jnp.asarray(mask, dtype=jnp.float32)
         mask_jnp = mask_jnp.reshape(self.sim.width, self.sim.height)
-        self.sim.applyInteraction("toLife", mask_jnp)
+        self.sim.applyInteraction(interaction, mask_jnp)
         await self.sendOneStep()        
 
     

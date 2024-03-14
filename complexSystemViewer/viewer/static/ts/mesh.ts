@@ -21,13 +21,14 @@ export class MultipleMeshInstances{
 
     
     private _translationBuffer : InstanceAttribBuffer;
-    private _stateBuffer : InstanceAttribBuffer;
+    private _stateBuffers : Array<InstanceAttribBuffer>;
+    // TODO: defined by the user hardware
+    private readonly _nbStates = 4;
 
     private _vao : WebGLVertexArrayObject | null;
     private _mouseOverBuffer : WebGLBuffer | null;
 
     public constructor(context : WebGL2RenderingContext, values : TransformableValues){
-
 
         this._context = context;
         this._nbInstances = values.nbElements;
@@ -38,8 +39,16 @@ export class MultipleMeshInstances{
         this._translationBuffer = new InstanceAttribBuffer(context);
         this._translationBuffer.initialize(values.translations);
 
-        this._stateBuffer = new InstanceAttribBuffer(context);
-        this._stateBuffer.initialize(values.states[0]);
+        this._stateBuffers = new Array<InstanceAttribBuffer>;
+        values.states.forEach((e, i) => {
+            this._stateBuffers[i] = new InstanceAttribBuffer(context);
+            this._stateBuffers[i].initialize(e);
+        });
+
+        for (let i = values.nbChannels; i < this._nbStates; i++){
+            this._stateBuffers[i] = new InstanceAttribBuffer(context);
+            this._stateBuffers[i].initialize(new Float32Array(values.nbElements).fill(0.))    
+        }
     }
 
     // getters
@@ -106,7 +115,9 @@ export class MultipleMeshInstances{
         this._translationBuffer.bindAttribs(ShaderLocation.TRANSLATION_T0, 1, 3, gl.FLOAT, false, 0);
         
         // states
-        this._stateBuffer.bindAttribs(ShaderLocation.STATE_0_T0, 1, 1, gl.FLOAT, false, 0);
+        for (let i = 0; i < this._nbStates; i++){
+            this._stateBuffers[i].bindAttribs(ShaderLocation.STATE_0_T0 + 2 * i, 1, 1, gl.FLOAT, false, 0);
+        }
         
         // mouse over
         this._mouseOverBuffer = this._context.createBuffer();
@@ -142,8 +153,12 @@ export class MultipleMeshInstances{
     }
 
     public updateStates(values : TransformableValues){
+        if (values == null)
+            return;
         this._translationBuffer.updateAttribs(values.translations);
-        this._stateBuffer.updateAttribs(values.states[0]);
+        values.states.forEach((e, i) => {
+            this._stateBuffers[i].updateAttribs(e);
+        });
     }
 
     public updateMouseOverBuffer(indices : Array<number> | null){
