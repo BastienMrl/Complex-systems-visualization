@@ -1,17 +1,16 @@
 import { TransformableValues } from "../transformableValues.js";
 import { SocketManager } from "./socketManager.js";
 
-
 export class StatesBuffer{
 
     private _states : Float32Array[];
     private _transformedValues : TransformableValues;
 
     private _isNewValues : boolean = false;
+    private _valueIsReshaped : boolean = false;
 
 
     private _socketManager : SocketManager;
-    private _isInitialized : boolean;
 
     
 
@@ -23,11 +22,14 @@ export class StatesBuffer{
         this._socketManager.onDataReceived = function(data : any){
             this.onStateReceived(data);
         }.bind(this);
-        this._isInitialized = false;
     };
 
-    public get isReady() : boolean{
-        return this._isInitialized;
+    public get hasNewValue() : boolean {
+        return this._isNewValues;
+    }
+
+    public get isReshaped() : boolean {
+        return this._valueIsReshaped;
     }
 
     public get values() : TransformableValues{
@@ -35,27 +37,15 @@ export class StatesBuffer{
         this._transformedValues = TransformableValues.fromInstance(values);
         if (this._isNewValues){
             this._isNewValues = false;
+            this._valueIsReshaped = false;
             this.requestState();
         }
         return values;
     }
 
-    public get hasNewValue() : boolean {
-        return this._isNewValues;
-    }
 
     public flush(){
         this._isNewValues = false;
-    }
-
-    
-
-    public initializeElements(nbElements: number){
-        this._socketManager.stop();
-        this._isInitialized = false;
-        this._transformedValues.reshape(nbElements);
-        this._socketManager.requestEmptyInstance(nbElements);
-        this._socketManager.start(nbElements);
     }
 
 
@@ -63,11 +53,25 @@ export class StatesBuffer{
         this._socketManager.requestData();
     }
 
-    public onStateReceived(data : any){
+    public onStateReceived(data : Array<Float32Array>){
         this._states = data;
+        let nbElements = this.getNbElementsFromData(data);
+        let nbChannels = this.getNbChannelsFromData(data);
+        if (nbElements != this._transformedValues.nbElements || nbChannels != this._transformedValues.nbChannels){
+            this._valueIsReshaped = true;
+            this._transformedValues.reshape(nbElements, nbChannels);
+        }
+        
         this.transformState();
-        this._isInitialized = true;
         this._isNewValues = true;
+    }
+
+    private getNbElementsFromData(data : any){
+        return data[0][0];
+    }
+
+    private getNbChannelsFromData(data : any){
+        return data[0][1];
     }
 
 

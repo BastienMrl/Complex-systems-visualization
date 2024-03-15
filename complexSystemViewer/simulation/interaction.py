@@ -1,14 +1,11 @@
 import jax.numpy as jnp
 from .state import *
+from typing import Callable
 
 class Interaction():
-    def __init__(self, id : str):
+    def __init__(self, id : str, apply_fct : Callable[[jnp.ndarray, list[State]], None]):
         self.id = id
+        self.apply_fct = apply_fct
 
     def apply(self, mask : jnp.ndarray, states : list[State]):
-        input = mask >= 0.1
-        if (len(states[0].grid.shape) == 3):
-            input = jnp.expand_dims(input, 2)
-            states[0].grid = jnp.where(input > 0, input, states[0].grid)
-        else :
-            states[0].grid = jnp.logical_or(states[0].grid, input).astype(jnp.float32)
+        self.apply_fct(mask, states)

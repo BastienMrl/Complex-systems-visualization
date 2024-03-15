@@ -4,9 +4,12 @@ export var WorkerMessage;
     WorkerMessage["GET_VALUES"] = "get";
     WorkerMessage["RESET"] = "reset";
     WorkerMessage["VALUES"] = "values";
+    WorkerMessage["VALUES_RESHAPED"] = "reshaped";
     WorkerMessage["READY"] = "ready";
     WorkerMessage["UPDATE_RULES"] = "update_r";
     WorkerMessage["APPLY_INTERACTION"] = "send_interaction";
+    WorkerMessage["CHANGE_SIMULATION"] = "change_simulation";
+    WorkerMessage["UPDATE_INIT_PARAM"] = "update_init_p";
 })(WorkerMessage || (WorkerMessage = {}));
 export function sendMessageToWorker(worker, header, message, transfer) {
     if (transfer != undefined)

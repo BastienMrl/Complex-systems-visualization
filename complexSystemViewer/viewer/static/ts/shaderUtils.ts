@@ -104,6 +104,7 @@ export class ProgramWithTransformer {
         } 
         
         this._program = shaderProgram;
+        console.log(this._vertexShader)
     }
 
     
@@ -119,8 +120,14 @@ enum ShaderUniforms {
 enum ShaderMeshInputs {
     TRANSLATION_T0 = "a_translation_t0",
     TRANLSATION_T1 = "a_translation_t1",
-    STATE_T0 = "a_state_t0",
-    STATE_T1 = "a_state_t1"
+    STATE_0_T0 = "a_state_0_t0",
+    STATE_0_T1 = "a_state_0_t1",
+    STATE_1_T0 = "a_state_1_t0",
+    STATE_1_T1 = "a_state_1_t1",
+    STATE_2_T0 = "a_state_2_t0",
+    STATE_2_T1 = "a_state_2_t1",
+    STATE_3_T0 = "a_state_3_t0",
+    STATE_3_T1 = "a_state_3_t1",
 }
 
 
@@ -142,12 +149,18 @@ enum ShaderLocation {
     UV = 2,
     ID = 3,
 
-    TRANSLATION_T0 = 10,
-    TRANLSATION_T1 = 11,
-    STATE_0_T0 = 12,
-    STATE_0_T1 = 13,
+    SELECTED = 4,
 
-    SELECTED = 15
+    TRANSLATION_T0 = 5,
+    TRANLSATION_T1 = 6,
+    STATE_0_T0 = 7,
+    STATE_0_T1 = 8,
+    STATE_1_T0 = 9,
+    STATE_1_T1 = 10,
+    STATE_2_T0 = 11,
+    STATE_2_T1 = 12,
+    STATE_3_T0 = 13,
+    STATE_3_T1 = 14,
 }
 
 

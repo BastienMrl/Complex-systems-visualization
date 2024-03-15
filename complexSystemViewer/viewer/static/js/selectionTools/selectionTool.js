@@ -14,7 +14,7 @@ export class SelectionTool {
     // public methods
     setMeshes(meshes) {
         this._meshes = meshes;
-        this._currentMask = new Float32Array(this._meshes.nbInstances).fill(0);
+        this._currentMask = new Float32Array(this._meshes.nbInstances).fill(-1);
     }
     setTransformer(transformer) {
         this._transformer = transformer;
@@ -38,12 +38,23 @@ export class SelectionTool {
     }
     // protected methods
     onCurrentSelectionChanged(selection) {
-        this._viewer.currentSelectionChanged(selection);
-        this._currentMask.fill(0.);
-        if (selection != null)
-            selection.forEach(e => {
-                this._currentMask[e] = 1.;
+        this._currentMask.fill(-1);
+        if (selection instanceof Array) {
+            this._viewer.currentSelectionChanged(selection);
+            if (selection != null)
+                selection.forEach(e => {
+                    this._currentMask[e] = 1.;
+                });
+        }
+        else if (selection instanceof Map) {
+            this._viewer.currentSelectionChanged(Array.from(selection.keys()));
+            selection.forEach((value, key) => {
+                this._currentMask[key] = value;
             });
+        }
+        else {
+            this._viewer.currentSelectionChanged(null);
+        }
     }
     getMouseOver() {
         let origin = this._viewer.camera.position;

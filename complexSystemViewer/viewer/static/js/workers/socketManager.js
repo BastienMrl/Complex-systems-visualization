@@ -1,18 +1,17 @@
 export class SocketManager {
     // Singleton
     static _instance;
-    _startMesssage = "Start";
-    _stopMessage = "Stop";
     _requestDataMessage = "RequestData";
-    _requestEmptyGridMessage = "EmptyGrid";
-    _changeRulesMessage = "ChangeRules";
+    _resetSimulationMessage = "ResetSimulation";
+    _changeSimuMessage = "ChangeSimulation";
+    _updateInitParams = "UpdateInitParams";
+    _updateRulesMessage = "UpdateRule";
     _applyInteractionMessage = "ApplyInteraction";
     // These functions must be defined by the owner
     _onDataReceived;
     _onStart;
     _onStop;
     //..............................................
-    _isRunning;
     _isConnected;
     _socket;
     _awaitingRequests;
@@ -29,10 +28,6 @@ export class SocketManager {
         if (!SocketManager._instance)
             SocketManager._instance = new SocketManager();
         return SocketManager._instance;
-    }
-    // getter
-    get isRunning() {
-        return this._isRunning;
     }
     get isConnected() {
         return this._isConnected;
@@ -64,7 +59,6 @@ export class SocketManager {
         };
     }
     onMessage(e) {
-        console.log("SOCKET HANDLER : Message received");
         var promise = e.data.text();
         promise.then(value => {
             const data = JSON.parse(value);
@@ -89,61 +83,57 @@ export class SocketManager {
     // public methods
     async connectSocket(url) {
         this._socket = new WebSocket(url);
-        this._isRunning = false;
         this.connectSocketEvents();
     }
-    // params could be "Model" + "instance parameters"
-    start(params) {
-        if (this._isRunning)
-            return;
-        this._socket.send(JSON.stringify({
-            'message': this._startMesssage,
-            'params': params
-        }));
-        this._isRunning = true;
-        this._onStart();
-    }
-    stop() {
-        if (!this._isRunning)
-            return;
-        this._socket.send(JSON.stringify({
-            'message': this._stopMessage
-        }));
-        this._isRunning = false;
-        this._onStop();
-    }
     requestData() {
-        if (!this._isRunning)
-            return;
         this._socket.send(JSON.stringify({
             'message': this._requestDataMessage
         }));
     }
-    requestEmptyInstance(params) {
+    resetSimulation() {
         if (!this._isConnected) {
-            this._awaitingRequests.push(this.requestEmptyInstance.bind(this, params));
-            return;
-        }
-        ;
-        if (this._isRunning)
-            return;
-        this._socket.send(JSON.stringify({
-            'message': this._requestEmptyGridMessage,
-            'params': params
-        }));
-    }
-    changeSimuRules(params) {
-        if (!this._isConnected) {
-            this._awaitingRequests.push(this.changeSimuRules.bind(this, params));
+            this._awaitingRequests.push(this.resetSimulation.bind(this));
             return;
         }
         ;
         this._socket.send(JSON.stringify({
-            'message': this._changeRulesMessage,
+            'message': this._resetSimulationMessage,
+        }));
+    }
+    updateSimuRules(params) {
+        if (!this._isConnected) {
+            this._awaitingRequests.push(this.updateSimuRules.bind(this, params));
+            return;
+        }
+        ;
+        this._socket.send(JSON.stringify({
+            'message': this._updateRulesMessage,
             'params': params
         }));
     }
-    applyInteraction(mask, currentValues) {
+    updateInitParams(params) {
+        if (!this._isConnected) {
+            this._awaitingRequests.push(this.updateInitParams.bind(this, params));
+            return;
+        }
+        ;
+        this._socket.send(JSON.stringify({
+            'message': this._updateInitParams,
+            'params': params
+        }));
+    }
+    changeSimu(name) {
+        if (!this._isConnected) {
+            this._awaitingRequests.push(this.changeSimu.bind(this, name));
+            return;
+        }
+        ;
+        this._socket.send(JSON.stringify({
+            'message': this._changeSimuMessage,
+            'simuName': name
+        }));
+    }
+    applyInteraction(mask, currentValues, id) {
         if (!this._isConnected) {
             this._awaitingRequests.push(this.applyInteraction.bind(this, mask));
             return;
@@ -152,10 +142,12 @@ export class SocketManager {
         currentValues.forEach((e, i) => {
             values[i] = Array.from(e);
         });
-        this._socket.send(JSON.stringify({
+        let string = JSON.stringify({
             'message': this._applyInteractionMessage,
             'mask': Array.from(mask),
-            'currentStates': values
-        }));
+            'currentStates': values,
+            'interaction': id
+        });
+        this._socket.send(string);
     }
 }

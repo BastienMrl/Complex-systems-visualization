@@ -1,29 +1,21 @@
 import orjson
-
-import time
 import jax.numpy as jnp
-import jax.lax as lax
-import jax.random
-import math
+from .modelManager import ModelManager
 from channels.generic.websocket import AsyncWebsocketConsumer
-from simulation.state import State, GridState
-from simulation.models.game_of_life import GOLSimulation
-from simulation.param import *
-from simulation.models.lenia import  LeniaSimulation
-
-import time
+from simulation.simulation import Simulation
 
 
 class ViewerConsumerV2(AsyncWebsocketConsumer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.isConnected = False
-        
-        #####
-        self.sim = None
+        self.sim : Simulation = None
+        self.init_parameters = None
     
     async def connect(self):
         await self.accept()
+        self.init_parameters = ModelManager.get_initialization_parameters("Gol")
+        self.sim = ModelManager.get_simulation_model("Gol")
         self.isConnected = True
     
     async def disconnect(self, close_code):
@@ -33,74 +25,55 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
         text_data_json = orjson.loads(text_data)
         message = text_data_json["message"]
         match message:
-            case "Start":
-                if self.isConnected:
-                    await self.initLenia()
-            case "Stop":
-                if self.isConnected:
-                    self.sim = None
             case "RequestData":
                 if self.isConnected :
                     await self.sendOneStep()
-            case "EmptyGrid":
+            case "ResetSimulation":
                 if self.isConnected:
-                    await self.emptyGrid(text_data_json["params"])
-            case "ChangeRules":
+                    await self.resetSimulation()
+            case "ChangeSimulation":
                 if self.isConnected:
-                    await self.updateRules(text_data_json["params"])
+                    self.sim = None
+                    await self.initNewSimulation(text_data_json["simuName"])       
+            case "UpdateInitParams":
+                    await self.updateInitParams(text_data_json["params"])
+            case "UpdateRule":
+                if self.isConnected:
+                    await self.updateRule(text_data_json["params"])
             case "ApplyInteraction":
                 if self.isConnected:
-                    t = time.time()
-                    await self.applyInteraction(text_data_json["mask"], text_data_json["currentStates"])
-                    print("time = ", (1000 * (time.time() - t)), "ms")
-                    
-
-    async def emptyGrid(self, nbInstances):
-        row = int(math.sqrt(nbInstances))
-        grid = [0] * row * row
-        xy = jnp.indices([row, row], dtype=jnp.float32)
-        offset = -(row - 1) / 2.
-        x = ((xy[1].reshape(row * row) + offset) ).tolist()
-        y = ((xy[0].reshape(row * row) + offset) ).tolist()
-        data = [x, y, grid]
-        await self.send(bytes_data=orjson.dumps(data))
-
-
-    async def initGOL(self):
-        self.sim = GOLSimulation()
-
-
-    async def initLenia(self):
-        self.sim = LeniaSimulation()
-
+                    await self.applyInteraction(text_data_json["mask"], text_data_json["currentStates"], text_data_json["interaction"])
 
     async def sendOneStep(self):
-        t0 = time.time()
         await self.send(bytes_data=orjson.dumps(self.sim.to_JSON_object()))
-        #print("Data sent - ", 1000*(time.time()-t0), "ms\n")
         self.sim.step()
 
 
-
-    async def updateRules(self, params):
+    async def updateInitParams(self, params):
         json = orjson.loads(params)
-        self.sim.updateParam(json)
-        #for rule in rules:
-        #    match rule:
-        #        case "birth":
-        #            parameter : RangeIntParam = self.sim.getParamById("birth")
-        #            parameter.min_param.value = rules[rule][0]
-        #            parameter.max_param.value = rules[rule][1]
-        #        case "survival":
-        #            parameter : RangeIntParam = self.sim.getParamById("survival")
-        #            parameter.min_param.value = rules[rule][0]
-        #            parameter.max_param.value = rules[rule][1]
+        for p in self.init_parameters:
+            if p.id_param == json["paramId"]:
+                p.set_param(json)
 
 
-    async def applyInteraction(self, mask, currentValues):
+    async def updateRule(self, params):
+        self.sim.updateRule(orjson.loads(params))
+
+
+    async def initNewSimulation(self, name):
+        self.init_parameters = ModelManager.get_initialization_parameters(name)
+        self.sim = ModelManager.get_simulation_model(name)
+        await self.sendOneStep()    
+
+    async def resetSimulation(self):
+        self.sim.initSimulation(init_param=self.init_parameters)
+        await self.sendOneStep()
+
+    async def applyInteraction(self, mask : list[float], currentValues : list[list[float]], interaction : str):
         self.sim.set_current_state_from_array(currentValues)
-        mask_jnp = jnp.array(mask).reshape(self.sim.width, self.sim.height)
-        self.sim.applyInteraction("toLife", mask_jnp)
-        
+        mask_jnp = jnp.asarray(mask, dtype=jnp.float32)
+        mask_jnp = mask_jnp.reshape(self.sim.width, self.sim.height)
+        self.sim.applyInteraction(interaction, mask_jnp)
+        await self.sendOneStep()        
 
     

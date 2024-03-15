@@ -33,6 +33,10 @@ export class UserInterface {
         return UserInterface._instance;
     }
 
+    public set nbChannels(nb : number){
+        this._transformers.setNumberOfStatesOutput(nb);
+    }
+    
     public get nbElements() : number {
         return this._nbElements;
     }
@@ -110,8 +114,6 @@ export class UserInterface {
 
         let modelSelector = (document.getElementById("modelSelector") as HTMLSelectElement);
 
-        let gridSizeInput = (document.querySelector("input[paramid=\"gridSize\"]") as HTMLInputElement);
-
         playButton.addEventListener('click', () => {
             this._viewer.startVisualizationAnimation();
             console.log("START");
@@ -124,7 +126,7 @@ export class UserInterface {
 
         restartButton.addEventListener('click', () => {
             this._viewer.stopVisualizationAnimation();
-            this._viewer.initCurrentVisu(this._nbElements);
+            sendMessageToWorker(this._viewer.transmissionWorker, WorkerMessage.RESET);
             console.log("RESTART");
         });
 
@@ -155,19 +157,17 @@ export class UserInterface {
             foldSimulationPanelButton.classList.toggle("slideLeft")
         });
 
-        gridSizeInput.addEventListener("change", async () => {
-            this._nbElements = (gridSizeInput.value as unknown as number)**2;
-            this._viewer.initCurrentVisu(this._nbElements);
-        });
-
         for(let i=0; i<toolButtons.length; i++){
-            toolButtons.item(i).addEventListener("click", () => {
+            toolButtons.item(i).addEventListener("click", (e) => {
                 let prevActiveTool = document.querySelectorAll(".toolActive:not(#tool" + toolButtons.item(i).id +")");
-                if (i == 0) {
-                    this._viewer.selectionManager.switchMode(SelectionMode.BRUSH);
-                }
-                if (i == 1){
-                    this._viewer.selectionManager.switchMode(SelectionMode.BOX);
+                let sm = (e.target as HTMLDivElement).parentElement.getAttribute("selectionMode")
+                switch(sm){
+                    case "BRUSH":
+                        this._viewer.selectionManager.switchMode(SelectionMode.BRUSH);
+                        break;
+                    case "BOX":
+                        this._viewer.selectionManager.switchMode(SelectionMode.BOX);
+                        break;
                 }
                 toolButtons.item(i).classList.toggle("toolActive");
                 if(prevActiveTool.length > 0){
@@ -181,14 +181,14 @@ export class UserInterface {
             e.preventDefault();
             let transformertype = (document.getElementById("transformerTypeSelector") as HTMLSelectElement).value
             let xhttp = new XMLHttpRequest()
-            xhttp.open("GET", "addTranformerURL/" + modelSelector.value + "/" + transformertype, true);
+            xhttp.open("GET", "addTranformerURL/" + transformertype, true);
             xhttp.onreadystatechange = function() {
                 if(this.readyState == 4 && this.status == 200){
                     let domParser = new DOMParser();
                     let newTransformer = domParser.parseFromString(this.responseText, "text/html").body.childNodes[0] as HTMLDivElement;
                     newTransformer.id = newTransformer.id + (nbAddedTransformer+=1) 
-                    let CP = document.getElementById("configurationPanel");
-                    CP.insertBefore(newTransformer, CP.lastChild.previousSibling);
+                    let VP = document.getElementById("visualizationPanel");
+                    VP.insertBefore(newTransformer, VP.lastChild.previousSibling);
                     superthis._transformers.addTransformerFromElement(newTransformer)
                 }
             }
@@ -202,54 +202,68 @@ export class UserInterface {
         });
 
         modelSelector.addEventListener("change", () => {
+            sendMessageToWorker(this._viewer.transmissionWorker, WorkerMessage.CHANGE_SIMULATION, modelSelector.value);
             let xhttp = new XMLHttpRequest()
             xhttp.open("GET", "changeModel/" + modelSelector.value, true);
             xhttp.onreadystatechange = function() {
                 if(this.readyState == 4 && this.status == 200){
                     let domParser = new DOMParser();
-                    let updateRules = domParser.parseFromString(this.responseText, "text/html").body.childNodes[0] as HTMLDivElement;
+                    let updateRules = domParser.parseFromString(this.responseText, "text/html").body.childNodes;
                     let prevRules = document.getElementById("rules") as HTMLDivElement;
-                    prevRules.parentElement.appendChild(updateRules)
-                    prevRules.parentElement.removeChild(prevRules)
-                    superthis.initRulesListener()
+                    let prevConfigSet = document.querySelectorAll(".configurationItem.simulationItem"); 
+                    updateRules.forEach( (elem) => {
+                        prevRules.parentElement.appendChild(elem)
+                    })
+                    prevConfigSet.forEach( (elem)=>{
+                        elem.remove()
+                    })
+                    superthis.initSimulationItem()
                 }
             }
             xhttp.send();
         })
-
-        this.initRulesListener()
-
+        this.initSimulationItem()
     }
 
-    private initRulesListener(){
-        let paramsInputRule = document.querySelectorAll("#rules .parameterItem input");
-        let sendSimuRules = (e) =>{
-            let input = (e.target as HTMLInputElement)
-            let paramId = input.getAttribute("paramid");
-            let paramIdSplited = paramId.split('_')
-            let value;
-            switch(input.type){
-                case "checkbox":
-                    value = input.checked;
-                    break;
-                case "number":
-                    value = Number.parseFloat(input.value);
-                    break;
-                default:
-                    value = input.value;
-                    break;
-            }
+    private initSimulationItem(){
+        // ADD LISTENER FOR RULES ITEMS
+        let rulesInputs = document.querySelectorAll("#rules .parameterItem input");
+        let rulesInputsHandler = (e) =>{
+            sendMessageToWorker(this._viewer.transmissionWorker, WorkerMessage.UPDATE_RULES, this.parseInputToJson(e.target as HTMLInputElement));
+        }
+        rulesInputs.forEach( (input)=>{
+            input.addEventListener("change", rulesInputsHandler);
+        });
+        // ADD LISTENER FOR INIT_PARAMS
+        let initParamInput = document.querySelectorAll("#initParam .parameterItem input");
+        let initParamInputsHandler = (e) =>{
+            sendMessageToWorker(this._viewer.transmissionWorker, WorkerMessage.UPDATE_INIT_PARAM, this.parseInputToJson(e.target as HTMLInputElement));
+        }
+        initParamInput.forEach( (input) => {
+            input.addEventListener("change", initParamInputsHandler);
+        });
+    }
 
-            let json = JSON.stringify({
-                "paramId":paramIdSplited[0],
-                "subparam":paramIdSplited[1],
-                "value": value
-            })
-            sendMessageToWorker(this._viewer.transmissionWorker, WorkerMessage.UPDATE_RULES, json);
+    private parseInputToJson(input:HTMLInputElement){
+        let paramId = input.getAttribute("paramid");
+        let paramIdSplited = paramId.split('_')
+        let value;
+        switch(input.type){
+            case "checkbox":
+                value = input.checked;
+                break;
+            case "number":
+                value = Number.parseFloat(input.value);
+                break;
+            default:
+                value = input.value;
+                break;
         }
 
-        paramsInputRule.forEach( (input)=>{
-            input.addEventListener("change", sendSimuRules)
+        return JSON.stringify({
+            "paramId":paramIdSplited[0],
+            "subparam":paramIdSplited[1],
+            "value": value
         });
     }
 
@@ -287,21 +301,68 @@ export class UserInterface {
 export class TransformersInterface {
     private _viewer : Viewer;
     private _currentTransformerBuilder : TransformerBuilder;
+    private _nbChannels : number;
 
     public constructor(viewer : Viewer){
         this._viewer = viewer;
         this._currentTransformerBuilder = new TransformerBuilder();
+        this._nbChannels = 1;
         this._viewer.selectionManager.setTransformer(this._currentTransformerBuilder);
+    }
+
+    public setNumberOfStatesOutput(nb : number){
+        let oldNumber = this._nbChannels;
+        this._nbChannels = nb;
+        console.log("old Number = ", oldNumber, "current = ", this._nbChannels)
+        document.querySelectorAll("div[transformer]").forEach((e) => {
+            let select = e.getElementsByClassName("visualizationInput")[0].querySelector("select");
+            if (oldNumber > this._nbChannels){
+                for (let i = oldNumber - 1; i > this._nbChannels - 1; --i){
+                    let selector = "option[value=" + this.getInputNameFromChannelIdx(i) + "]";
+                    select.querySelector(selector).remove();
+                }
+            }
+            else{
+                for(let i = oldNumber; i < this._nbChannels; ++i){
+                    let text = this.getInputNameFromChannelIdx(i);
+                    let option = new Option(text, text);
+                    select.add(option);
+                }
+            }
+
+        })
+    }
+
+    private addInputTypeOptionElements(selectElement : HTMLSelectElement){
+        let selected = this.getInputType(selectElement);
+        let addOption = (text : string) => {
+            let option = new Option(text, text);
+            selectElement.add(option);
+        }
+        
+        if (selected != InputType.POSITION_X)
+            addOption("POSITION_X");
+        if (selected != InputType.POSITION_Y)
+            addOption("POSITION_Y");
+        if (selected != InputType.POSITION_Z)
+            addOption("POSITION_Z");
+        for (let i = 0; i < this._nbChannels; i++){
+            if (selectElement.value != this.getInputNameFromChannelIdx(i))
+                addOption(this.getInputNameFromChannelIdx(i));
+        }
     }
 
     public addTransformerFromElement(element : HTMLElement){
         const inputElement = this.getInputTypeElement(element);
         const inputType = this.getInputType(inputElement);
+        this.addInputTypeOptionElements(inputElement);
 
         const deleteButton = (element.getElementsByClassName("deleteButton")[0] as HTMLButtonElement);
         
         const transformType = this.getTransformType(element);
         const paramsElements = this.getParamsElements(element);
+
+
         let params = [];
         paramsElements.forEach(e => {
             params.push(e.value);
@@ -372,6 +433,27 @@ export class TransformersInterface {
                 return InputType.POSITION_Z;
             case "STATE_0":
                 return InputType.STATE_0;
+            case "STATE_1": 
+                return InputType.STATE_1;
+            case "STATE_2":
+                return InputType.STATE_2;
+            case "STATE_3":
+                return InputType.STATE_3;
+        }
+    }
+
+    public getInputNameFromChannelIdx(idx : number) : string{
+        switch (idx){
+            case 0:
+                return "STATE_0";
+            case 1:
+                return "STATE_1";
+            case 2:
+                return "STATE_2";
+            case 3:
+                return "STATE_3";
+            default:
+                return "STATE_0";
         }
     }
 
@@ -385,8 +467,8 @@ export class TransformersInterface {
             case TransformType.COLOR_R :
             case TransformType.COLOR_G :
             case TransformType.COLOR_B :
-                let min = parent.querySelector("input[paramId=rangeMin]") as HTMLInputElement;
-                let max = parent.querySelector("input[paramId=rangeMax]") as HTMLInputElement;
+                let min = parent.querySelector("input[paramId=range_min]") as HTMLInputElement;
+                let max = parent.querySelector("input[paramId=range_max]") as HTMLInputElement;
                 return [min, max];
             case TransformType.POSITION_X :
             case TransformType.POSITION_Y :

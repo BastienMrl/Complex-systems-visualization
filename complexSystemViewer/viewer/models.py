@@ -16,14 +16,13 @@ class ALifeModel(models.Model):
 class TransformerItem(models.Model):
     idHtml = models.CharField(max_length=128)
     name = models.CharField(max_length=128)
-    aLifeModel = models.ForeignKey(ALifeModel, on_delete=models.CASCADE)
     description = models.CharField(max_length=1024)
     outputType = models.CharField(max_length=128, default="POSITION_X")
     transformerType = models.CharField(max_length=128, default="COLOR")
     displayedByDefault = models.BooleanField(default=True)
     isDeletable = models.BooleanField(default=True)
     def __str__(self):
-        return self.name + " of " + self.aLifeModel.__str__()
+        return self.name
     
 class Parameter(models.Model):
     paramId = models.CharField(max_length=128, null=True)
@@ -67,9 +66,14 @@ class SelectionParameter(Parameter):
     def type(self):
         return "SV"
     
+class SelectionMode(models.TextChoices):
+    BOX = "BOX"
+    BRUSH = "BRUSH"
+    
 class Tool(models.Model):
     name = models.CharField(max_length=128)
     description = models.CharField(max_length=256, null=True, blank=True)
     aLifeModel = models.ForeignKey(ALifeModel, on_delete=models.CASCADE)
+    selectionMode = models.CharField(max_length=10,choices=SelectionMode)
     def __str__(self):
          return self.name + " of " + self.aLifeModel.name

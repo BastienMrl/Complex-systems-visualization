@@ -7,6 +7,7 @@ import { AnimationTimer } from "./animationTimer.js";
 import { TransformableValues } from "./transformableValues.js";
 import { WorkerMessage, getMessageBody, getMessageHeader, sendMessageToWorker } from "./workers/workerInterface.js";
 import { SelectionManager } from "./selectionTools/selectionManager.js";
+import { UserInterface } from "./userInterface.js";
 // provides access to gl constants
 const gl = WebGL2RenderingContext;
 export var AnimableValue;
@@ -51,7 +52,7 @@ export class Viewer {
         this.shaderProgram = new shaderUtils.ProgramWithTransformer(context);
     }
     // initialization methods
-    async initialization(srcVs, srcFs, nbInstances) {
+    async initialization(srcVs, srcFs) {
         await this.shaderProgram.generateProgram(srcVs, srcFs);
         this.context.useProgram(this.shaderProgram.program);
         this.context.viewport(0, 0, this.canvas.width, this.canvas.height);
@@ -66,27 +67,20 @@ export class Viewer {
         this._animationTimer.callback = function () {
             this.updateScene();
         }.bind(this);
-        await this.initCurrentVisu(nbInstances);
-        this._drawable = true;
+        await this.initCurrentVisu();
     }
-    async initCurrentVisu(nbElements) {
+    async initCurrentVisu() {
         this._drawable = false;
-        this._currentValue = null;
-        sendMessageToWorker(this._transmissionWorker, WorkerMessage.RESET, nbElements);
-        while (this._nextValue == null) {
-            await new Promise(resolve => setTimeout(resolve, 1));
-        }
-        ;
-        this._currentValue = this._nextValue;
-        await this.initMesh(this._currentValue);
-        this._drawable = true;
+        sendMessageToWorker(this._transmissionWorker, WorkerMessage.RESET);
     }
     async initMesh(values) {
+        this._drawable = false;
         if (this._multipleInstances != null)
             delete this._multipleInstances;
         this._multipleInstances = new MultipleMeshInstances(this.context, values);
         this._selectionManager.setMeshes(this._multipleInstances);
         await this._multipleInstances.loadMesh("/static/models/cube_div_1.obj");
+        this._drawable = true;
     }
     initCamera() {
         const cameraPos = Vec3.fromValues(0., 80., 100.);
@@ -117,13 +111,13 @@ export class Viewer {
         this.context.viewport(0, 0, this.canvas.width, this.canvas.height);
     }
     updateScene() {
-        console.log("Update");
         if (this._nextValue == null) {
             return;
         }
         this._stats.startUpdateTimer();
+        this._currentValue = this._nextValue;
         this._multipleInstances.updateStates(this._nextValue);
-        this._currentValue = TransformableValues.fromInstance(this._nextValue);
+        this._nextValue = null;
         this.context.finish();
         this._stats.stopUpdateTimer();
         sendMessageToWorker(this._transmissionWorker, WorkerMessage.GET_VALUES);
@@ -169,12 +163,13 @@ export class Viewer {
             this._stats.stopPickingTimer();
         }
         // rendering
-        this._stats.startRenderingTimer(delta);
-        this.clear();
-        if (this._drawable)
+        if (this._drawable) {
+            this._stats.startRenderingTimer(delta);
+            this.clear();
             this.draw();
-        this.context.finish();
-        this._stats.stopRenderingTimer();
+            this.context.finish();
+            this._stats.stopRenderingTimer();
+        }
     }
     currentSelectionChanged(selection) {
         this._multipleInstances.updateMouseOverBuffer(selection);
@@ -189,21 +184,48 @@ export class Viewer {
         switch (getMessageHeader(e)) {
             case WorkerMessage.READY:
                 break;
-            case WorkerMessage.VALUES:
-                console.log("MAIN : value received");
-                let data = getMessageBody(e);
-                this._nextValue = TransformableValues.fromArray(data);
-                if (this._needAnimationPlayOnReceived) {
-                    this._needAnimationPlayOnReceived = false;
-                    this._needOneAnimationLoop = false;
-                    this.startVisualizationAnimation();
-                }
-                else if (!this._animationTimer.isRunning && this._needOneAnimationLoop) {
-                    this._needOneAnimationLoop = false;
-                    this.updateScene();
-                    this.startOneAnimationLoop();
-                }
+            case WorkerMessage.VALUES_RESHAPED:
+                this.onValuesReceived(getMessageBody(e), true);
                 break;
+            case WorkerMessage.VALUES:
+                this.onValuesReceived(getMessageBody(e), false);
+                break;
+            case WorkerMessage.RESET:
+                this.onReset();
+                break;
+        }
+    }
+    async onReset() {
+        if (this._multipleInstances == null)
+            return;
+        this._nextValue = null;
+        while (this._nextValue == null) {
+            await new Promise(resolve => setTimeout(resolve, 1));
+        }
+        ;
+        this._multipleInstances.updateStates(this._nextValue);
+        this._multipleInstances.updateStates(this._nextValue);
+        this._currentValue = TransformableValues.fromInstance(this._nextValue);
+    }
+    async onValuesReceived(data, isReshaped = false) {
+        this._nextValue = TransformableValues.fromValuesAsArray(data);
+        if (isReshaped) {
+            if (this._currentValue == null || this._currentValue.nbElements != this._nextValue.nbElements)
+                await this.initMesh(this._nextValue);
+            if (this._currentValue == null || this._currentValue.nbChannels != this._nextValue.nbChannels) {
+                console.log("nb Channels = ", this._nextValue.nbChannels);
+                UserInterface.getInstance().nbChannels = this._nextValue.nbChannels;
+            }
+        }
+        if (!this._animationTimer.isRunning && this._needAnimationPlayOnReceived) {
+            this._needAnimationPlayOnReceived = false;
+            this._needOneAnimationLoop = false;
+            this.startVisualizationAnimation();
+        }
+        else if (!this._animationTimer.isRunning && this._needOneAnimationLoop) {
+            this._needOneAnimationLoop = false;
+            this._multipleInstances.updateStates(this._nextValue);
+            this.startOneAnimationLoop();
         }
     }
     bindAnimationCurve(type, fct) {
@@ -211,6 +233,11 @@ export class Viewer {
         this._animationIds[type] = id;
     }
     startVisualizationAnimation() {
+        if (this._animationTimer.isRunning) {
+            if (!this._animationTimer.loop)
+                this._animationTimer.loop = true;
+            return;
+        }
         this.updateScene();
         this._animationTimer.loop = true;
         this._animationTimer.play();
@@ -220,6 +247,8 @@ export class Viewer {
         this._animationTimer.stop();
     }
     startOneAnimationLoop() {
+        if (this._animationTimer.isRunning)
+            return;
         this._animationTimer.loop = false;
         // TODO set duration
         this._animationTimer.play();
@@ -227,15 +256,16 @@ export class Viewer {
     updateProgamsTransformers(transformers) {
         this.shaderProgram.updateProgramTransformers(transformers.generateTransformersBlock());
     }
-    sendInteractionRequest(mask) {
-        if (this._animationTimer.isRunning) {
+    sendInteractionRequest(mask, interaction = "0") {
+        if (this._animationTimer.isRunning && this._animationTimer.loop) {
             this.stopVisualizationAnimation();
             this._needAnimationPlayOnReceived = true;
+            this._multipleInstances.updateStates(this._currentValue);
         }
-        let t = performance.now();
-        this._multipleInstances.updateStates(this._currentValue);
-        this._needOneAnimationLoop = true;
-        sendMessageToWorker(this._transmissionWorker, WorkerMessage.APPLY_INTERACTION, [mask].concat(this._currentValue.toArray()), [mask.buffer].concat(this._currentValue.toArrayBuffers()));
-        console.log("time = ", performance.now() - t, " ms");
+        else {
+            this._needOneAnimationLoop = true;
+        }
+        let values = TransformableValues.fromInstance(this._currentValue);
+        sendMessageToWorker(this._transmissionWorker, WorkerMessage.APPLY_INTERACTION, [interaction, [mask].concat(values.toArray())], [mask.buffer].concat(values.toArrayBuffers()));
     }
 }

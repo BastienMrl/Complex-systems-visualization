@@ -1,7 +1,7 @@
-<div id="rules" class="configurationItem simulationItem">
-    <h2>Rules</h2>
+<div id="{{itemId}}" class="configurationItem simulationItem">
+    <h2>{{itemName}}</h2>
     <div class="parametersList">
-        {% for param in rulesParameters %}
+        {% for param in parametersList %}
             {% include "parameters/parameterSwitch.html" %}
         {% endfor %}
     </div>

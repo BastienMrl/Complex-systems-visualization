@@ -16,38 +16,53 @@ class TransmissionWorker {
                 this.initSocket(getMessageBody(e));
                 break;
             case WorkerMessage.GET_VALUES:
-                console.log("TRANSMISSION: get value message received");
                 this.sendValues();
                 break;
             case WorkerMessage.RESET:
-                this.resetSimulation(getMessageBody(e));
+                this.resetSimulation();
                 break;
             case WorkerMessage.UPDATE_RULES:
-                this.changeSimulationRules(getMessageBody(e));
+                this.updateSimulationRules(getMessageBody(e));
                 break;
             case WorkerMessage.APPLY_INTERACTION:
-                this.applyInteraction(getMessageBody(e));
+                this.applyInteraction(getMessageBody(e)[1], getMessageBody(e)[0]);
                 break;
+            case WorkerMessage.CHANGE_SIMULATION:
+                this.changeSimulation(getMessageBody(e));
+                break;
+            case WorkerMessage.UPDATE_INIT_PARAM:
+                this.updateInitParams(getMessageBody(e));
         }
     }
     async initSocket(url) {
         if (this._socketManager.isConnected)
             return;
         await this._socketManager.connectSocket(url);
+        await this.waitSocketConnection();
+        this._statesBuffer.requestState();
     }
-    async sendValues() {
+    async sendValues(waitAnotherStates = false) {
         if (!this._socketManager.isConnected)
             await this.waitSocketConnection();
+        let isReshaped = this._statesBuffer.isReshaped;
         let values = this._statesBuffer.values;
-        sendMessageToWindow(WorkerMessage.VALUES, values.toArray(), values.toArrayBuffers());
+        if (waitAnotherStates) {
+            await this.waitNewValues();
+        }
+        if (isReshaped) {
+            sendMessageToWindow(WorkerMessage.VALUES_RESHAPED, values.toArray(), values.toArrayBuffers());
+        }
+        else {
+            sendMessageToWindow(WorkerMessage.VALUES, values.toArray(), values.toArrayBuffers());
+        }
     }
-    async resetSimulation(nbElements) {
+    async resetSimulation() {
         if (!this._socketManager.isConnected)
             await this.waitSocketConnection();
-        this._statesBuffer.initializeElements(nbElements);
-        while (!this._statesBuffer.isReady) {
-            await new Promise(resolve => setTimeout(resolve, 1));
-        }
+        sendMessageToWindow(WorkerMessage.RESET);
+        this._statesBuffer.flush();
+        this._socketManager.resetSimulation();
+        await this.waitNewValues();
         this.sendValues();
     }
     async waitSocketConnection() {
@@ -56,23 +71,39 @@ class TransmissionWorker {
         }
         ;
     }
-    async changeSimulationRules(params) {
+    async updateSimulationRules(params) {
         if (!this._socketManager.isConnected)
             await this.waitSocketConnection();
-        this._socketManager.changeSimuRules(params);
+        this._socketManager.updateSimuRules(params);
     }
-    async applyInteraction(data) {
+    async updateInitParams(params) {
+        if (!this._socketManager.isConnected)
+            await this.waitSocketConnection();
+        this._socketManager.updateInitParams(params);
+    }
+    async applyInteraction(data, interaction) {
+        if (!this._socketManager.isConnected)
+            await this.waitSocketConnection();
+        console.log("interaction =", interaction);
+        this._statesBuffer.flush();
+        let values = TransformableValues.fromValuesAsArray(data.slice(1));
+        this._socketManager.applyInteraction(data[0], values.getBackendValues(), interaction);
+        await this.waitNewValues();
+        await this.sendValues(true);
+    }
+    async changeSimulation(nameSimu) {
         if (!this._socketManager.isConnected)
             await this.waitSocketConnection();
         this._statesBuffer.flush();
-        let values = TransformableValues.fromArray(data.slice(1));
-        this._socketManager.applyInteraction(data[0], values.getBackendValues());
-        this._statesBuffer.requestState();
+        this._socketManager.changeSimu(nameSimu);
+        await this.waitNewValues();
+        this.sendValues();
+    }
+    async waitNewValues() {
         while (!this._statesBuffer.hasNewValue) {
             await new Promise(resolve => setTimeout(resolve, 1));
         }
         ;
-        this.sendValues();
     }
 }
 const url = 'ws://'

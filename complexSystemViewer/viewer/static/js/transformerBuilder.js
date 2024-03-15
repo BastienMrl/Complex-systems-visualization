@@ -19,12 +19,6 @@ export var InputType;
     InputType[InputType["STATE_1"] = 4] = "STATE_1";
     InputType[InputType["STATE_2"] = 5] = "STATE_2";
     InputType[InputType["STATE_3"] = 6] = "STATE_3";
-    InputType[InputType["STATE_4"] = 7] = "STATE_4";
-    InputType[InputType["STATE_5"] = 8] = "STATE_5";
-    InputType[InputType["STATE_6"] = 9] = "STATE_6";
-    InputType[InputType["STATE_7"] = 10] = "STATE_7";
-    InputType[InputType["STATE_8"] = 11] = "STATE_8";
-    InputType[InputType["STATE_9"] = 12] = "STATE_9";
 })(InputType || (InputType = {}));
 export class TransformerBuilder {
     _transformers;
@@ -90,44 +84,20 @@ export class TransformerBuilder {
                 normalization_axis = 1;
                 break;
             case InputType.STATE_0:
-                onT0 = ShaderMeshInputs.STATE_T0;
-                onT1 = ShaderMeshInputs.STATE_T1;
+                onT0 = ShaderMeshInputs.STATE_0_T0;
+                onT1 = ShaderMeshInputs.STATE_0_T1;
                 break;
             case InputType.STATE_1:
-                onT0 = ShaderMeshInputs.STATE_T0;
-                onT1 = ShaderMeshInputs.STATE_T1;
+                onT0 = ShaderMeshInputs.STATE_1_T0;
+                onT1 = ShaderMeshInputs.STATE_1_T1;
                 break;
             case InputType.STATE_2:
-                onT0 = ShaderMeshInputs.STATE_T0;
-                onT1 = ShaderMeshInputs.STATE_T1;
+                onT0 = ShaderMeshInputs.STATE_2_T0;
+                onT1 = ShaderMeshInputs.STATE_2_T1;
                 break;
             case InputType.STATE_3:
-                onT0 = ShaderMeshInputs.STATE_T0;
-                onT1 = ShaderMeshInputs.STATE_T1;
-                break;
-            case InputType.STATE_4:
-                onT0 = ShaderMeshInputs.STATE_T0;
-                onT1 = ShaderMeshInputs.STATE_T1;
-                break;
-            case InputType.STATE_5:
-                onT0 = ShaderMeshInputs.STATE_T0;
-                onT1 = ShaderMeshInputs.STATE_T1;
-                break;
-            case InputType.STATE_6:
-                onT0 = ShaderMeshInputs.STATE_T0;
-                onT1 = ShaderMeshInputs.STATE_T1;
-                break;
-            case InputType.STATE_7:
-                onT0 = ShaderMeshInputs.STATE_T0;
-                onT1 = ShaderMeshInputs.STATE_T1;
-                break;
-            case InputType.STATE_8:
-                onT0 = ShaderMeshInputs.STATE_T0;
-                onT1 = ShaderMeshInputs.STATE_T1;
-                break;
-            case InputType.STATE_9:
-                onT0 = ShaderMeshInputs.STATE_T0;
-                onT1 = ShaderMeshInputs.STATE_T1;
+                onT0 = ShaderMeshInputs.STATE_3_T0;
+                onT1 = ShaderMeshInputs.STATE_3_T1;
                 break;
         }
         s += `mix(${onT0}, ${onT1}, ${time});`;
@@ -181,34 +151,16 @@ export class TransformerBuilder {
                 s += "z";
                 break;
             case InputType.STATE_0:
-                s += "s";
+                s += "s_0";
                 break;
             case InputType.STATE_1:
-                s += "s";
+                s += "s_1";
                 break;
             case InputType.STATE_2:
-                s += "s";
+                s += "s_2";
                 break;
             case InputType.STATE_3:
-                s += "s";
-                break;
-            case InputType.STATE_4:
-                s += "s";
-                break;
-            case InputType.STATE_5:
-                s += "s";
-                break;
-            case InputType.STATE_6:
-                s += "s";
-                break;
-            case InputType.STATE_7:
-                s += "s";
-                break;
-            case InputType.STATE_8:
-                s += "s";
-                break;
-            case InputType.STATE_9:
-                s += "s";
+                s += "s_3";
                 break;
         }
         return s;
@@ -247,9 +199,7 @@ export class TransformerBuilder {
         if (transformer == null)
             return;
         let variable = transformer.getInputVariable();
-        console.log(this._inputDeclarations.length);
         this.deleteVariableDeclaration(variable);
-        console.log(this._inputDeclarations.length);
         this._transformers.splice(this._transformers.indexOf(transformer), 1);
     }
     generateTransformersBlock() {

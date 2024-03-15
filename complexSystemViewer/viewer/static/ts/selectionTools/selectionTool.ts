@@ -32,7 +32,7 @@ export abstract class SelectionTool{
     // public methods
     public setMeshes(meshes : MultipleMeshInstances){
         this._meshes = meshes;     
-        this._currentMask = new Float32Array(this._meshes.nbInstances).fill(0);
+        this._currentMask = new Float32Array(this._meshes.nbInstances).fill(-1);
     }
 
     public setTransformer(transformer : TransformerBuilder){
@@ -62,13 +62,25 @@ export abstract class SelectionTool{
 
 
     // protected methods
-    protected onCurrentSelectionChanged(selection : number[] | null){
-        this._viewer.currentSelectionChanged(selection);
-        this._currentMask.fill(0.);
-        if (selection != null)
-            selection.forEach(e => {
-                this._currentMask[e] = 1.;
-        });
+    protected onCurrentSelectionChanged(selection : Array<number> | Map<number, number> | null){
+        this._currentMask.fill(-1);
+        if (selection instanceof Array){
+
+            this._viewer.currentSelectionChanged(selection);
+            if (selection != null)
+                selection.forEach(e => {
+                    this._currentMask[e] = 1.;
+            });
+        }
+        else if (selection instanceof Map){
+            this._viewer.currentSelectionChanged(Array.from(selection.keys()));
+            selection.forEach((value, key) =>{
+                this._currentMask[key] = value;
+            });
+        }
+        else {
+            this._viewer.currentSelectionChanged(null);
+        }
     }
 
 

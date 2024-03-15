@@ -8,10 +8,13 @@ from ..simulation import *
 
 class GOLSimulation(Simulation): 
 
-    default_parameters = [
+    initialization_parameters = [
         BoolParam(id_p="randomStart", name="Random start", default_value=False),
         IntParam(id_p="gridSize", name="Grid size",
-                 default_value=200, min_value=0, step=1),
+                 default_value=20, min_value=0, step=1),
+    ]
+
+    default_rules = [
         RangeIntParam(id_p="birth", name="Birth",
                       min_param= IntParam(
                           id_p="",
@@ -47,9 +50,16 @@ class GOLSimulation(Simulation):
                           step=1
                       ))]
 
-    def __init__(self, init_states = None, init_params = default_parameters): 
+    def __init__(self, init_states = None, rules = default_rules): 
         super().__init__()
-        self.parameters = init_params
+        self.initSimulation(init_states, rules)
+
+    def initSimulation(self, init_states = None, rules = default_rules, init_param = initialization_parameters):
+
+        self.random_start = [p for p in init_param if p.id_param == "randomStart"][0].value
+        self.grid_size = [p for p in init_param if p.id_param == "gridSize"][0].value
+
+        self.rules = rules
         self.kernel = jnp.zeros((3, 3, 1, 1), dtype=jnp.float32)
         self.kernel += jnp.array([[1, 1, 1],
                             [1, 10, 1],
@@ -60,19 +70,29 @@ class GOLSimulation(Simulation):
             self.current_states = init_states
             self.width = init_states[0].width
             self.height = init_states[0].height
-        elif self.getParamById("randomStart"):
+        elif self.random_start:
             self.init_random_sim()
         else:
             self.init_default_sim() 
+
+        def gol_interaction(mask : jnp.ndarray, states : list[State]):
+            mask = jnp.expand_dims(mask, (2))
+            to_zero = jnp.logical_not(mask == 0)
+            to_one = mask > 0
+            states[0].grid = jnp.logical_or(states[0].grid, to_one).astype(jnp.float32)
+            states[0].grid = jnp.logical_and(states[0].grid, to_zero).astype(jnp.float32)
+
+        self.interactions : list[Interaction] = [Interaction("0", gol_interaction)]
 
 
     def step(self) :
         state =  self.current_states[0]
         grid = state.grid
+        grid = jnp.expand_dims(jnp.squeeze(grid), (0, 1))
         out = lax.conv(grid, self.kernel, (1, 1), 'SAME')
 
-        b_param : RangeIntParam = [p for p in self.parameters if p.id_param == "birth"][0]
-        s_param : RangeIntParam = [p for p in self.parameters if p.id_param == "survival"][0]
+        b_param : RangeIntParam = [p for p in self.rules if p.id_param == "birth"][0]
+        s_param : RangeIntParam = [p for p in self.rules if p.id_param == "survival"][0]
 
         cdt_1 = jnp.zeros_like(out)
         for i in range(b_param.min_param.value, b_param.max_param.value + 1):
@@ -82,36 +102,30 @@ class GOLSimulation(Simulation):
         for i in range(s_param.min_param.value, s_param.max_param.value + 1):
             cdt_1 = jnp.logical_or(cdt_1, out == 10+i)
         out = jnp.logical_or(cdt_1, cdt_2)
+        out = jnp.expand_dims(jnp.squeeze(out), (2))
 
         state.set_grid(out.astype(jnp.float32))
 
     def set_current_state_from_array(self, new_state):
-        t = time.time()
         state = new_state[2]
-        width = self.current_states[0].width
-        height = self.current_states[0].height
-        grid = jnp.asarray(state, dtype=jnp.float32).reshape((width, height))
-        grid = jnp.expand_dims(grid, (0, 1))
+        grid = jnp.asarray(state, dtype=jnp.float32).reshape(self.current_states[0].grid.shape)
         self.current_states[0].set_grid(grid)
-        print("set current state = ", (1000 * (time.time() - t)), "ms")
 
 
     def init_default_sim(self):
-        size = self.getParamById("gridSize")
-        grid = jnp.zeros((1, 1, size, size))
+        grid = jnp.zeros((self.grid_size, self.grid_size, 1))
         state = GridState(grid)
         self.current_states = [state]
-        self.width = size
-        self.height = size
+        self.width = self.grid_size
+        self.height = self.grid_size
 
     def init_random_sim(self):
         key = jax.random.PRNGKey(1701)
-        size = self.getParamById("gridSize")
-        grid = jax.random.uniform(key, (1, 1, size, size))
+        grid = jax.random.uniform(key, (self.grid_size, self.grid_size, 1))
         grid = jnp.round(grid)
         state = GridState(grid)
         self.current_states = [state]
-        self.width = size
-        self.height = size
+        self.width = self.grid_size
+        self.height = self.grid_size
 
 

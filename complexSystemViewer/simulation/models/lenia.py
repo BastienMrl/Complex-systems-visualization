@@ -8,42 +8,63 @@ import typing as t
 from functools import partial
 import math
 import chex
+from functools import partial
+
 
 
 from ..simulation import * 
-class LeniaSimulation(Simulation): 
-    default_parameters = [
-            BoolParam(id_p="randomStart", name="Random start", default_value=False),
-            IntParam(id_p="gridSize", name="Grid size",
-                    default_value=200, min_value=0, step=1),
+class LeniaSimulation(Simulation):
+
+    initialization_parameters = [
+        BoolParam(id_p="randomStart", name="Random start", default_value=False),
+        IntParam(id_p="seed", name="Seed", default_value=6, min_value=1),
+        IntParam(id_p="gridSize", name="Grid size",
+                 default_value=200, min_value=40, step=1),
+        FloatParam(id_p="dt", name="dt",
+                    default_value=0.05, min_value=0.1, max_value=1., step=0.1),
+        IntParam(id_p="C", name="Number of Channels",
+                    default_value=1, min_value=1, max_value=4, step=1)
+    ]
+
+    default_rules = [
             IntParam(id_p="number_of_kernels", name="Number of kernels",
                     default_value=10, min_value=1, step=1),
-            IntParam(id_p="C", name="C",
-                    default_value=1, min_value=1, step=1),
             IntParam(id_p="dd", name="dd",
                     default_value=5, min_value=1, step=1),
             IntParam(id_p="n", name="n",
                     default_value=2, min_value=1, step=1),
-            FloatParam(id_p="dt", name="dt",
-                    default_value=0.05, min_value=0.1, max_value=1., step=0.1),
             FloatParam(id_p="theta_A", name="Theta A",
                     default_value=2.0, min_value=0.0, max_value=2.0, step=0.1),
             FloatParam(id_p="sigma", name="Sigma",
                     default_value=0.65, min_value=0.0, max_value=1.0, step=0.05)]
-    def __init__(self, init_states = None, init_params = default_parameters): 
-        super().__init__(init_states, init_params)
+    
+    
+    def __init__(self, init_states = None, rules = default_rules): 
+        super().__init__()
+        self.initSimulation(init_states, rules)
+           
+    def initSimulation(self, init_states : list[State] = None, rules : list[Param] = default_rules, init_param : list[Param]= initialization_parameters):
         
-        self.nb_k = self.getParamById("number_of_kernels")
-        size = self.getParamById("gridSize")
-        SX = SY = size
+        self.random_start : bool = [p for p in init_param if p.id_param == "randomStart"][0].value
+        self.grid_size : int = [p for p in init_param if p.id_param == "gridSize"][0].value
+        self.dt : float = [p for p in init_param if p.id_param == "dt"][0].value
+        self.C : int = [p for p in init_param if p.id_param == "C"][0].value
+
+
         
-        self.M = np.ones((self.getParamById("C"), self.getParamById("C")), dtype=int) * self.nb_k
+        self.rules = rules
+        self.nb_k = self.getRuleById("number_of_kernels")
+        SX = SY = self.grid_size
+        
+        self.M = np.ones((self.C, self.C), dtype=int) * self.nb_k
         self.nb_k = int(self.M.sum())
         self.c0, self.c1 = conn_from_matrix( self.M )
     
         self.rule_space = RuleSpace(self.nb_k)
         self.kernel_computer = KernelComputer(SX, SY, self.nb_k)
-        seed = 10
+
+        seed : int = [p for p in init_param if p.id_param == "seed"][0].value
+        
         key = jax.random.PRNGKey(seed)
         params_seed, state_seed = jax.random.split(key)
         params = self.rule_space.sample(params_seed)
@@ -53,34 +74,70 @@ class LeniaSimulation(Simulation):
             self.current_states = init_states
             self.width = init_states[0].width
             self.height = init_states[0].height
-        elif self.getParamById("randomStart"):
-            self.init_random_sim(size, state_seed)
+        elif self.random_start:
+            self.init_random_sim(state_seed)
         else:
             self.init_default_sim()
 
+        self.interactions : list[Interaction]= []
+        def lenia_interaction(channel : int, mask : jnp.ndarray, states : list[State]):
+            mask = jnp.expand_dims(mask, 2)
+            shape = list(mask.shape)
 
-    def set_current_state_from_array(self, new_state):
-        pass
+            minus_one = jnp.subtract(jnp.zeros(shape), jnp.ones(shape))
+            new_mask = mask if channel == 0 else minus_one
+            if (self.C > 1):
+                for k in range(1, self.C):
+                    if (k == channel):
+                        new_mask = jnp.dstack((new_mask, mask))
+                    else:
+                        new_mask = jnp.dstack((new_mask, minus_one))
+
+
+            states[0].grid = jnp.where(new_mask >= 0, new_mask, states[0].grid)
+
+        for i in range(self.C):
+            self.interactions.append(Interaction(str(i), partial(lenia_interaction, i)))
+
+    def set_current_state_from_array(self, new_state : list[list[float]]):
+        nb_channels = self.current_states[0].grid.shape[-1]
+        shape = list(self.current_states[0].grid.shape)
+        shape[-1] = 1
+
+
+        grid = None
+        for i in range(nb_channels):
+            state = new_state[2 + i]
+            state = jnp.asarray(state, dtype=jnp.float32).reshape(shape)
+            if (grid == None):
+                grid = state
+            else:
+                grid = jnp.dstack((grid, state))
+        
+        self.current_states[0].set_grid(grid)
+
 
 
     def init_default_sim(self):
-        size = self.getParamById("gridSize")
-        grid = jnp.zeros((size, size, 1))
+        grid = jnp.zeros((self.grid_size, self.grid_size, self.C))
         state = GridState(grid)
         self.current_states = [state]
-        self.width = size
-        self.height = size
+        self.width = self.grid_size
+        self.height = self.grid_size
 
-    def init_random_sim(self, size, state_seed):
-        SX = SY = size
+    def init_random_sim(self, state_seed):
+        SX = SY = self.grid_size
         mx, my = SX//2, SY//2 # center coordinated
-        A0 = jnp.zeros((SX, SY, 1)).at[mx-math.floor(SX/8):mx+math.ceil(SX/8), my-math.floor(SY/8):my+math.ceil(SY/8), :].set(
-            jax.random.uniform(state_seed, (SX//4, SY//4, 1))
+        offsetX, offsetY= round(SX/8), round(SY/8)
+
+
+        A0 = jnp.zeros((SX, SY, self.C)).at[mx-offsetX:mx+offsetX, my-offsetY:my+offsetY, :].set(
+            jax.random.uniform(state_seed, (2*offsetX, 2*offsetY, self.C))
         )
         state = GridState(A0)
         self.current_states = [state]
-        self.width = size
-        self.height = size
+        self.width = self.grid_size
+        self.height = self.grid_size
 
         
         
@@ -98,9 +155,9 @@ class LeniaSimulation(Simulation):
 
         U = growth(U, self.c_params.m, self.c_params.s) * self.c_params.h  # (x,y,k)
 
-        U = jnp.dstack([ U[:, :, self.c1[c]].sum(axis=-1) for c in range(self.getParamById('C')) ])  # (x,y,c)
+        U = jnp.dstack([ U[:, :, self.c1[c]].sum(axis=-1) for c in range(self.C) ])  # (x,y,c)
 
-        nA = jnp.clip(A + self.getParamById("dt") * U, 0., 1.)
+        nA = jnp.clip(A + self.dt * U, 0., 1.)
         self.current_states[0].grid = nA
         
     
@@ -171,138 +228,6 @@ def conn_from_matrix(mat):
 
 def conn_from_lists(c0, c1, C):
     return c0, [[i == c1[i] for i in range(len(c0))] for c in range(C)]
-
-class ReintegrationTracking:
-
-    def __init__(self, SX=256, SY=256, dt=.2, dd=5, sigma=.65, border="wall", has_hidden=False, 
-                 hidden_dims=None, mix="softmax"):
-        self.SX = SX
-        self.SY = SY
-        self.dt = dt
-        self.dd = dd
-        self.sigma = sigma
-        self.has_hidden = has_hidden
-        self.hidden_dims = hidden_dims
-        self.border = border if border in ['wall', 'torus'] else 'wall'
-        self.mix = mix
-        
-        self.apply = self._build_apply()
-
-    def __call__(self, *args):
-        return self.apply(*args)
-
-    def _build_apply(self):
-
-        x, y = jnp.arange(self.SX), jnp.arange(self.SY)
-        X, Y = jnp.meshgrid(x, y)
-        pos = jnp.dstack((Y, X)) + .5 #(SX, SY, 2)
-        dxs = []
-        dys = []
-        dd = self.dd
-        for dx in range(-dd, dd+1):
-            for dy in range(-dd, dd+1):
-                dxs.append(dx)
-                dys.append(dy)
-        dxs = jnp.array(dxs)
-        dys = jnp.array(dys)
-        #-----------------------------------------------------------------------------------------------
-        if not self.has_hidden:
-
-            @partial(jax.vmap, in_axes=(None, None, 0, 0))
-            def step(X, mu, dx, dy):
-                Xr = jnp.roll(X, (dx, dy), axis = (0, 1))
-                mur = jnp.roll(mu, (dx, dy), axis = (0, 1))
-                if self.border == 'torus':
-                    dpmu = jnp.min(jnp.stack(
-                        [jnp.absolute(pos[..., None] - (mur + jnp.array([di, dj])[None, None, :, None])) 
-                        for di in (-self.SX, 0, self.SX) for dj in (-self.SY, 0, self.SY)]
-                    ), axis = 0)
-                else :
-                    dpmu = jnp.absolute(pos[..., None] - mur)
-                sz = .5 - dpmu + self.sigma
-                area = jnp.prod(jnp.clip(sz, 0, min(1, 2*self.sigma)) , axis = 2) / (4 * self.sigma**2)
-                nX = Xr * area
-                return nX
-        
-            def apply(X, F):
-
-                ma = self.dd - self.sigma  # upper bound of the flow maggnitude
-                mu = pos[..., None] + jnp.clip(self.dt * F, -ma, ma) #(x, y, 2, c) : target positions (distribution centers)
-                if self.border == "wall":
-                    mu = jnp.clip(mu, self.sigma, self.SX-self.sigma)
-                nX = step(X, mu, dxs, dys).sum(axis = 0)
-                
-                return nX
-        #-----------------------------------------------------------------------------------------------
-        else :
-
-
-
-            @partial(jax.vmap, in_axes = (None, None, None, 0, 0))
-            def step_flow(X, H, mu, dx, dy):
-                """Summary
-                """
-                Xr = jnp.roll(X, (dx, dy), axis = (0, 1))
-                Hr = jnp.roll(H, (dx, dy), axis = (0, 1)) #(x, y, k)
-                mur = jnp.roll(mu, (dx, dy), axis = (0, 1))
-
-                if self.border == 'torus':
-                    dpmu = jnp.min(jnp.stack(
-                        [jnp.absolute(pos[..., None] - (mur + jnp.array([di, dj])[None, None, :, None])) 
-                        for di in (-self.SX, 0, self.SX) for dj in (-self.SY, 0, self.SY)]
-                    ), axis = 0)
-                else :
-                    dpmu = jnp.absolute(pos[..., None] - mur)
-
-                sz = .5 - dpmu + self.sigma
-                area = jnp.prod(jnp.clip(sz, 0, min(1, 2*self.sigma)) , axis = 2) / (4 * self.sigma**2)
-                nX = Xr * area
-                return nX, Hr
-
-            def apply(X, H, F):
-
-                ma = self.dd - self.sigma  # upper bound of the flow maggnitude
-                mu = pos[..., None] + jnp.clip(self.dt * F, -ma, ma) #(x, y, 2, c) : target positions (distribution centers)
-                if self.border == "wall":
-                    mu = jnp.clip(mu, self.sigma, self.SX-self.sigma)
-                nX, nH = step_flow(X, H, mu, dxs, dys)
-
-                if self.mix == 'avg':
-                    nH = jnp.sum(nH * nX.sum(axis = -1, keepdims = True), axis = 0)  
-                    nX = jnp.sum(nH, axis = 0)
-                    nH = nH / (nX.sum(axis = -1, keepdims = True)+1e-10)
-
-                elif self.mix == "softmax":
-                    expnX = jnp.exp(nX.sum(axis = -1, keepdims = True)) - 1
-                    nX = jnp.sum(nX, axis = 0)
-                    nH = jnp.sum(nH * expnX, axis = 0) / (expnX.sum(axis = 0)+1e-10) #avg rule
-
-                elif self.mix == "stoch":
-                    categorical=jax.random.categorical(
-                      jax.random.PRNGKey(42), 
-                      jnp.log(nX.sum(axis = -1, keepdims = True)), 
-                      axis=0)
-                    mask=jax.nn.one_hot(categorical,num_classes=(2*self.dd+1)**2,axis=-1)
-                    mask=jnp.transpose(mask,(3,0,1,2)) 
-                    nH = jnp.sum(nH * mask, axis = 0)
-                    nX = jnp.sum(nX, axis = 0)
-
-                elif self.mix == "stoch_gene_wise":
-                    mask = jnp.concatenate(
-                      [jax.nn.one_hot(jax.random.categorical(
-                                                            jax.random.PRNGKey(42), 
-                                                            jnp.log(nX.sum(axis = -1, keepdims = True)), 
-                                                            axis=0),
-                                      num_classes=(2*dd+1)**2,axis=-1)
-                      for _ in range(self.hidden_dims)], 
-                      axis = 2)
-                    mask=jnp.transpose(mask,(3,0,1,2)) # (2dd+1**2, x, y, nb_k)
-                    nH = jnp.sum(nH * mask, axis = 0)
-                    nX = jnp.sum(nX, axis = 0)
-                
-                return nX, nH
-
-        return apply
     
 
 @chex.dataclass
