@@ -146,4 +146,6 @@ export class SelectionLassoTool extends SelectionTool {
             if (e2 <  di) { error += di; j0 += sj; }
         }
     } 
+
+    public setParam(attribute:string, value:number){}
 }

@@ -39,6 +39,8 @@ export abstract class SelectionTool{
         this._transformer = transformer;
     }
 
+    public abstract setParam(attribute:string, value:number) : void;
+
     public resetTool(){
         this._mouseDown = false;
         this.onCurrentSelectionChanged(null)

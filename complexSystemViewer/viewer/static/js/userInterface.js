@@ -84,6 +84,7 @@ export class UserInterface {
         let addTransformerButton = document.getElementById('buttonAddTransformer');
         let animableSelect = document.getElementById("animableSelect");
         let modelSelector = document.getElementById("modelSelector");
+        let toolSettings = document.getElementById("toolSettings").children;
         playButton.addEventListener('click', () => {
             this._viewer.startVisualizationAnimation();
             console.log("START");
@@ -183,6 +184,11 @@ export class UserInterface {
             xhttp.send();
         });
         this.initSimulationItem();
+        for (let i = 0; i < toolSettings.length; i++) {
+            toolSettings.item(i).addEventListener("change", () => {
+                this._viewer.selectionManager.setSelectionParameter(toolSettings.item(i).name, Number.parseFloat(toolSettings.item(i).value));
+            });
+        }
     }
     initSimulationItem() {
         // ADD LISTENER FOR RULES ITEMS

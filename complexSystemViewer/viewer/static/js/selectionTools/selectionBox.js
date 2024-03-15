@@ -54,4 +54,5 @@ export class SelectionBoxTool extends SelectionTool {
                 ret.push(this.coordToId(i, j));
         return ret;
     }
+    setParam(attribute, value) { }
 }

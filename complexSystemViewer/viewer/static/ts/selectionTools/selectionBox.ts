@@ -74,4 +74,6 @@ export class SelectionBoxTool extends SelectionTool{
 
         return ret;
     }
+
+    public setParam(attribute:string, value:number){}
 }

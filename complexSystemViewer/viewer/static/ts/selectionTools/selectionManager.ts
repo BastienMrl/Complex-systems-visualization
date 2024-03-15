@@ -58,5 +58,9 @@ export class SelectionManager{
     public setTransformer(transformer : TransformerBuilder){
         this._tools.forEach(e => e.setTransformer(transformer));
     }
+
+    public setSelectionParameter(attribute:string, value:number){
+        this._tools[this._mode].setParam(attribute,value);
+    }
     
 }

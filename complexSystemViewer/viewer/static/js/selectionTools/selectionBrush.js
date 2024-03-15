@@ -10,6 +10,7 @@ export class SelectionBrushTool extends SelectionTool {
     _interactionButton;
     _shape;
     _radius;
+    _intensity;
     _attenuationFunction;
     _prevId;
     _idValues;
@@ -18,11 +19,12 @@ export class SelectionBrushTool extends SelectionTool {
         this._interactionButton = interactionButton;
         this._shape = BrushShape.CIRCLE;
         this._radius = 3;
+        this._intensity = 0.4;
         this._attenuationFunction = function (distance) {
             if (distance > this._radius)
                 return 0;
             let normalized = distance / (this._radius + 1);
-            return 1 - normalized;
+            return 1 - (normalized ** 2 * this._intensity + (1 - (normalized - 1) ** 2) * (1 - this._intensity));
         };
         this._prevId = null;
         this._idValues = new Map();
@@ -171,5 +173,17 @@ export class SelectionBrushTool extends SelectionTool {
             }
         }
         return ret;
+    }
+    setParam(attribute, value) {
+        switch (attribute) {
+            case "radius":
+                this._radius = value;
+                break;
+            case "intensity":
+                this._intensity = value;
+                break;
+            default:
+                throw Error("BAD ATTRIBUTE SELECTION IN BRUSH SELECTOR");
+        }
     }
 }

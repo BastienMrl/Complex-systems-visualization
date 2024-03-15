@@ -40,10 +40,7 @@ select#modelSelector {
 }
 
 #toolList {
-    width: 100%;
-    background-color: var(--color-midDark);
     display: flex;
-    margin: 10px 0px;
     justify-content: center;
     direction: ltr;
 }
@@ -120,4 +117,10 @@ select#modelSelector {
     -webkit-transform: translateX(21px);
     -ms-transform:     translateX(21px);
     transform:         translateX(21px);
+  }
+
+  #toolMenu {
+    width: 100%;
+    margin: 10px 0px;
+    background-color: var(--color-midDark);
   }
