@@ -104,16 +104,38 @@ export class ProgramWithTransformer {
         } 
         
         this._program = shaderProgram;
-        console.log(this._vertexShader)
     }
 
     
 }
 
+export function getAnimableValueUniformName(value : AnimableValue) : string{
+    switch (value) {
+        case AnimableValue.COLOR:
+            return ShaderUniforms.TIME_COLOR;
+        case AnimableValue.POSITION:
+            return ShaderUniforms.TIME_TRANSLATION;
+        case AnimableValue.ROTATION:
+            return ShaderUniforms.TIME_ROTATION;
+        case AnimableValue.SCALING:
+            return ShaderUniforms.TIME_SCALING;
+    }
+}
+
+enum AnimableValue {
+    COLOR,
+    POSITION,
+    ROTATION,
+    SCALING
+}
+
+
 
 enum ShaderUniforms {
     TIME_COLOR = "u_time_color",
-    TIME_TRANSLATION = "u_time_translation"
+    TIME_TRANSLATION = "u_time_translation",
+    TIME_ROTATION = "u_time_rotation",
+    TIME_SCALING = "u_time_scaling"
 }
 
 
@@ -133,7 +155,9 @@ enum ShaderMeshInputs {
 
 enum ShaderVariable {
     COLOR = "color",
-    TRANSLATION = "translation"
+    TRANSLATION = "translation",
+    SCALING = "scaling",
+    ROTATION = "rotation"
 }
 
 enum ShaderFunction {
@@ -164,4 +188,4 @@ enum ShaderLocation {
 }
 
 
-export {initShaders, ShaderVariable, ShaderFunction, ShaderMeshInputs, ShaderUniforms, ShaderLocation}
+export {initShaders, ShaderVariable, ShaderFunction, ShaderMeshInputs, ShaderUniforms, ShaderLocation, AnimableValue}

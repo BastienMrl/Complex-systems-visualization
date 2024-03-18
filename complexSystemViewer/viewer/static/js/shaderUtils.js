@@ -76,13 +76,33 @@ export class ProgramWithTransformer {
             alert("Could not initialise shaders");
         }
         this._program = shaderProgram;
-        console.log(this._vertexShader);
     }
 }
+export function getAnimableValueUniformName(value) {
+    switch (value) {
+        case AnimableValue.COLOR:
+            return ShaderUniforms.TIME_COLOR;
+        case AnimableValue.POSITION:
+            return ShaderUniforms.TIME_TRANSLATION;
+        case AnimableValue.ROTATION:
+            return ShaderUniforms.TIME_ROTATION;
+        case AnimableValue.SCALING:
+            return ShaderUniforms.TIME_SCALING;
+    }
+}
+var AnimableValue;
+(function (AnimableValue) {
+    AnimableValue[AnimableValue["COLOR"] = 0] = "COLOR";
+    AnimableValue[AnimableValue["POSITION"] = 1] = "POSITION";
+    AnimableValue[AnimableValue["ROTATION"] = 2] = "ROTATION";
+    AnimableValue[AnimableValue["SCALING"] = 3] = "SCALING";
+})(AnimableValue || (AnimableValue = {}));
 var ShaderUniforms;
 (function (ShaderUniforms) {
     ShaderUniforms["TIME_COLOR"] = "u_time_color";
     ShaderUniforms["TIME_TRANSLATION"] = "u_time_translation";
+    ShaderUniforms["TIME_ROTATION"] = "u_time_rotation";
+    ShaderUniforms["TIME_SCALING"] = "u_time_scaling";
 })(ShaderUniforms || (ShaderUniforms = {}));
 var ShaderMeshInputs;
 (function (ShaderMeshInputs) {
@@ -101,6 +121,8 @@ var ShaderVariable;
 (function (ShaderVariable) {
     ShaderVariable["COLOR"] = "color";
     ShaderVariable["TRANSLATION"] = "translation";
+    ShaderVariable["SCALING"] = "scaling";
+    ShaderVariable["ROTATION"] = "rotation";
 })(ShaderVariable || (ShaderVariable = {}));
 var ShaderFunction;
 (function (ShaderFunction) {
@@ -127,4 +149,4 @@ var ShaderLocation;
     ShaderLocation[ShaderLocation["STATE_3_T0"] = 13] = "STATE_3_T0";
     ShaderLocation[ShaderLocation["STATE_3_T1"] = 14] = "STATE_3_T1";
 })(ShaderLocation || (ShaderLocation = {}));
-export { initShaders, ShaderVariable, ShaderFunction, ShaderMeshInputs, ShaderUniforms, ShaderLocation };
+export { initShaders, ShaderVariable, ShaderFunction, ShaderMeshInputs, ShaderUniforms, ShaderLocation, AnimableValue };

@@ -10,11 +10,6 @@ import { SelectionManager } from "./selectionTools/selectionManager.js";
 import { UserInterface } from "./userInterface.js";
 // provides access to gl constants
 const gl = WebGL2RenderingContext;
-export var AnimableValue;
-(function (AnimableValue) {
-    AnimableValue[AnimableValue["COULEUR"] = 0] = "COULEUR";
-    AnimableValue[AnimableValue["POSITION"] = 1] = "POSITION";
-})(AnimableValue || (AnimableValue = {}));
 export class Viewer {
     context;
     canvas;
@@ -42,7 +37,7 @@ export class Viewer {
         this.context = context;
         this._stats = new Stats(document.getElementById("renderingFps"), document.getElementById("updateMs"), document.getElementById("renderingMs"), document.getElementById("pickingMs"), document.getElementById("totalMs"));
         this._animationTimer = new AnimationTimer(0.15, false);
-        this._animationIds = [null, null];
+        this._animationIds = new Map();
         this._selectionManager = new SelectionManager(this);
         this._currentValue = null;
         this._nextValue = null;
@@ -130,16 +125,16 @@ export class Viewer {
         let projLoc = this.context.getUniformLocation(this.shaderProgram.program, "u_proj");
         let viewLoc = this.context.getUniformLocation(this.shaderProgram.program, "u_view");
         let lightLoc = this.context.getUniformLocation(this.shaderProgram.program, "u_light_loc");
-        let timeColorLoc = this.context.getUniformLocation(this.shaderProgram.program, "u_time_color");
-        let timeTranslationLoc = this.context.getUniformLocation(this.shaderProgram.program, "u_time_translation");
         let aabb = this.context.getUniformLocation(this.shaderProgram.program, "u_aabb");
         let lightPos = Vec3.fromValues(0.0, 100.0, 10.0);
         Vec3.transformMat4(lightPos, lightPos, this.camera.viewMatrix);
         this.context.uniformMatrix4fv(projLoc, false, this.camera.projectionMatrix);
         this.context.uniformMatrix4fv(viewLoc, false, this.camera.viewMatrix);
         this.context.uniform3fv(lightLoc, lightPos);
-        this.context.uniform1f(timeColorLoc, this.getAnimationTime(AnimableValue.COULEUR));
-        this.context.uniform1f(timeTranslationLoc, this.getAnimationTime(AnimableValue.POSITION));
+        for (let i = 0; i < Object.values(shaderUtils.AnimableValue).length / 2; i++) {
+            let location = this.context.getUniformLocation(this.shaderProgram.program, shaderUtils.getAnimableValueUniformName(i));
+            this.context.uniform1f(location, this.getAnimationTime(i));
+        }
         this.context.uniform2fv(aabb, this._multipleInstances.aabb, 0, 0);
         this._multipleInstances.draw();
     }
@@ -175,8 +170,8 @@ export class Viewer {
         this._multipleInstances.updateMouseOverBuffer(selection);
     }
     getAnimationTime(type) {
-        let id = this._animationIds[type];
-        if (id == null)
+        let id = this._animationIds.get(type);
+        if (id == undefined || id == null)
             return this._animationTimer.getAnimationTime();
         return this._animationTimer.getAnimationTime(id);
     }
@@ -213,7 +208,6 @@ export class Viewer {
             if (this._currentValue == null || this._currentValue.nbElements != this._nextValue.nbElements)
                 await this.initMesh(this._nextValue);
             if (this._currentValue == null || this._currentValue.nbChannels != this._nextValue.nbChannels) {
-                console.log("nb Channels = ", this._nextValue.nbChannels);
                 UserInterface.getInstance().nbChannels = this._nextValue.nbChannels;
             }
         }
@@ -230,7 +224,7 @@ export class Viewer {
     }
     bindAnimationCurve(type, fct) {
         let id = this._animationTimer.addAnimationCurve(fct);
-        this._animationIds[type] = id;
+        this._animationIds.set(type, id);
     }
     startVisualizationAnimation() {
         if (this._animationTimer.isRunning) {
