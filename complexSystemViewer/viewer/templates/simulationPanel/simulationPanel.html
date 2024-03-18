@@ -10,18 +10,18 @@
             {% endfor %}
         </select>
     </div>
-    <div id="toolMenu">
+    <div id="toolMenu" class="simulationItem">
         <div id="toolList" class="simulationItem">
             {% for tool in toolsList %}
-                {% include "toolBarItems/baseTool.html" %}
+                {% include "simulationPanel/tool/baseTool.html" %}
             {% endfor %}
         </div>
-        <div id="toolSettings" class="simulationItem">
-            <input type="range" name="intensity" id="intensitySelectorSetting" min="0" max="1" step="0.01" value="0.5">
-            <input type="range" name="radius" id="radiusSelectorSetting" min="0" max="30" step="1" value="3">
+        <h3>Tools settings</h3>
+        <div id="toolSettings">
+            <p>First select a tool</p>
         </div>
     </div>
-    {%include "simulationConfigSet.html" %}
+    {%include "simulationPanel/simulationConfigSet.html" %}
 </div>
 <div id="foldSimulationPanelButton" class="foldButton withTransition">
     <svg class="w-6 h-6 text-gray-800 dark:text-white withTransition" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

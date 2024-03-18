@@ -128,4 +128,5 @@ export class SelectionLassoTool extends SelectionTool {
         }
     }
     setParam(attribute, value) { }
+    getAllParam() { return []; }
 }

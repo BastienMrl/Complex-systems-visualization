@@ -148,7 +148,7 @@ export class Viewer {
             this.render(time);
             requestAnimationFrame(loop);
         };
-        requestAnimationFrame(loop);
+        //requestAnimationFrame(loop);
     }
     // public methods
     render(time) {

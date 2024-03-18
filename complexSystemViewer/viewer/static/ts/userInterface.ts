@@ -170,6 +170,17 @@ export class UserInterface {
                     case "BOX":
                         this._viewer.selectionManager.switchMode(SelectionMode.BOX);
                         break;
+                    default:
+                        console.error("Selection mode "+ sm +" is undefined." )
+                }
+                if(toolButtons.item(i).classList.contains("toolActive")){
+                    let toolSettings = document.getElementById("toolSettings");
+                    toolSettings.replaceChildren("");
+                    let placehorlder = document.createElement("p")
+                    placehorlder.innerText = "First select a tool";
+                    toolSettings.appendChild(placehorlder);
+                }else{
+                    this.displayToolMenu();
                 }
                 toolButtons.item(i).classList.toggle("toolActive");
                 if(prevActiveTool.length > 0){
@@ -231,6 +242,31 @@ export class UserInterface {
                 this._viewer.selectionManager.setSelectionParameter(toolSettings.item(i).name, Number.parseFloat(toolSettings.item(i).value));
             });
         }
+    }
+
+    private displayToolMenu(){
+        let toolParam = this._viewer.selectionManager.getSelectionParameter()
+        let toolSettings = document.getElementById("toolSettings")
+        toolSettings.replaceChildren("");
+        if(toolParam.length == 0){
+            let nameElem = document.createElement("p");
+            nameElem.textContent = "No parameters available";
+            toolSettings.appendChild(nameElem);
+            return;
+        }
+        toolParam.forEach( toolName => {
+            let nameElem = document.createElement("h4");
+            nameElem.textContent = toolName;
+            let param = document.createElement("input");
+            param.type = "range";
+            param.name = toolName;
+            param.classList.add("toolParam");
+            let paramContainer = document.createElement("div");
+            paramContainer.classList.add("toolParamItem");
+            paramContainer.appendChild(nameElem);
+            paramContainer.appendChild(param);
+            toolSettings.appendChild(paramContainer);
+        })
     }
 
     private initSimulationItem(){

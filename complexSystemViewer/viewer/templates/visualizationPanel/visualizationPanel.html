@@ -3,10 +3,10 @@
     <h3>Visualization</h3>
     {% for transformer, parameters in transformers.items %}
         {% if transformer.displayedByDefault %}
-            {% include "transformers/transformerItem.html"%}
+            {% include "visualizationPanel/transformers/transformerItem.html"%}
         {% endif %}
     {% endfor %}
-    {% include "animationItem.html" %}
+    {% include "visualizationPanel/animationItem.html" %}
     <div id="addTransformerItem" class="configurationItem">
         <h3>Add new transformer</h3>
         <div id="addTransformerForm">

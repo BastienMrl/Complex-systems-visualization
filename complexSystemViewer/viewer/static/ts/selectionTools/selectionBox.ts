@@ -76,4 +76,8 @@ export class SelectionBoxTool extends SelectionTool{
     }
 
     public setParam(attribute:string, value:number){}
+
+    public getAllParam(): string[] {
+        return [];
+    }
 }

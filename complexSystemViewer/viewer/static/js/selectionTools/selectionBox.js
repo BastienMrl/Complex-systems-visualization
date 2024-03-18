@@ -55,4 +55,7 @@ export class SelectionBoxTool extends SelectionTool {
         return ret;
     }
     setParam(attribute, value) { }
+    getAllParam() {
+        return [];
+    }
 }

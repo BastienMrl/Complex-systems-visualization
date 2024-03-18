@@ -186,4 +186,7 @@ export class SelectionBrushTool extends SelectionTool {
                 throw Error("BAD ATTRIBUTE SELECTION IN BRUSH SELECTOR");
         }
     }
+    getAllParam() {
+        return ["radius", "intensity"];
+    }
 }

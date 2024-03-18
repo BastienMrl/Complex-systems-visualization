@@ -47,4 +47,7 @@ export class SelectionManager {
     setSelectionParameter(attribute, value) {
         this._tools[this._mode].setParam(attribute, value);
     }
+    getSelectionParameter() {
+        return this._tools[this._mode].getAllParam();
+    }
 }
