@@ -64,6 +64,12 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
     async def initNewSimulation(self, name):
         self.init_parameters = ModelManager.get_initialization_parameters(name)
         self.sim = ModelManager.get_simulation_model(name)
+
+
+        print("Test")
+
+
+
         await self.sendOneStep()    
 
     async def resetSimulation(self):
