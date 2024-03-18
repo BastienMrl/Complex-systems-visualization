@@ -122,6 +122,7 @@ input:checked + .slider:before {
   width: 100%;
   margin: 10px 0px;
   background-color: var(--color-midDark);
+  padding: 10px 0px;
 }
 
 #toolMenu h3{
@@ -130,10 +131,17 @@ input:checked + .slider:before {
   color: var(--color-lighter);
 }
 
+#toolSettings h4 {
+  font-family: Inria-Bold;
+  font-weight: 100;
+  margin: 10px 0px;
+}
+
 #toolSettings {
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding-left: 10px;
 }
 
 #toolSettings p {
@@ -144,4 +152,13 @@ input:checked + .slider:before {
 .toolParamItem {
   color: var(--color-lighter);
   display: flex;
+  padding-left: 10px;
+  margin-left: 10px;
+  border-left: solid var(--color-light) 1px;
+}
+
+.toolParamItem input[type="range"]{
+  margin-left: 10px;
+  box-shadow: none;
+  accent-color: var(--color-lighter);
 }

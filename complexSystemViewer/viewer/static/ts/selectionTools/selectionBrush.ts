@@ -29,8 +29,9 @@ export class SelectionBrushTool extends SelectionTool{
         this._attenuationFunction = function (distance : number){
             if (distance > this._radius)
                 return 0;
-            let normalized = distance / (this._radius + 1);
-            return 1 - (normalized**2 * this._intensity + (1 - (normalized -1)**2) * (1 - this._intensity));
+            let normalize = distance / (this._radius + 1);
+            let z = Math.exp(-4 * Math.pow(this._intensity - 1, 2)) * (1 - Math.pow(normalize, 3));
+            return z;
         }
         this._prevId = null;
         this._idValues = new Map<number, number>();
@@ -212,11 +213,26 @@ export class SelectionBrushTool extends SelectionTool{
                 this._intensity = value;
                 break;
             default:
-                throw Error("BAD ATTRIBUTE SELECTION IN BRUSH SELECTOR");
+                throw Error("BAD ATTRIBUTE SELECTION IN BRUSH SELECTOR WITH : " + attribute);
         }
     }
 
-    public getAllParam(): string[] {
-        return ["radius", "intensity"];
+    public getAllParam(): string {
+        return JSON.stringify({
+            "intensity": {
+                "min":0,
+                "max":1,
+                "step":0.01,
+                "value":0.5,
+                "type":"range"
+            },
+            "radius": {
+                "min":SelectionBrushTool._radiusMin,
+                "max":SelectionBrushTool._radiusMax,
+                "step":1,
+                "value":3,
+                "type":"range"
+            }
+        });
     }
 }

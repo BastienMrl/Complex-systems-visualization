@@ -175,9 +175,10 @@ export class UserInterface {
                 }
                 if(toolButtons.item(i).classList.contains("toolActive")){
                     let toolSettings = document.getElementById("toolSettings");
+                    toolSettings.style.alignItems = "center";
                     toolSettings.replaceChildren("");
                     let placehorlder = document.createElement("p")
-                    placehorlder.innerText = "First select a tool";
+                    placehorlder.innerText = "Select a tool";
                     toolSettings.appendChild(placehorlder);
                 }else{
                     this.displayToolMenu();
@@ -245,28 +246,37 @@ export class UserInterface {
     }
 
     private displayToolMenu(){
-        let toolParam = this._viewer.selectionManager.getSelectionParameter()
+        let toolParam = JSON.parse(this._viewer.selectionManager.getSelectionParameter());
         let toolSettings = document.getElementById("toolSettings")
         toolSettings.replaceChildren("");
-        if(toolParam.length == 0){
+        if(!toolParam){
             let nameElem = document.createElement("p");
             nameElem.textContent = "No parameters available";
             toolSettings.appendChild(nameElem);
+            toolSettings.style.alignItems = "center";
             return;
         }
-        toolParam.forEach( toolName => {
+        toolSettings.style.alignItems = "initial";
+
+        for(const toolName in toolParam) {
             let nameElem = document.createElement("h4");
             nameElem.textContent = toolName;
             let param = document.createElement("input");
-            param.type = "range";
+            for(const paramSet in toolParam[toolName]){
+                param.setAttribute(paramSet,toolParam[toolName][paramSet]);
+            }
             param.name = toolName;
             param.classList.add("toolParam");
+            param.addEventListener("change", ()=>{
+                console.log(param.name)
+                this._viewer.selectionManager.setSelectionParameter(toolName, Number.parseFloat(param.value));
+            })
             let paramContainer = document.createElement("div");
             paramContainer.classList.add("toolParamItem");
             paramContainer.appendChild(nameElem);
             paramContainer.appendChild(param);
             toolSettings.appendChild(paramContainer);
-        })
+        }
     }
 
     private initSimulationItem(){

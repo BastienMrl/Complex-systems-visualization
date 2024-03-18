@@ -28,7 +28,7 @@ def index(request):
 def addTransformer(request, transformerType):
     baseTransformer = TransformerItem.objects.filter(transformerType=transformerType).first()
     param = Parameter.objects.filter(transformer=baseTransformer).select_subclasses()
-    return render(request, "transformers/transformerItem.html", {"transformer":baseTransformer, "parameters":param})
+    return render(request, "visualizationPanel/transformers/transformerItem.html", {"transformer":baseTransformer, "parameters":param})
 
 def changeModel(request, modelsName):
     rules = ModelManager.get_default_rules(modelsName)
@@ -36,4 +36,4 @@ def changeModel(request, modelsName):
     
     init_p = ModelManager.get_initialization_parameters(modelsName)
     initParameters = [ip.get_param() for ip in init_p]
-    return render(request, "simulationConfigSet.html", {"rulesParameters":rulesParameters, "initParameters":initParameters})
+    return render(request, "simulationPanel/simulationConfigSet.html", {"rulesParameters":rulesParameters, "initParameters":initParameters})

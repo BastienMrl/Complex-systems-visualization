@@ -63,7 +63,7 @@ export class SelectionManager{
         this._tools[this._mode].setParam(attribute,value);
     }
 
-    public getSelectionParameter():string[]{
+    public getSelectionParameter():string{
         return this._tools[this._mode].getAllParam();
     }
     

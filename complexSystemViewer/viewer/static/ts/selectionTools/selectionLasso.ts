@@ -149,5 +149,5 @@ export class SelectionLassoTool extends SelectionTool {
 
     public setParam(attribute:string, value:number){}
 
-    public getAllParam(){return [];}
+    public getAllParam(){return null;}
 }

@@ -40,7 +40,7 @@ export abstract class SelectionTool{
     }
 
     public abstract setParam(attribute:string, value:number) : void;
-    public abstract getAllParam() : string[];
+    public abstract getAllParam() : string;
 
     public resetTool(){
         this._mouseDown = false;
