@@ -96,8 +96,6 @@ class FlockingSimulation(Simulation):
 
  
     def step(self) :
-        t0 = time.time()
-        print('s')
         speed = [p for p in self.rules if p.id_param == "speed"][0].value
         state =  self.state
         R, theta = state['boids']
@@ -108,11 +106,8 @@ class FlockingSimulation(Simulation):
 
         state['boids'] = Boid(self.shift(R, self.dt * (speed * n + dR)), 
                             theta + self.dt * dtheta)
-        print("S0 : " , time.time()-t0)
         #self.JAX_to_ParticleState(state)
-        print("S1 : " , time.time()-t0)
         self.state = state
-        print("S : " , time.time()-t0)
 
 
     def set_current_state_from_array(self, new_state):
@@ -148,10 +143,10 @@ class FlockingSimulation(Simulation):
     def to_JSON_object(self) :
         boids = self.state['boids']
         pos_row = jnp.transpose(boids.R)
-        x_row = pos_row[0].tolist()
-        y_row = pos_row[1].tolist()
+        x_row = (pos_row[0] - (self.box_size/2)).tolist()
+        y_row = (pos_row[1] - (self.box_size/2)).tolist()
         domain = [self.boid_count, 1]
-        val_row = (boids.theta / (2*np.pi)).tolist()
+        val_row = ((boids.theta % (jnp.pi)) / (jnp.pi)).tolist()
         l = [domain, x_row, y_row, val_row]
         return l
 

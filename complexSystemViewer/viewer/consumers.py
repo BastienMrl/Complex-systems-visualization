@@ -24,7 +24,6 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
     async def receive(self, text_data=None):
         text_data_json = orjson.loads(text_data)
         message = text_data_json["message"]
-        print(message)
         match message:
             case "RequestData":
                 if self.isConnected :
