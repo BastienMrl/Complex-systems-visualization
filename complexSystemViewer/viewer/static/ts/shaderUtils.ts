@@ -102,7 +102,6 @@ export class ProgramWithTransformer {
         if (!this._context.getProgramParameter(shaderProgram, this._context.LINK_STATUS)) { 
             alert("Could not initialise shaders"); 
         } 
-        
         this._program = shaderProgram;
     }
 

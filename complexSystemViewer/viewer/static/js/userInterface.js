@@ -226,6 +226,15 @@ export class UserInterface {
             this._transformers.addTransformerFromElement(e);
         });
         this._transformers.updateProgram();
+        let selector = document.getElementById("transformerTypeSelector");
+        for (let type in TransformType) {
+            let isValue = Number(type) >= 0;
+            if (isValue) {
+                let text = TransformType[type];
+                let option = new Option(text, text);
+                selector.add(option);
+            }
+        }
     }
     initAnimationCurves() {
         this._animationCurves = new AnimationInterface(this._viewer);
@@ -336,6 +345,12 @@ export class TransformersInterface {
                 return TransformType.POSITION_Z;
             case "SCALING":
                 return TransformType.SCALING;
+            case "ROTATION_X":
+                return TransformType.ROTATION_X;
+            case "ROTATION_Y":
+                return TransformType.ROTATION_Y;
+            case "ROTATION_Z":
+                return TransformType.ROTATION_Z;
         }
     }
     // TODO: return value accroding to HTMLElement
@@ -385,6 +400,9 @@ export class TransformersInterface {
             case TransformType.COLOR_R:
             case TransformType.COLOR_G:
             case TransformType.COLOR_B:
+            case TransformType.ROTATION_X:
+            case TransformType.ROTATION_Y:
+            case TransformType.ROTATION_Z:
                 let min = parent.querySelector("input[paramId=range_min]");
                 let max = parent.querySelector("input[paramId=range_max]");
                 return [min, max];

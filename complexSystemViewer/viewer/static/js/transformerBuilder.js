@@ -43,32 +43,24 @@ export class TransformerBuilder {
         let normalization_axis = null;
         switch (transformType) {
             case TransformType.COLOR:
-                time = ShaderUniforms.TIME_COLOR;
-                need_normalization = true;
-                break;
             case TransformType.COLOR_R:
-                time = ShaderUniforms.TIME_COLOR;
-                need_normalization = true;
-                break;
             case TransformType.COLOR_G:
-                time = ShaderUniforms.TIME_COLOR;
-                need_normalization = true;
-                break;
             case TransformType.COLOR_B:
                 time = ShaderUniforms.TIME_COLOR;
                 need_normalization = true;
                 break;
             case TransformType.POSITION_X:
-                time = ShaderUniforms.TIME_TRANSLATION;
-                break;
             case TransformType.POSITION_Y:
-                time = ShaderUniforms.TIME_TRANSLATION;
-                break;
             case TransformType.POSITION_Z:
                 time = ShaderUniforms.TIME_TRANSLATION;
                 break;
             case TransformType.SCALING:
                 time = ShaderUniforms.TIME_SCALING;
+                break;
+            case TransformType.ROTATION_X:
+            case TransformType.ROTATION_Y:
+            case TransformType.ROTATION_Z:
+                time = ShaderUniforms.TIME_ROTATION;
                 break;
         }
         switch (intputType) {
@@ -125,28 +117,24 @@ export class TransformerBuilder {
         let s = "input_";
         switch (transformType) {
             case TransformType.COLOR:
-                s += "c";
-                break;
             case TransformType.COLOR_R:
-                s += "c";
-                break;
             case TransformType.COLOR_G:
-                s += "c";
-                break;
             case TransformType.COLOR_B:
                 s += "c";
                 break;
             case TransformType.POSITION_X:
-                s += "t";
-                break;
             case TransformType.POSITION_Y:
-                s += "t";
-                break;
             case TransformType.POSITION_Z:
                 s += "t";
                 break;
             case TransformType.SCALING:
                 s += "s";
+                break;
+            case TransformType.ROTATION_X:
+            case TransformType.ROTATION_Y:
+            case TransformType.ROTATION_Z:
+                s += "r";
+                break;
         }
         s += "_";
         switch (intputType) {
@@ -201,6 +189,15 @@ export class TransformerBuilder {
                 break;
             case TransformType.SCALING:
                 this._transformers.push(new ScalingTransformer(id, inputVariable, params[0], params[1]));
+                break;
+            case TransformType.ROTATION_X:
+                this._transformers.push(new RotationTransformer(id, inputVariable, 0, params[0], params[1]));
+                break;
+            case TransformType.ROTATION_Y:
+                this._transformers.push(new RotationTransformer(id, inputVariable, 1, params[0], params[1]));
+                break;
+            case TransformType.ROTATION_Z:
+                this._transformers.push(new RotationTransformer(id, inputVariable, 2, params[0], params[1]));
                 break;
         }
         this.addInputVariableDeclaration(type, inputType, inputVariable);
@@ -325,6 +322,12 @@ class Transformer {
                 return `${ShaderVariable.TRANSLATION}.y`;
             case TransformType.POSITION_Z:
                 return `${ShaderVariable.TRANSLATION}.z`;
+            case TransformType.ROTATION_X:
+                return `${ShaderVariable.ROTATION}.x`;
+            case TransformType.ROTATION_Y:
+                return `${ShaderVariable.ROTATION}.y`;
+            case TransformType.ROTATION_Z:
+                return `${ShaderVariable.ROTATION}.z`;
             case TransformType.SCALING:
                 return `${ShaderVariable.SCALING}`;
         }
@@ -521,5 +524,48 @@ class ScalingTransformer extends Transformer {
         if (params[1] != null) {
             this._max = params[1];
         }
+    }
+}
+class RotationTransformer extends Transformer {
+    _min;
+    _max;
+    constructor(idx, inputVariable, channel, min, max) {
+        super(idx, inputVariable);
+        switch (channel) {
+            case 0:
+                this.type = TransformType.ROTATION_X;
+                break;
+            case 1:
+                this.type = TransformType.ROTATION_Y;
+                break;
+            case 2:
+                this.type = TransformType.ROTATION_Z;
+                break;
+        }
+        this._min = this.degToRad(min);
+        this._max = this.degToRad(max);
+    }
+    applyTransformation(input) {
+        return this._min * (1 - input) + this._max * input;
+    }
+    getParamsDeclarationBlock() {
+        let s = "";
+        s += this.getParamDeclaration(0, this._min) + "\n";
+        s += this.getParamDeclaration(1, this._max);
+        return s;
+    }
+    getTransformationsBlock() {
+        return this.getTransformerFunctionCall(ShaderFunction.INTERPOLATION, [0, 1]);
+    }
+    setParameters(params) {
+        if (params[0] != null) {
+            this._min = this.degToRad(params[0]);
+        }
+        if (params[1] != null) {
+            this._max = this.degToRad(params[1]);
+        }
+    }
+    degToRad(value) {
+        return value * Math.PI / 180;
     }
 }
