@@ -38,16 +38,30 @@ class FlockingSimulation(Simulation):
         
         IntParam(id_p="boxSize", name="Box size",
                  default_value=100, min_value=10, step=10),
-        IntParam(id_p="boidCount", name="Boid size",
+        IntParam(id_p="boidCount", name="Boid count",
                  default_value=200, min_value=1, step=5),
         FloatParam(id_p="dt", name="dt",
                     default_value=0.05, min_value=0.1, max_value=1., step=0.1),
     ]
 
     default_rules = [
-        FloatParam(id_p="speed", name="Speed",
+        FloatParam(id_p="speed", name="Boids speed",
                     default_value=1.0, min_value=0.0, max_value=10.0, step=0.1),
-        ]
+        FloatParam(id_p="D_align", name="Alignement Distance (D)",
+                    default_value=45., min_value=0.0, max_value=100., step=5.),
+        FloatParam(id_p="J_align", name="Alignement Strenght (J)",
+                    default_value=1.0, min_value=0.0, max_value=10.0, step=0.1),
+        FloatParam(id_p="D_avoid", name="Avoidance Distance (D)",
+                    default_value=30., min_value=0.0, max_value=100., step=5.),
+        FloatParam(id_p="J_avoid", name="Avoidance Strenght (J)",
+                    default_value=25.0, min_value=0.0, max_value=100.0, step=1.),
+        FloatParam(id_p="D_cohesion", name="Cohesion Distance (D)",
+                    default_value=40.0, min_value=0.0, max_value=100.0, step=5.),
+        FloatParam(id_p="J_cohesion", name="Cohesion Strenght (J)",
+                    default_value=0.005, min_value=0.0, max_value=1., step=0.001),
+    ]
+        
+        
 
     #methods added to simplify usage of jax
     def JAX_to_ParticleState(self, state) :
@@ -96,9 +110,7 @@ class FlockingSimulation(Simulation):
 
  
     def step(self) :
-        t0 = time.time()
-        print('s')
-        speed = [p for p in self.rules if p.id_param == "speed"][0].value
+        speed = self.getRuleById("speed")
         state =  self.state
         R, theta = state['boids']
         
@@ -108,11 +120,8 @@ class FlockingSimulation(Simulation):
 
         state['boids'] = Boid(self.shift(R, self.dt * (speed * n + dR)), 
                             theta + self.dt * dtheta)
-        print("S0 : " , time.time()-t0)
         #self.JAX_to_ParticleState(state)
-        print("S1 : " , time.time()-t0)
         self.state = state
-        print("S : " , time.time()-t0)
 
 
     def set_current_state_from_array(self, new_state):
@@ -135,23 +144,29 @@ class FlockingSimulation(Simulation):
     def energy_fn(self, state):
         
         boids = state['boids']
-        E_align = partial(align_fn, J_align=0.5, D_align=45., alpha=3.)
+        E_align = partial(align_fn, J_align=self.getRuleById("J_align"), D_align=self.getRuleById("D_align"), alpha=3.)
         # Map the align energy over all pairs of boids. While both applications
         # of vmap map over the displacement matrix, each acts on only one normal.
         E_align = vmap(vmap(E_align, (0, None, 0)), (0, 0, None))
 
+        E_avoid = partial(avoid_fn, J_avoid=self.getRuleById("J_avoid"), D_avoid=self.getRuleById("D_avoid"), alpha=3.)
+        E_avoid = vmap(vmap(E_avoid))
+
+        E_cohesion = partial(cohesion_fn, J_cohesion=self.getRuleById("J_cohesion"), D_cohesion=self.getRuleById("D_cohesion"))
+
         dR = space.map_product(self.displacement)(boids.R, boids.R)
         N = normal(boids.theta)
 
-        return 0.5 * np.sum(E_align(dR, N, N))
+        return (0.5 * np.sum(E_align(dR, N, N) + E_avoid(dR)) + 
+          np.sum(E_cohesion(dR, N)))
 
     def to_JSON_object(self) :
         boids = self.state['boids']
         pos_row = jnp.transpose(boids.R)
-        x_row = pos_row[0].tolist()
-        y_row = pos_row[1].tolist()
+        x_row = (pos_row[0] - (self.box_size/2)).tolist()
+        y_row = (pos_row[1] - (self.box_size/2)).tolist()
         domain = [self.boid_count, 1]
-        val_row = (boids.theta / (2*np.pi)).tolist()
+        val_row = ((boids.theta % (jnp.pi)) / (jnp.pi)).tolist()
         l = [domain, x_row, y_row, val_row]
         return l
 
@@ -165,8 +180,23 @@ def align_fn(dR, N_1, N_2, J_align, D_align, alpha):
     energy = J_align / alpha * (1. - dr) ** alpha * (1 - jnp.dot(N_1, N_2)) ** 2
     return jnp.where(dr < 1.0, energy, 0.)
 
+def avoid_fn(dR, J_avoid, D_avoid, alpha):
+  dr = space.distance(dR) / D_avoid
+  return jnp.where(dr < 1., 
+                  J_avoid / alpha * (1 - dr) ** alpha, 
+                  0.)
 
+def cohesion_fn(dR, N, J_cohesion, D_cohesion, eps=1e-7):
+  dR = lax.stop_gradient(dR)
+  dr = jnp.linalg.norm(dR, axis=-1, keepdims=True)
+  
+  mask = dr < D_cohesion
 
+  N_com = jnp.where(mask, 1.0, 0)
+  dR_com = jnp.where(mask, dR, 0)
+  dR_com = jnp.sum(dR_com, axis=1) / (jnp.sum(N_com, axis=1) + eps)
+  dR_com = dR_com / jnp.linalg.norm(dR_com + eps, axis=1, keepdims=True)
+  return f32(0.5) * J_cohesion * (1 - jnp.sum(dR_com * N, axis=1)) ** 2
 
 
 
