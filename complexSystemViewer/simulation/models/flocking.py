@@ -158,7 +158,6 @@ class FlockingSimulation(Simulation):
         N = normal(boids.theta)
         E =(0.5 * np.sum(E_align(dR, N, N) + E_avoid(dR)) + 
           np.sum(E_cohesion(dR, N)))
-        print(self.getRuleById("J-align")   )
         return E
 
     def to_JSON_object(self) :
