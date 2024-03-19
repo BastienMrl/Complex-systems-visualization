@@ -84,6 +84,7 @@ export class UserInterface {
         let addTransformerButton = document.getElementById('buttonAddTransformer');
         let animableSelect = document.getElementById("animableSelect");
         let modelSelector = document.getElementById("modelSelector");
+        let meshInputFile = document.getElementById("meshLoader");
         playButton.addEventListener('click', () => {
             this._viewer.startVisualizationAnimation();
             console.log("START");
@@ -180,6 +181,9 @@ export class UserInterface {
             xhttp.send();
         });
         this.initSimulationItem();
+        meshInputFile.addEventListener("change", () => {
+            this._viewer.loadMesh("/static/models/" + meshInputFile.value);
+        });
     }
     initSimulationItem() {
         // ADD LISTENER FOR RULES ITEMS

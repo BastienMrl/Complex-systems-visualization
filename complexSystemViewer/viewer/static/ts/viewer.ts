@@ -112,6 +112,10 @@ export class Viewer {
         this._drawable = true;
     }
 
+    public loadMesh(path : string){
+        this._multipleInstances.loadMesh(path);
+    }
+
     private initCamera(){
         const cameraPos = Vec3.fromValues(0., 80., 100.);
         const cameraTarget = Vec3.fromValues(0, 0, 0);

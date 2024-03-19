@@ -77,6 +77,9 @@ export class Viewer {
         await this._multipleInstances.loadMesh("/static/models/cube_div_1.obj");
         this._drawable = true;
     }
+    loadMesh(path) {
+        this._multipleInstances.loadMesh(path);
+    }
     initCamera() {
         const cameraPos = Vec3.fromValues(0., 80., 100.);
         const cameraTarget = Vec3.fromValues(0, 0, 0);

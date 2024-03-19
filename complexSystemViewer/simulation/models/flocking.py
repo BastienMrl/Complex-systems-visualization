@@ -166,7 +166,7 @@ class FlockingSimulation(Simulation):
         x_row = (pos_row[0] - (self.box_size/2)).tolist()
         y_row = (pos_row[1] - (self.box_size/2)).tolist()
         domain = [self.boid_count, 1]
-        val_row = ((boids.theta % (jnp.pi)) / (jnp.pi)).tolist()
+        val_row = ((boids.theta % (2 * jnp.pi)) / (2 * jnp.pi)).tolist()
         l = [domain, x_row, y_row, val_row]
         return l
 

@@ -115,6 +115,8 @@ export class UserInterface {
 
         let modelSelector = (document.getElementById("modelSelector") as HTMLSelectElement);
 
+        let meshInputFile = (document.getElementById("meshLoader") as HTMLSelectElement);
+
         playButton.addEventListener('click', () => {
             this._viewer.startVisualizationAnimation();
             console.log("START");
@@ -220,7 +222,11 @@ export class UserInterface {
             }
             xhttp.send();
         })
-        this.initSimulationItem()
+        this.initSimulationItem();
+
+        meshInputFile.addEventListener("change", () => {
+            this._viewer.loadMesh("/static/models/" + meshInputFile.value);
+        });
     }
 
     private initSimulationItem(){
