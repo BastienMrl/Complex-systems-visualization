@@ -49,21 +49,29 @@ uniform vec2 u_aabb[3];
 
 
 mat4 create_transform_matrix(in vec3 translation, in vec3 rotation, in vec3 scaling){
+    mat4 mScaling;
     mat4 m;
-    m[0][0] = cos(rotation.y) * cos(rotation.z) * scaling.x;
+    m[0][0] = cos(rotation.y) * cos(rotation.z);
     m[0][1] = sin(rotation.x) * sin(rotation.y) * cos(rotation.z) - cos(rotation.x) * sin(rotation.z);
     m[0][2] = cos(rotation.x) * sin(rotation.y) * cos(rotation.z) + sin(rotation.x) * sin(rotation.z);
 
     m[1][0] = cos(rotation.y) * sin(rotation.z);
-    m[1][1] = sin(rotation.x) * sin(rotation.y) * sin(rotation.z) + cos(rotation.x) * cos(rotation.z) * scaling.y;
+    m[1][1] = sin(rotation.x) * sin(rotation.y) * sin(rotation.z) + cos(rotation.x) * cos(rotation.z);
     m[1][2] = cos(rotation.x) * sin(rotation.y) * sin(rotation.z) - sin(rotation.x) * cos(rotation.z);
 
     m[2][0] = -sin(rotation.y);
     m[2][1] = sin(rotation.x) * cos(rotation.y);
-    m[2][2] = cos(rotation.x) * cos(rotation.y) * scaling.z;
+    m[2][2] = cos(rotation.x) * cos(rotation.y);
 
     m[3] = vec4(translation, 1.0);
-    return m;
+
+    mScaling[0][0] = scaling.x;
+    mScaling[1][1] = scaling.y;
+    mScaling[2][2] = scaling.z;
+    mScaling[3][3] = 1.0;
+
+
+    return m * mScaling;
 }
 
 float map(float value, float min1, float max1, float min2, float max2) {
