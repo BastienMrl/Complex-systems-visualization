@@ -38,16 +38,30 @@ class FlockingSimulation(Simulation):
         
         IntParam(id_p="boxSize", name="Box size",
                  default_value=100, min_value=10, step=10),
-        IntParam(id_p="boidCount", name="Boid size",
+        IntParam(id_p="boidCount", name="Boid count",
                  default_value=200, min_value=1, step=5),
         FloatParam(id_p="dt", name="dt",
                     default_value=0.05, min_value=0.1, max_value=1., step=0.1),
     ]
 
     default_rules = [
-        FloatParam(id_p="speed", name="Speed",
+        FloatParam(id_p="speed", name="Boids speed",
                     default_value=1.0, min_value=0.0, max_value=10.0, step=0.1),
-        ]
+        FloatParam(id_p="D_align", name="Alignement Distance (D)",
+                    default_value=45., min_value=0.0, max_value=100., step=5.),
+        FloatParam(id_p="J_align", name="Alignement Strenght (J)",
+                    default_value=1.0, min_value=0.0, max_value=10.0, step=0.1),
+        FloatParam(id_p="D_avoid", name="Avoidance Distance (D)",
+                    default_value=30., min_value=0.0, max_value=100., step=5.),
+        FloatParam(id_p="J_avoid", name="Avoidance Strenght (J)",
+                    default_value=25.0, min_value=0.0, max_value=100.0, step=1.),
+        FloatParam(id_p="D_cohesion", name="Cohesion Distance (D)",
+                    default_value=40.0, min_value=0.0, max_value=100.0, step=5.),
+        FloatParam(id_p="J_cohesion", name="Cohesion Strenght (J)",
+                    default_value=0.005, min_value=0.0, max_value=1., step=0.001),
+    ]
+        
+        
 
     #methods added to simplify usage of jax
     def JAX_to_ParticleState(self, state) :
@@ -96,7 +110,7 @@ class FlockingSimulation(Simulation):
 
  
     def step(self) :
-        speed = [p for p in self.rules if p.id_param == "speed"][0].value
+        speed = self.getRuleById("speed")
         state =  self.state
         R, theta = state['boids']
         
@@ -130,15 +144,15 @@ class FlockingSimulation(Simulation):
     def energy_fn(self, state):
         
         boids = state['boids']
-        E_align = partial(align_fn, J_align=0.5, D_align=45., alpha=3.)
+        E_align = partial(align_fn, J_align=self.getRuleById("J_align"), D_align=self.getRuleById("D_align"), alpha=3.)
         # Map the align energy over all pairs of boids. While both applications
         # of vmap map over the displacement matrix, each acts on only one normal.
         E_align = vmap(vmap(E_align, (0, None, 0)), (0, 0, None))
 
-        E_avoid = partial(avoid_fn, J_avoid=25., D_avoid=30., alpha=3.)
+        E_avoid = partial(avoid_fn, J_avoid=self.getRuleById("J_avoid"), D_avoid=self.getRuleById("D_avoid"), alpha=3.)
         E_avoid = vmap(vmap(E_avoid))
 
-        E_cohesion = partial(cohesion_fn, J_cohesion=0.005, D_cohesion=40.)
+        E_cohesion = partial(cohesion_fn, J_cohesion=self.getRuleById("J_cohesion"), D_cohesion=self.getRuleById("D_cohesion"))
 
         dR = space.map_product(self.displacement)(boids.R, boids.R)
         N = normal(boids.theta)
