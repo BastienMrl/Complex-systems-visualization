@@ -1,4 +1,5 @@
-import { AnimableValue, Viewer } from "./viewer.js";
+import { AnimableValue } from "./shaderUtils.js";
+import { Viewer } from "./viewer.js";
 import { InputType, TransformerBuilder, TransformType } from "./transformerBuilder.js";
 import { sendMessageToWorker, WorkerMessage } from "./workers/workerInterface.js"
 import { SelectionMode } from "./selectionTools/selectionManager.js";
@@ -115,6 +116,8 @@ export class UserInterface {
         let modelSelector = (document.getElementById("modelSelector") as HTMLSelectElement);
 
         let toolSettings = (document.getElementById("toolSettings") as HTMLDivElement).children as HTMLCollectionOf<HTMLInputElement>;
+        
+        let meshInputFile = (document.getElementById("meshLoader") as HTMLSelectElement);
 
         playButton.addEventListener('click', () => {
             this._viewer.startVisualizationAnimation();
@@ -236,7 +239,11 @@ export class UserInterface {
             }
             xhttp.send();
         })
-        this.initSimulationItem()
+        this.initSimulationItem();
+
+        meshInputFile.addEventListener("change", () => {
+            this._viewer.loadMesh("/static/models/" + meshInputFile.value);
+        });
 
         for(let i=0; i<toolSettings.length; i++){
             toolSettings.item(i).addEventListener("change", () => {
@@ -277,6 +284,7 @@ export class UserInterface {
             paramContainer.appendChild(param);
             toolSettings.appendChild(paramContainer);
         }
+        
     }
 
     private initSimulationItem(){
@@ -324,24 +332,21 @@ export class UserInterface {
     private initTransformers(){
         this._transformers = new TransformersInterface(this._viewer);
 
-        let colorTransformerElement = document.getElementById("colorTransformer") as HTMLElement;
-        let positionXElement = document.getElementById("positionX") as HTMLElement;
-        let positionYElement = document.getElementById("positionY") as HTMLElement;
-        let positionZElement = document.getElementById("positionZ") as HTMLElement;
-        // let colorRElement = document.getElementById("colorR") as HTMLElement;
-        // let colorGElement = document.getElementById("colorG") as HTMLElement;
-        // let colorBElement = document.getElementById("colorB") as HTMLElement;
-
-
-        this._transformers.addTransformerFromElement(colorTransformerElement);
-        this._transformers.addTransformerFromElement(positionXElement);
-        this._transformers.addTransformerFromElement(positionYElement);
-        this._transformers.addTransformerFromElement(positionZElement);
-        // this._transformers.addTransformerFromElement(colorRElement);
-        // this._transformers.addTransformerFromElement(colorGElement);
-        // this._transformers.addTransformerFromElement(colorBElement);
+        document.querySelectorAll("[transformer]").forEach(e => {
+            this._transformers.addTransformerFromElement(e as HTMLElement);
+        });
 
         this._transformers.updateProgram();
+        
+        let selector = document.getElementById("transformerTypeSelector") as HTMLSelectElement;
+        for (let type in TransformType){
+            let isValue = Number(type) >= 0;
+            if (isValue){
+                let text = TransformType[type];
+                let option = new Option(text, text);
+                selector.add(option);
+            }
+        }
     }
 
     private initAnimationCurves(){
@@ -367,7 +372,6 @@ export class TransformersInterface {
     public setNumberOfStatesOutput(nb : number){
         let oldNumber = this._nbChannels;
         this._nbChannels = nb;
-        console.log("old Number = ", oldNumber, "current = ", this._nbChannels)
         document.querySelectorAll("div[transformer]").forEach((e) => {
             let select = e.getElementsByClassName("visualizationInput")[0].querySelector("select");
             if (oldNumber > this._nbChannels){
@@ -469,6 +473,14 @@ export class TransformersInterface {
                 return TransformType.POSITION_Y;
             case "POSITION_Z":
                 return TransformType.POSITION_Z;
+            case "SCALING":
+                return TransformType.SCALING;
+            case "ROTATION_X":
+                return TransformType.ROTATION_X;
+            case "ROTATION_Y":
+                return TransformType.ROTATION_Y;
+            case "ROTATION_Z":
+                return TransformType.ROTATION_Z;    
         }
     }
 
@@ -518,9 +530,13 @@ export class TransformersInterface {
                 let colorAliveInput = parent.querySelector("input[paramId=c1]") as HTMLInputElement;
                 let colorDeadInput = parent.querySelector("input[paramId=c0]") as HTMLInputElement;     
                 return [colorDeadInput, colorAliveInput];
+            case TransformType.SCALING :
             case TransformType.COLOR_R :
             case TransformType.COLOR_G :
             case TransformType.COLOR_B :
+            case TransformType.ROTATION_X:
+            case TransformType.ROTATION_Y:
+            case TransformType.ROTATION_Z:
                 let min = parent.querySelector("input[paramId=range_min]") as HTMLInputElement;
                 let max = parent.querySelector("input[paramId=range_max]") as HTMLInputElement;
                 return [min, max];
@@ -533,7 +549,7 @@ export class TransformersInterface {
 }
 
 // easeing functions from https://easings.net/
-class AnimationFuction{
+class AnimationFunction{
     static easeOut = function(time : number){ return time == 1 ? 1 : 1 - Math.pow(2, -10 * time); };
     static easeOutElastic = function(time: number): number {
             const c4 = (2 * Math.PI) / 3;
@@ -561,19 +577,19 @@ class AnimationFuction{
     static retrieveFunction(functionName:string){
         switch (functionName) {
             case "easeOut":
-                return AnimationFuction.easeOut
+                return AnimationFunction.easeOut
             case "easeOutElastic":
-                return AnimationFuction.easeOutElastic
+                return AnimationFunction.easeOutElastic
             case "fc0":
-                return AnimationFuction.fc0
+                return AnimationFunction.fc0
             case "easeInBack":
-                return AnimationFuction.easeInBack;
+                return AnimationFunction.easeInBack;
             case "linear":
-                return AnimationFuction.linear;
+                return AnimationFunction.linear;
             case "easeInExpo":
-                return AnimationFuction.easeInExpo;
+                return AnimationFunction.easeInExpo;
             case "easeInOutBack":
-                return AnimationFuction.easeInOutBack;
+                return AnimationFunction.easeInOutBack;
             default:
                 break;
         }    
@@ -587,8 +603,8 @@ class AnimationInterface{
         this._viewer = viewer;
         //.... AnimationCurves ....
         // Default animation curve is easeOut, without any bind it would be fc0
-        this._viewer.bindAnimationCurve(AnimableValue.COULEUR, AnimationFuction.easeOut);
-        this._viewer.bindAnimationCurve(AnimableValue.POSITION, AnimationFuction.easeOut);
+        this._viewer.bindAnimationCurve(AnimableValue.COLOR, AnimationFunction.easeOut);
+        this._viewer.bindAnimationCurve(AnimableValue.POSITION, AnimationFunction.easeOut);
 
         this.initAnimationItem()
     }
@@ -596,23 +612,23 @@ class AnimationInterface{
     private initAnimationItem(){
         let animationItem = document.getElementById("animationFunctionsGrid") as HTMLDivElement;
         let select = document.getElementById("animableSelect") as HTMLSelectElement
-        let animationKeysValue = Object.keys(AnimableValue)
+        let animationKeysValue = Object.values(AnimableValue)
         for(let i=0; i<animationKeysValue.length/2; i++){
             let option = document.createElement("option")
             option.value = animationKeysValue.at(i).toString();
-            option.innerText = animationKeysValue.at(i+animationKeysValue.length/2);
+            option.innerText = animationKeysValue.at(i).toString();
             option.setAttribute("animationFunction","easeOut");
             select.appendChild(option)
         }
 
         let optionAll = document.createElement("option");
         optionAll.value = "-1";
-        optionAll.innerText = "TOUS";
+        optionAll.innerText = "ALL";
         optionAll.setAttribute("animationFunction","easeOut");
         select.appendChild(optionAll);
 
         //Iterate over all the function in AnimationFunction
-        for(let animFunction of Object.values(AnimationFuction)){
+        for(let animFunction of Object.values(AnimationFunction)){
             let canvas = document.createElement("canvas") as HTMLCanvasElement;
             canvas.width = 80;
             canvas.height = 120;
@@ -647,8 +663,8 @@ class AnimationInterface{
             container.appendChild(name)
 
             container.addEventListener("click", () => {
-                let animableProperty = Number.parseInt(select.value);
-                if(animableProperty == -1){
+                let animableProperty = this.getAnimableValueFromString(select.value);
+                if(animableProperty == undefined){
                     for(let i=0; i<animationKeysValue.length/2;i++){
                         this._viewer.bindAnimationCurve(i, animFunction);
                     }
@@ -663,6 +679,15 @@ class AnimationInterface{
                 select.children[select.selectedIndex].setAttribute("animationFunction",animFunction.name)
             });
             animationItem.appendChild(container);
+        }
+    }
+
+    private getAnimableValueFromString(name : string) : number {
+        switch (name) {
+            case "COLOR" : return AnimableValue.COLOR;
+            case "POSITION" : return AnimableValue.POSITION;
+            case "ROTATION" : return AnimableValue.ROTATION;
+            case "SCALING" : return AnimableValue.SCALING;
         }
     }
 

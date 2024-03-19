@@ -11,9 +11,6 @@
         <h3>Add new transformer</h3>
         <div id="addTransformerForm">
             <select id="transformerTypeSelector">
-                {% for transformerType in model.getTransformerType %}
-                    <option value="{{transformerType}}">{{transformerType}}</option>
-                {% endfor %}
             </select>
             <button id="buttonAddTransformer">
                 <svg id="addTransformer" width="800px" height="800px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -34,5 +31,11 @@
 <div id="foldVisualizationPanelButton" class="foldButton withTransition">
     <svg class="w-6 h-6 text-gray-800 dark:text-white withTransition" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="m9 5 7 7-7 7"/>
-  </svg>
+    </svg>
 </div>
+<select id="meshLoader"/>
+    <option value="cube.obj">Cube</option>
+    <option value="cube_div_1.obj">Cube Subdiv 1</option>
+    <option value="cube_div_2">Cube Subdiv 2</option>
+    <option value="cone.obj">Cone</option>
+</select>

@@ -204,30 +204,26 @@ export class MultipleMeshInstances{
         const nbFaces : number[] = new Array(vertices.length).fill(0);
 
         output.models[0].faces.forEach((element) => {
+            const v0 = element.vertices[0].vertexIndex - 1;
+            let e1 : Vec3 = Vec3.create();
+            let e2 : Vec3 = Vec3.create();
+
+            Vec3.sub(e1, vertices[element.vertices[1].vertexIndex - 1], vertices[v0]);
+            Vec3.sub(e2, vertices[element.vertices[2].vertexIndex - 1], vertices[v0]);
+
+
+            let n = Vec3.create();
+            Vec3.cross(n, e1, e2);
+
             for (let i = 1; i < element.vertices.length - 1; i++){
-                const v0 = element.vertices[0].vertexIndex - 1;
                 const v1 = element.vertices[i].vertexIndex - 1;
                 const v2 = element.vertices[i + 1].vertexIndex - 1;
-                vertIndices.push(v0, v1, v2);
-
-                let e1 : Vec3 = Vec3.create();
-                let e2 : Vec3 = Vec3.create();
-
-                Vec3.sub(e1, vertices[v1], vertices[v0]);
-                Vec3.sub(e2, vertices[v2], vertices[v0]);
-
-
-                let n = Vec3.create();
-                Vec3.cross(n, e1, e2);
-
-                
-                normals[v0].add(n);
-                normals[v1].add(n);
-                normals[v2].add(n);
-            
-                nbFaces[v0] += 1;
-                nbFaces[v1] += 1;
-                nbFaces[v2] += 1;
+                vertIndices.push(v0, v1, v2);                
+            }
+            for (let i = 0; i < element.vertices.length; i++){
+                const v = element.vertices[i].vertexIndex - 1;
+                normals[v].add(n);
+                nbFaces[v] += 1;
             }
         });
         

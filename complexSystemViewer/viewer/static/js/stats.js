@@ -28,7 +28,7 @@ export class Stats {
     }
     displayFPS(fps) {
         this._fpsEl.innerHTML = "FPS : " + fps.toFixed(0);
-        const total = this._currentRenderingDelay + this._currentPickingDelay + this._currentUpdateDelay;
+        const total = this._currentRenderingDelay + this._currentUpdateDelay;
         this._totalEl.innerHTML = "Total : " + total.toFixed(Stats._nbDigits) + " ms";
     }
     displayRendering(delay) {
@@ -82,13 +82,6 @@ export class Stats {
     }
     stopPickingTimer() {
         const delta = performance.now() - this._pickingTimer;
-        this._pickingAccumulator += delta;
-        this._nbPicking += 1;
-        if (this._nbPicking == this._nbIteration) {
-            const delay = this._pickingAccumulator / this._nbIteration;
-            this._nbPicking = 0;
-            this._pickingAccumulator = 0;
-            this.displayPicking(delay);
-        }
+        this.displayPicking(delta);
     }
 }
