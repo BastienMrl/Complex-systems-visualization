@@ -89,7 +89,7 @@ class GOLSimulation(Simulation):
         state =  self.current_states[0]
         grid = state.grid
         grid = jnp.expand_dims(jnp.squeeze(grid), (0, 1))
-        out = lax.conv(grid, self.kernel, (1, 1), 'SAME')
+        out = lax.conv(grid.astype(np.float64), self.kernel.astype(np.float64), (1, 1), 'SAME')
 
         b_param : RangeIntParam = [p for p in self.rules if p.id_param == "birth"][0]
         s_param : RangeIntParam = [p for p in self.rules if p.id_param == "survival"][0]
