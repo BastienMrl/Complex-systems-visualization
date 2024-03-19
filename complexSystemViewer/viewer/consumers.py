@@ -12,6 +12,9 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
         self.sim : Simulation = None
         self.init_parameters = None
     
+
+
+    
     async def connect(self):
         await self.accept()
         self.init_parameters = ModelManager.get_initialization_parameters("Gol")
