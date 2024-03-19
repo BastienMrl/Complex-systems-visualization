@@ -135,10 +135,13 @@ class FlockingSimulation(Simulation):
         # of vmap map over the displacement matrix, each acts on only one normal.
         E_align = vmap(vmap(E_align, (0, None, 0)), (0, 0, None))
 
+        E_avoid = partial(avoid_fn, J_avoid=25., D_avoid=30., alpha=3.)
+        E_avoid = vmap(vmap(E_avoid))
+
         dR = space.map_product(self.displacement)(boids.R, boids.R)
         N = normal(boids.theta)
 
-        return 0.5 * np.sum(E_align(dR, N, N))
+        return 0.5 * np.sum(E_align(dR, N, N)  + E_avoid(dR))
 
     def to_JSON_object(self) :
         boids = self.state['boids']
@@ -160,6 +163,11 @@ def align_fn(dR, N_1, N_2, J_align, D_align, alpha):
     energy = J_align / alpha * (1. - dr) ** alpha * (1 - jnp.dot(N_1, N_2)) ** 2
     return jnp.where(dr < 1.0, energy, 0.)
 
+def avoid_fn(dR, J_avoid, D_avoid, alpha):
+  dr = space.distance(dR) / D_avoid
+  return jnp.where(dr < 1., 
+                  J_avoid / alpha * (1 - dr) ** alpha, 
+                  0.)
 
 
 
