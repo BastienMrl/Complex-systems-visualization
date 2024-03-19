@@ -284,7 +284,6 @@ export class UserInterface {
             paramContainer.appendChild(param);
             toolSettings.appendChild(paramContainer);
         }
-        
     }
 
     private initSimulationItem(){
