@@ -138,10 +138,13 @@ class FlockingSimulation(Simulation):
         E_avoid = partial(avoid_fn, J_avoid=25., D_avoid=30., alpha=3.)
         E_avoid = vmap(vmap(E_avoid))
 
+        E_cohesion = partial(cohesion_fn, J_cohesion=0.005, D_cohesion=40.)
+
         dR = space.map_product(self.displacement)(boids.R, boids.R)
         N = normal(boids.theta)
 
-        return 0.5 * np.sum(E_align(dR, N, N)  + E_avoid(dR))
+        return (0.5 * np.sum(E_align(dR, N, N) + E_avoid(dR)) + 
+          np.sum(E_cohesion(dR, N)))
 
     def to_JSON_object(self) :
         boids = self.state['boids']
@@ -169,7 +172,17 @@ def avoid_fn(dR, J_avoid, D_avoid, alpha):
                   J_avoid / alpha * (1 - dr) ** alpha, 
                   0.)
 
+def cohesion_fn(dR, N, J_cohesion, D_cohesion, eps=1e-7):
+  dR = lax.stop_gradient(dR)
+  dr = jnp.linalg.norm(dR, axis=-1, keepdims=True)
+  
+  mask = dr < D_cohesion
 
+  N_com = jnp.where(mask, 1.0, 0)
+  dR_com = jnp.where(mask, dR, 0)
+  dR_com = jnp.sum(dR_com, axis=1) / (jnp.sum(N_com, axis=1) + eps)
+  dR_com = dR_com / jnp.linalg.norm(dR_com + eps, axis=1, keepdims=True)
+  return f32(0.5) * J_cohesion * (1 - jnp.sum(dR_com * N, axis=1)) ** 2
 
 
 
