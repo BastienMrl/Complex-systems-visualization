@@ -37,7 +37,7 @@ export class Stats{
     
     private displayFPS(fps : number){
         this._fpsEl.innerHTML = "FPS : " + fps.toFixed(0);
-        const total =  this._currentRenderingDelay + this._currentPickingDelay + this._currentUpdateDelay;
+        const total =  this._currentRenderingDelay + this._currentUpdateDelay;
         this._totalEl.innerHTML = "Total : " + total.toFixed(Stats._nbDigits) + " ms";
     }
 
@@ -100,13 +100,6 @@ export class Stats{
 
     public stopPickingTimer(){
         const delta : number = performance.now() - this._pickingTimer
-        this._pickingAccumulator += delta;
-        this._nbPicking += 1;
-        if (this._nbPicking == this._nbIteration){
-            const delay : number = this._pickingAccumulator / this._nbIteration;
-            this._nbPicking = 0;
-            this._pickingAccumulator = 0;
-            this.displayPicking(delay);
-        }
+        this.displayPicking(delta);
     }
 }

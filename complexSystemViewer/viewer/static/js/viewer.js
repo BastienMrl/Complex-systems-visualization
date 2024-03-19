@@ -38,7 +38,7 @@ export class Viewer {
         this._stats = new Stats(document.getElementById("renderingFps"), document.getElementById("updateMs"), document.getElementById("renderingMs"), document.getElementById("pickingMs"), document.getElementById("totalMs"));
         this._animationTimer = new AnimationTimer(0.15, false);
         this._animationIds = new Map();
-        this._selectionManager = new SelectionManager(this);
+        this._selectionManager = new SelectionManager(this, this._stats);
         this._currentValue = null;
         this._nextValue = null;
         this._transmissionWorker = new Worker("/static/js/workers/transmissionWorker.js", { type: "module" });
@@ -150,13 +150,6 @@ export class Viewer {
         time *= 0.001;
         let delta = this._lastTime = 0 ? 0 : time - this._lastTime;
         this._lastTime = time;
-        // picking
-        if (this._drawable) {
-            this._stats.startPickingTimer();
-            // let id = this._selectionManager.getMeshesId(this.mouseX, this.mouseY, this.canvas.width, this.canvas.height, this.camera);
-            // this._multipleInstances.setMouseOver(id);
-            this._stats.stopPickingTimer();
-        }
         // rendering
         if (this._drawable) {
             this._stats.startRenderingTimer(delta);

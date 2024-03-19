@@ -46,14 +46,6 @@ uniform float u_time_scaling;
 
 uniform vec2 u_aabb[3];
 
-// mat4 create_transform_matrix(in vec3 translation, in vec3 rotation, in vec3 scaling){
-//     mat4 m;
-//     m[0][0] = scaling.x;
-//     m[1][1] = scaling.y;
-//     m[2][2] = scaling.z;
-//     m[3] = vec4(translation, 1.0);
-//     return m;
-// }
 
 
 mat4 create_transform_matrix(in vec3 translation, in vec3 rotation, in vec3 scaling){

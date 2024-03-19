@@ -1,4 +1,5 @@
 import { MultipleMeshInstances } from "../mesh.js";
+import { Stats } from "../stats.js";
 import { TransformerBuilder } from "../transformerBuilder.js";
 import { Viewer } from "../viewer.js";
 import { SelectionBoxTool } from "./selectionBox.js";
@@ -18,12 +19,16 @@ export class SelectionManager{
     private _mode = SelectionMode.DISABLE;
 
     private _tools : Array<SelectionTool>;
+    
+    private _stats : Stats;
 
-    constructor(viewer : Viewer){
+    constructor(viewer : Viewer, stats : Stats){
         this._tools = new Array(3);
         this._tools[SelectionMode.BOX] = new SelectionBoxTool(viewer, 0); 
         this._tools[SelectionMode.BRUSH] = new SelectionBrushTool(viewer, 0);
         this._tools[SelectionMode.LASSO] = new SelectionLassoTool(viewer, 0);
+
+        this._stats = stats;
 
 
         viewer.canvas.addEventListener('mousemove', (e : MouseEvent) => {
@@ -37,8 +42,11 @@ export class SelectionManager{
         });
 
         viewer.canvas.addEventListener('mouseup', (e : MouseEvent) => {
-            if (this._mode != SelectionMode.DISABLE)
+            if (this._mode != SelectionMode.DISABLE){
+                this._stats.startPickingTimer();
                 this._tools[this._mode].receiveMouseUpEvent(e);
+                this._stats.stopPickingTimer();
+            }
         });
     }
     
