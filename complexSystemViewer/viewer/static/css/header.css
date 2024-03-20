@@ -19,12 +19,13 @@ div#stats {
     display: flex;
 }
 
-div.statItem {
+.statItem {
     width: 140px;
     margin: 5px;
     padding: 5px;
     background-color: var(--color-light);
     font-family: Inria-Regular;
+    font-weight: 100;
     border-radius: 3px;
     overflow: hidden;
 }
