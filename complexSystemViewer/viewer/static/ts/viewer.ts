@@ -273,6 +273,10 @@ export class Viewer {
 
     public async onValuesReceived(data : Array<Float32Array>, isReshaped : boolean = false){
         this._nextValue = TransformableValues.fromValuesAsArray(data);
+        if( this._currentValue == null){
+            this._currentValue = this._nextValue;
+            await this.initMesh(this._nextValue)
+        }
         if (isReshaped){
             if (this._currentValue == null || this._currentValue.nbElements != this._nextValue.nbElements)
                 await this.initMesh(this._nextValue)
