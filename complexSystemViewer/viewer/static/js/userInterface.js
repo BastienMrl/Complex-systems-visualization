@@ -73,8 +73,8 @@ export class UserInterface {
     initInterfaceHandlers() {
         let playButton = document.querySelector('#buttonPlay');
         let pauseButton = document.querySelector('#buttonPause');
-        let restartButton = document.querySelector('#buttonRestart');
-        let timerButton = document.querySelector('#buttonTimer');
+        let resetButton = document.querySelector('#buttonReset');
+        let speedButton = document.querySelector('#buttonSpeed');
         let animationTimerEl = document.querySelector('#animationTimer');
         let visualizationPanel = document.getElementById("visualizationPanel");
         let simulationPanel = document.getElementById("simulationPanel");
@@ -94,7 +94,7 @@ export class UserInterface {
             this._viewer.stopVisualizationAnimation();
             console.log("STOP");
         });
-        restartButton.addEventListener('click', () => {
+        resetButton.addEventListener('click', () => {
             this._viewer.stopVisualizationAnimation();
             sendMessageToWorker(this._viewer.transmissionWorker, WorkerMessage.RESET);
             console.log("RESTART");
@@ -107,7 +107,7 @@ export class UserInterface {
                 clearTimeout(id);
             };
         });
-        timerButton.addEventListener('click', () => {
+        speedButton.addEventListener('click', () => {
             if (animationTimerEl.style.display == 'none')
                 animationTimerEl.style.display = 'flex';
             else
