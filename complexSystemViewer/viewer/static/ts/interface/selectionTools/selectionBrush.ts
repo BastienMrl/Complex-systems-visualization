@@ -1,4 +1,4 @@
-import { Viewer } from "../viewer.js";
+import { Viewer } from "../../viewer.js";
 import { SelectionTool } from "./selectionTool.js";
 
 export enum BrushShape{

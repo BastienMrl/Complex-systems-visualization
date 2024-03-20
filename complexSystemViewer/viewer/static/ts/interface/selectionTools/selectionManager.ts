@@ -1,7 +1,7 @@
-import { MultipleMeshInstances } from "../mesh.js";
+import { MultipleMeshInstances } from "../../mesh.js";
 import { Stats } from "../stats.js";
-import { TransformerBuilder } from "../transformerBuilder.js";
-import { Viewer } from "../viewer.js";
+import { TransformerBuilder } from "../../transformer/transformerBuilder.js";
+import { Viewer } from "../../viewer.js";
 import { SelectionBoxTool } from "./selectionBox.js";
 import { SelectionBrushTool } from "./selectionBrush.js";
 import { SelectionLassoTool } from "./selectionLasso.js";

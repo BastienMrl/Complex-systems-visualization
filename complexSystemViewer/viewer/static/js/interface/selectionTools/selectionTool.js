@@ -1,4 +1,4 @@
-import { Vec3 } from "../ext/glMatrix/vec3.js";
+import { Vec3 } from "../../ext/glMatrix/vec3.js";
 export class SelectionTool {
     _meshes;
     _transformer;

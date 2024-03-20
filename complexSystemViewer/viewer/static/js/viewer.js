@@ -2,12 +2,12 @@ import * as shaderUtils from "./shaderUtils.js";
 import { Vec3 } from "./ext/glMatrix/index.js";
 import { Camera } from "./camera.js";
 import { MultipleMeshInstances } from "./mesh.js";
-import { Stats } from "./stats.js";
+import { Stats } from "./interface/stats.js";
 import { AnimationTimer } from "./animationTimer.js";
 import { TransformableValues } from "./transformableValues.js";
 import { WorkerMessage, getMessageBody, getMessageHeader, sendMessageToWorker } from "./workers/workerInterface.js";
-import { SelectionManager } from "./selectionTools/selectionManager.js";
-import { UserInterface } from "./userInterface.js";
+import { SelectionManager } from "./interface/selectionTools/selectionManager.js";
+import { UserInterface } from "./interface/userInterface.js";
 // provides access to gl constants
 const gl = WebGL2RenderingContext;
 export class Viewer {

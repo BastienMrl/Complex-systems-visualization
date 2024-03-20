@@ -1,7 +1,7 @@
-import { Viewer } from "../viewer.js";
-import { MultipleMeshInstances } from "../mesh.js";
-import { TransformerBuilder } from "../transformerBuilder.js";
-import { Vec3 } from "../ext/glMatrix/vec3.js";
+import { Viewer } from "../../viewer.js";
+import { MultipleMeshInstances } from "../../mesh.js";
+import { TransformerBuilder } from "../../transformer/transformerBuilder.js";
+import { Vec3 } from "../../ext/glMatrix/vec3.js";
 
 
 export abstract class SelectionTool{

@@ -1,5 +1,5 @@
 import { Viewer } from "./viewer.js";
-import { UserInterface } from "./userInterface.js";
+import { UserInterface } from "./interface/userInterface.js";
 async function main() {
     let canvas = document.getElementById("c");
     if (canvas == null) {

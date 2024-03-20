@@ -1,5 +1,5 @@
 import { SelectionTool } from "./selectionTool.js";
-import { Viewer } from "../viewer.js";
+import { Viewer } from "../../viewer.js";
 
 export class SelectionBoxTool extends SelectionTool{
 
