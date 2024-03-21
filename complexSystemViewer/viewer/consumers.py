@@ -68,9 +68,6 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
         self.sim = ModelManager.get_simulation_model(name)
 
 
-        print("Test")
-
-
 
         await self.sendOneStep()    
 

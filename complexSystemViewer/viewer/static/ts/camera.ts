@@ -15,7 +15,6 @@ export class Camera{
     private _up : Vec3;
     private _cameraMatrix : Mat4;
     private _viewMatrix : Mat4;
-
     private _projViewMatrix : Mat4;
 
     //trackball

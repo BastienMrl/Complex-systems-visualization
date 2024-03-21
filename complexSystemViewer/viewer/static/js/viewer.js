@@ -201,14 +201,16 @@ export class Viewer {
     async onValuesReceived(data, isReshaped = false) {
         this._nextValue = TransformableValues.fromValuesAsArray(data);
         if (this._currentValue == null) {
-            this._currentValue = this._nextValue;
+            this._currentValue = TransformableValues.fromInstance(this._nextValue);
             await this.initMesh(this._nextValue);
         }
         if (isReshaped) {
-            if (this._currentValue == null || this._currentValue.nbElements != this._nextValue.nbElements)
-                await this.initMesh(this._nextValue);
-            if (this._currentValue == null || this._currentValue.nbChannels != this._nextValue.nbChannels) {
+            if (this._currentValue.nbChannels != this._nextValue.nbChannels) {
                 UserInterface.getInstance().nbChannels = this._nextValue.nbChannels;
+            }
+            if (this._currentValue.nbElements != this._nextValue.nbElements) {
+                this._currentValue = TransformableValues.fromInstance(this._nextValue);
+                await this.initMesh(this._nextValue);
             }
         }
         if (!this._animationTimer.isRunning && this._needAnimationPlayOnReceived) {
