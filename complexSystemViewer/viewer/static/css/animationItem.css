@@ -16,12 +16,6 @@
 }
 
 
-#animableSelectContainer {
-    display: flex;
-    justify-content: center;
-    margin: 10px;
-}
-
 #animationItem canvas {
     transform: scale(1,-1);
     margin-bottom: 5px;

@@ -1,0 +1,10 @@
+<div id="meshLoaderItem" class="configurationItem">
+    <h2>Mesh selector</h2>
+    <div id="meshSelector" class="centerSelect">
+        <select id="meshLoader"/>
+            {% for file in meshFiles %}
+                <option value="{{file}}" {% if file == "roundedCube1.obj" %}selected{% endif %}>{{file}}</option>
+            {% endfor %}
+        </select>
+    </div>
+</div>

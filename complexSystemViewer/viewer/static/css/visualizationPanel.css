@@ -88,3 +88,10 @@
     padding-left: 5px;
     border-left: solid var(--color-light) 1px;
 }
+
+
+.centerSelect {
+    display: flex;
+    justify-content: center;
+    margin: 10px;
+}

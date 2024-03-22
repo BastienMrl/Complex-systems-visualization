@@ -43,6 +43,8 @@ export class Viewer {
 
     private _drawable : boolean;
 
+    private _currentMeshFile : string;
+
     constructor(canvasId : string){
         this.canvas = document.getElementById(canvasId) as HTMLCanvasElement;
         let context = this.canvas.getContext("webgl2");
@@ -68,6 +70,8 @@ export class Viewer {
         this._transmissionWorker.onmessage = this.onTransmissionWorkerMessage.bind(this);
 
         this._drawable = false;
+
+        this._currentMeshFile = "/static/models/roundedCube1.obj";
 
         this.shaderProgram = new shaderUtils.ProgramWithTransformer(context);
     }
@@ -108,7 +112,7 @@ export class Viewer {
             delete this._multipleInstances;
         this._multipleInstances = new MultipleMeshInstances(this.context, values);
         this._selectionManager.setMeshes(this._multipleInstances);
-        await this._multipleInstances.loadMesh("/static/models/cube_div_1.obj");
+        await this._multipleInstances.loadMesh(this._currentMeshFile);
         this._drawable = true;
     }
 
@@ -143,6 +147,9 @@ export class Viewer {
     }
 
     // setter
+    public set currentMeshFile(meshFile : string) {
+        this._currentMeshFile = meshFile;
+    }
 
     // in seconds
     public set animationDuration(duration : number){

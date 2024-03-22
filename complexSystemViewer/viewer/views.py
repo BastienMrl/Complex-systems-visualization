@@ -1,3 +1,5 @@
+import os
+from complexSystemViewer import settings
 from django.shortcuts import render
 from .models import ALifeModel, TransformerItem, Parameter, Tool
 from simulation.models.game_of_life import GOLSimulation
@@ -23,7 +25,12 @@ def index(request):
     for t in transformers:
         param = Parameter.objects.filter(transformer=t.pk).select_subclasses()
         transformersParam[t] = param
-    return render(request, "index.html", {"model":modelSelected , "modelsName":modelsName, "initParameters":initParameters ,"rulesParameters":rulesParameters, "transformers":transformersParam, "toolsList":toolsList}) 
+
+    meshPath = os.path.join(settings.BASE_DIR, "viewer/"+settings.STATIC_URL+"models/")
+    meshFiles = os.listdir(meshPath)
+    return render(request, "index.html", {"model":modelSelected , "modelsName":modelsName, "initParameters":initParameters,
+                                          "rulesParameters":rulesParameters, "transformers":transformersParam, 
+                                          "toolsList":toolsList, "meshFiles":meshFiles}) 
 
 def addTransformer(request, transformerType):
     baseTransformer = TransformerItem.objects.filter(transformerType=transformerType).first()

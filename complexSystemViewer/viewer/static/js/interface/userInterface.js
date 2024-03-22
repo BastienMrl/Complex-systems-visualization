@@ -196,7 +196,9 @@ export class UserInterface {
         });
         this.initSimulationItem();
         meshInputFile.addEventListener("change", () => {
-            this._viewer.loadMesh("/static/models/" + meshInputFile.value);
+            let meshFile = "/static/models/" + meshInputFile.value;
+            this._viewer.currentMeshFile = meshFile;
+            this._viewer.loadMesh(meshFile);
         });
         for (let i = 0; i < toolSettings.length; i++) {
             toolSettings.item(i).addEventListener("change", () => {

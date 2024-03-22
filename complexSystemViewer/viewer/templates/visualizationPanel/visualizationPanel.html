@@ -1,6 +1,7 @@
 {% load static %}
 <div id="visualizationPanel" class="withTransition configurationPanel">
     <h3>Visualization</h3>
+    {% include "visualizationPanel/meshLoaderItem.html" %}
     {% include "visualizationPanel/animationItem.html" %}
     {% for transformer, parameters in transformers.items %}
         {% if transformer.displayedByDefault %}
@@ -23,9 +24,3 @@
         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="m9 5 7 7-7 7"/>
     </svg>
 </div>
-<select id="meshLoader"/>
-    <option value="cube.obj">Cube</option>
-    <option value="cube_div_1.obj">Cube Subdiv 1</option>
-    <option value="cube_div_2">Cube Subdiv 2</option>
-    <option value="cone.obj">Cone</option>
-</select>
