@@ -133,6 +133,8 @@ export class UserInterface {
         resetButton.addEventListener('click', () => {
             this._viewer.stopVisualizationAnimation();
             sendMessageToWorker(this._viewer.transmissionWorker, WorkerMessage.RESET);
+            playButton.classList.remove("active");
+            pauseButton.classList.add("active");
             console.debug("RESTART");
         });
 

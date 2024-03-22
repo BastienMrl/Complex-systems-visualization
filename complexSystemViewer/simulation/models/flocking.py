@@ -37,16 +37,16 @@ class FlockingSimulation(Simulation):
     initialization_parameters = [
         
         IntParam(id_p="boxSize", name="Box size",
-                 default_value=100, min_value=10, step=10),
+                 default_value=400, min_value=10, step=10),
         IntParam(id_p="boidCount", name="Boid count",
-                 default_value=200, min_value=1, step=5),
+                 default_value=300, min_value=1, step=5),
         FloatParam(id_p="dt", name="dt",
-                    default_value=0.05, min_value=0.1, max_value=1., step=0.1),
+                    default_value=0.3, min_value=0.01, max_value=2., step=0.05),
     ]
 
     default_rules = [
         FloatParam(id_p="speed", name="Boids speed",
-                    default_value=1.0, min_value=0.0, max_value=10.0, step=0.1),
+                    default_value=10.0, min_value=0.0, max_value=40.0, step=0.1),
         FloatParam(id_p="D-align", name="Alignement Distance (D)",
                     default_value=45., min_value=0.0, max_value=100., step=5.),
         FloatParam(id_p="J_align", name="Alignement Strenght (J)",
