@@ -60,7 +60,7 @@ export class Viewer {
         this._animationTimer = new AnimationTimer(0.15, false);
         this._animationIds = new Map<shaderUtils.AnimableValue, number>();
 
-        this._selectionManager = new SelectionManager(this, this._stats);
+        this._selectionManager = new SelectionManager(this);
         
         this._currentValue = null;
         this._nextValue = null;
@@ -70,6 +70,11 @@ export class Viewer {
         this._drawable = false;
 
         this.shaderProgram = new shaderUtils.ProgramWithTransformer(context);
+    }
+
+    public set stats (stats : Stats){
+        this._stats = stats;
+        this._selectionManager.stats = stats;
     }
     
     // initialization methods
@@ -248,6 +253,7 @@ export class Viewer {
                 break;
             case WorkerMessage.VALUES_RESHAPED:
                 this.onValuesReceived(getMessageBody(e), true);
+                this._stats.logShape(this._currentValue.nbElements, this._currentValue.nbChannels);
                 break;
             case WorkerMessage.VALUES:
                 this.onValuesReceived(getMessageBody(e), false);

@@ -13,12 +13,11 @@ export class SelectionManager {
     _mode = SelectionMode.DISABLE;
     _tools;
     _stats;
-    constructor(viewer, stats) {
+    constructor(viewer) {
         this._tools = new Array(3);
         this._tools[SelectionMode.BOX] = new SelectionBoxTool(viewer, 0);
         this._tools[SelectionMode.BRUSH] = new SelectionBrushTool(viewer, 0);
         this._tools[SelectionMode.LASSO] = new SelectionLassoTool(viewer, 0);
-        this._stats = stats;
         viewer.canvas.addEventListener('mousemove', (e) => {
             if (this._mode != SelectionMode.DISABLE)
                 this._tools[this._mode].receiveMouseMoveEvent(e);
@@ -34,6 +33,9 @@ export class SelectionManager {
                 this._stats.stopPickingTimer();
             }
         });
+    }
+    set stats(stats) {
+        this._stats = stats;
     }
     switchMode(mode) {
         if (mode == this._mode)

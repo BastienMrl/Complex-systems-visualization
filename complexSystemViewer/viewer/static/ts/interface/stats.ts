@@ -1,5 +1,8 @@
 export class Stats{
     private static _nbDigits = 1;
+    private static readonly perfMessage = "PERF";
+    private static readonly shapeMessage = "SHAPE";
+    private static readonly modelMessage = "MODEL";
 
     private _fpsEl : HTMLElement;
     private _fpsAccumulator : number = 0;
@@ -19,13 +22,13 @@ export class Stats{
 
     private _pickingEl : HTMLElement;
     private _pickingTimer : number;
-    private _nbPicking : number = 0;
-    private _pickingAccumulator : number = 0;
-    private _currentPickingDelay : number = 0;
+
 
     private _totalEl : HTMLElement;
 
     private _nbIteration : number = 10;
+
+    private _withLog : boolean = false;
 
     public constructor(fpsEl : HTMLElement, updateEl : HTMLElement, renderingEl : HTMLElement, pickingEl : HTMLElement, totalEl : HTMLElement){
         this._fpsEl = fpsEl;
@@ -34,26 +37,37 @@ export class Stats{
         this._pickingEl = pickingEl;
         this._totalEl = totalEl;
     }
+
+    public set withLog(value : boolean){
+        this._withLog = value
+    }
+
+    public get withLog() : boolean {
+        return this._withLog;
+    }
     
     private displayFPS(fps : number){
         this._fpsEl.innerHTML = "FPS : " + fps.toFixed(0);
         const total =  this._currentRenderingDelay + this._currentUpdateDelay;
         this._totalEl.innerHTML = "Total : " + total.toFixed(Stats._nbDigits) + " ms";
+        this.logPerformance("fps", fps);
     }
 
     private displayRendering(delay : number){
         this._renderingEl.innerHTML = "Rendering : " + delay.toFixed(Stats._nbDigits) + " ms";
         this._currentRenderingDelay = delay;
+        this.logPerformance("rendering", delay);
     }
 
     private displayUpdate(delay : number){
         this._updateEl.innerHTML = "Update : " + delay.toFixed(Stats._nbDigits) + " ms";
         this._currentUpdateDelay = delay;
+        this.logPerformance("updating", delay);
     }
 
     private displayPicking(delay : number){
         this._pickingEl.innerHTML = "Picking : " + delay.toFixed(Stats._nbDigits) + " ms";
-        this._currentPickingDelay = delay;
+        this.logPerformance("picking", delay)
     }
 
     public startRenderingTimer(delta : number){
@@ -101,5 +115,23 @@ export class Stats{
     public stopPickingTimer(){
         const delta : number = performance.now() - this._pickingTimer
         this.displayPicking(delta);
+    }
+
+    private logPerformance(name : string, value : number){
+        if (!this.withLog) return;
+        let s = `${Stats.perfMessage}/${name}/${value}`;
+        console.info(s);
+    }
+
+    public logShape(nbElement : number, nbChannel : number){
+        if (!this.withLog) return;
+        let s = `${Stats.shapeMessage}/${nbElement}/${nbChannel}`;
+        console.info(s);
+    }
+
+    public logModel(model : string){
+        if (!this.withLog) return;
+        let s = `${Stats.modelMessage}/${model}`;
+        console.info(s);
     }
 }

@@ -84,7 +84,6 @@ class TransmissionWorker {
     async applyInteraction(data, interaction) {
         if (!this._socketManager.isConnected)
             await this.waitSocketConnection();
-        console.log("interaction =", interaction);
         this._statesBuffer.flush();
         let values = TransformableValues.fromValuesAsArray(data.slice(1));
         this._socketManager.applyInteraction(data[0], values.getBackendValues(), interaction);

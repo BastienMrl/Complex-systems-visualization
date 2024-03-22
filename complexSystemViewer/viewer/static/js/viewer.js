@@ -38,13 +38,17 @@ export class Viewer {
         this._stats = new Stats(document.getElementById("renderingFps"), document.getElementById("updateMs"), document.getElementById("renderingMs"), document.getElementById("pickingMs"), document.getElementById("totalMs"));
         this._animationTimer = new AnimationTimer(0.15, false);
         this._animationIds = new Map();
-        this._selectionManager = new SelectionManager(this, this._stats);
+        this._selectionManager = new SelectionManager(this);
         this._currentValue = null;
         this._nextValue = null;
         this._transmissionWorker = new Worker("/static/js/workers/transmissionWorker.js", { type: "module" });
         this._transmissionWorker.onmessage = this.onTransmissionWorkerMessage.bind(this);
         this._drawable = false;
         this.shaderProgram = new shaderUtils.ProgramWithTransformer(context);
+    }
+    set stats(stats) {
+        this._stats = stats;
+        this._selectionManager.stats = stats;
     }
     // initialization methods
     async initialization(srcVs, srcFs) {
@@ -177,6 +181,7 @@ export class Viewer {
                 break;
             case WorkerMessage.VALUES_RESHAPED:
                 this.onValuesReceived(getMessageBody(e), true);
+                this._stats.logShape(this._currentValue.nbElements, this._currentValue.nbChannels);
                 break;
             case WorkerMessage.VALUES:
                 this.onValuesReceived(getMessageBody(e), false);
