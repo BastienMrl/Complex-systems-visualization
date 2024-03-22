@@ -85,16 +85,20 @@ export class UserInterface {
         let meshInputFile = document.getElementById("meshLoader");
         playButton.addEventListener('click', () => {
             this._viewer.startVisualizationAnimation();
-            console.log("START");
+            pauseButton.classList.remove("active");
+            playButton.classList.add("active");
+            console.debug("START");
         });
         pauseButton.addEventListener('click', () => {
             this._viewer.stopVisualizationAnimation();
-            console.log("STOP");
+            playButton.classList.remove("active");
+            pauseButton.classList.add("active");
+            console.debug("STOP");
         });
         resetButton.addEventListener('click', () => {
             this._viewer.stopVisualizationAnimation();
             sendMessageToWorker(this._viewer.transmissionWorker, WorkerMessage.RESET);
-            console.log("RESTART");
+            console.debug("RESTART");
         });
         animationTimerEl.addEventListener('mouseleave', () => {
             let id = setTimeout(function () {

@@ -40,7 +40,12 @@ header #headerAction {
     width:  35px;
     height: 35px;
     padding: 0px;
+    transition: background-color 0.2s;
 }
+
+#headerAction button:hover, #headerAction button.active {
+    background-color: var(--color-light);
+}   
 
 #headerAction button svg{
     width: 100%;
