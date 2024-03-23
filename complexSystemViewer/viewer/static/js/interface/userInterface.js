@@ -231,16 +231,20 @@ export class UserInterface {
             for (const paramSet in toolParam[toolName]) {
                 param.setAttribute(paramSet, toolParam[toolName][paramSet]);
             }
-            param.name = toolName;
+            param.id = toolName;
             param.classList.add("toolParam");
+            let valueDisplay = document.createElement("label");
+            valueDisplay.setAttribute("for", toolName);
+            valueDisplay.innerText = toolParam[toolName]["value"];
             param.addEventListener("change", () => {
-                console.log(param.name);
+                valueDisplay.innerText = param.value;
                 this._viewer.selectionManager.setSelectionParameter(toolName, Number.parseFloat(param.value));
             });
             let paramContainer = document.createElement("div");
             paramContainer.classList.add("toolParamItem");
             paramContainer.appendChild(nameElem);
             paramContainer.appendChild(param);
+            paramContainer.appendChild(valueDisplay);
             toolSettings.appendChild(paramContainer);
         }
     }

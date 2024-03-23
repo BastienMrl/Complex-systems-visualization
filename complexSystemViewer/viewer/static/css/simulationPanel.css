@@ -155,10 +155,15 @@ input:checked + .slider:before {
   padding-left: 10px;
   margin-left: 10px;
   border-left: solid var(--color-light) 1px;
+  align-items: center;
 }
 
 .toolParamItem input[type="range"]{
   margin-left: 10px;
   box-shadow: none;
   accent-color: var(--color-lighter);
+}
+
+.toolParamItem label {
+  margin-left: 10px;
 }
