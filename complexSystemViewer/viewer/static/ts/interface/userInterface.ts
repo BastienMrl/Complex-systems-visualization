@@ -201,7 +201,7 @@ export class UserInterface {
             e.preventDefault();
             let transformertype = (document.getElementById("transformerTypeSelector") as HTMLSelectElement).value
             let xhttp = new XMLHttpRequest()
-            xhttp.open("GET", "addTranformerURL/" + transformertype, true);
+            xhttp.open("GET", "addTransformer/" + transformertype, true);
             xhttp.onreadystatechange = function() {
                 if(this.readyState == 4 && this.status == 200){
                     let domParser = new DOMParser();
