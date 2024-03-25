@@ -2,7 +2,6 @@ import * as shaderUtils from "./shaderUtils.js";
 import { Vec3 } from "./ext/glMatrix/index.js";
 import { Camera } from "./camera.js";
 import { MultipleMeshInstances } from "./mesh.js";
-import { Stats } from "./interface/stats.js";
 import { AnimationTimer } from "./animationTimer.js";
 import { TransformableValues } from "./transformableValues.js";
 import { WorkerMessage, getMessageBody, getMessageHeader, sendMessageToWorker } from "./workers/workerInterface.js";
@@ -35,7 +34,6 @@ export class Viewer {
             throw "Could not create WebGL2 context";
         }
         this.context = context;
-        this._stats = new Stats(document.getElementById("renderingFps"), document.getElementById("updateMs"), document.getElementById("renderingMs"), document.getElementById("pickingMs"), document.getElementById("totalMs"));
         this._animationTimer = new AnimationTimer(0.15, false);
         this._animationIds = new Map();
         this._selectionManager = new SelectionManager(this);
@@ -188,6 +186,9 @@ export class Viewer {
                 break;
             case WorkerMessage.RESET:
                 this.onReset();
+                break;
+            case WorkerMessage.SET_TIMER:
+                this._stats.displayWorkerTimer(getMessageBody(e)[0], getMessageBody(e)[1]);
                 break;
         }
     }

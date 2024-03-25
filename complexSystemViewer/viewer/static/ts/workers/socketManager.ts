@@ -1,9 +1,12 @@
+import { WorkerTimers } from "./workerTimers.js";
 
 
 
 export class SocketManager {
     // Singleton
     private static _instance : SocketManager;
+    
+    public timers : WorkerTimers;
 
     private _requestDataMessage : string = "RequestData";
     private _resetSimulationMessage : string = "ResetSimulation";
@@ -33,6 +36,7 @@ export class SocketManager {
         this._onStop = function() {};
         this._isConnected = false;
         this._awaitingRequests = [];
+        this.timers = WorkerTimers.getInstance();
     }
     
     public static getInstance() : SocketManager {
@@ -76,9 +80,12 @@ export class SocketManager {
     }
 
     private onMessage(e : MessageEvent<any>) {
+        this.timers.stopReceivingTimer();
         var promise = e.data.text()
         promise.then(value => {
+            this.timers.startParsingTimer();
             const data : any = JSON.parse(value);
+            this.timers.stopParsingTimer();
             this._onDataReceived(data);
         })
         
@@ -113,6 +120,7 @@ export class SocketManager {
         this._socket.send(JSON.stringify({
             'message' : this._requestDataMessage
         }));
+        this.timers.startReceivingTimer();
     }
 
     public resetSimulation(){

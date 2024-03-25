@@ -305,8 +305,11 @@ export class UserInterface {
         let renderingElement = document.getElementById("renderingMs");
         let pickingElement = document.getElementById("pickingMs");
         let totalElement = document.getElementById("totalMs");
+        let transformationEl = document.getElementById("transformationTimer");
+        let parsingEl = document.getElementById("parsingTimer");
+        let receivingEl = document.getElementById("receivingTimer");
         let modelSelector = document.getElementById("modelSelector");
-        this._stats = new Stats(fpsElement, updtateElement, renderingElement, pickingElement, totalElement);
+        this._stats = new Stats(fpsElement, updtateElement, renderingElement, pickingElement, totalElement, transformationEl, parsingEl, receivingEl);
         this._stats.withLog = true;
         this._viewer.stats = this._stats;
         this._stats.logModel(modelSelector.value);

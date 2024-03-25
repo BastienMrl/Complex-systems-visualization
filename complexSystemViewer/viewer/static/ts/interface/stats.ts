@@ -16,12 +16,16 @@ export class Stats{
 
     private _updateEl : HTMLElement;
     private _updateTimer : number;
-    private _nbUpdates : number = 0;
-    private _updateAccumulator : number = 0;
-    private _currentUpdateDelay : number = 0;
 
     private _pickingEl : HTMLElement;
     private _pickingTimer : number;
+
+    private _transformationEl : HTMLElement;
+
+    private _parsingEl : HTMLElement;
+
+    private _receivingEl : HTMLElement;
+
 
 
     private _totalEl : HTMLElement;
@@ -30,12 +34,18 @@ export class Stats{
 
     private _withLog : boolean = false;
 
-    public constructor(fpsEl : HTMLElement, updateEl : HTMLElement, renderingEl : HTMLElement, pickingEl : HTMLElement, totalEl : HTMLElement){
+    public constructor(fpsEl : HTMLElement, updateEl : HTMLElement, renderingEl : HTMLElement, pickingEl : HTMLElement, totalEl : HTMLElement,
+                        transformationEl : HTMLElement, parsingEl : HTMLElement, receivingEl : HTMLElement){
         this._fpsEl = fpsEl;
         this._updateEl = updateEl;
         this._renderingEl = renderingEl;
         this._pickingEl = pickingEl;
         this._totalEl = totalEl;
+
+        this._transformationEl = transformationEl
+        this._parsingEl = parsingEl
+        this._receivingEl = receivingEl
+
     }
 
     public set withLog(value : boolean){
@@ -48,7 +58,7 @@ export class Stats{
     
     private displayFPS(fps : number){
         this._fpsEl.innerHTML = "FPS : " + fps.toFixed(0);
-        const total =  this._currentRenderingDelay + this._currentUpdateDelay;
+        const total =  this._currentRenderingDelay + this._updateTimer;
         this._totalEl.innerHTML = "Total : " + total.toFixed(Stats._nbDigits) + " ms";
         this.logPerformance("fps", fps);
     }
@@ -61,7 +71,7 @@ export class Stats{
 
     private displayUpdate(delay : number){
         this._updateEl.innerHTML = "Update : " + delay.toFixed(Stats._nbDigits) + " ms";
-        this._currentUpdateDelay = delay;
+        this._updateTimer = delay;
         this.logPerformance("updating", delay);
     }
 
@@ -98,14 +108,7 @@ export class Stats{
 
     public stopUpdateTimer(){
         const delta : number = performance.now() - this._updateTimer
-        this._updateAccumulator += delta;
-        this._nbUpdates += 1;
-        if (this._nbUpdates == this._nbIteration){
-            const delay : number = this._updateAccumulator / this._nbIteration;
-            this._nbUpdates = 0;
-            this._updateAccumulator = 0;
-            this.displayUpdate(delay);
-        }
+        this.displayUpdate(delta);
     }
 
     public startPickingTimer(){
@@ -115,6 +118,24 @@ export class Stats{
     public stopPickingTimer(){
         const delta : number = performance.now() - this._pickingTimer
         this.displayPicking(delta);
+    }
+
+
+    public displayWorkerTimer(name : string, value : number){
+        switch (name){
+            case ("transformation"):
+                this._transformationEl.innerText = `${value}`;
+                this.logPerformance(name, value);
+                break;
+            case ("parsing"):
+                this._parsingEl.innerText = `${value}`;
+                this.logPerformance(name, value)
+                break;
+            case ("receiving") :
+                this._receivingEl.innerText = `${value}`;
+                this.logPerformance(name, value)
+                break;
+        }
     }
 
     private logPerformance(name : string, value : number){

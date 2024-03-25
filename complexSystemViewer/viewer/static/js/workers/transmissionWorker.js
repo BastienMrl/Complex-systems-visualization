@@ -1,14 +1,17 @@
 import { TransformableValues } from "../transformableValues.js";
 import { SocketManager } from "./socketManager.js";
 import { StatesBuffer } from "./statesBuffer.js";
+import { WorkerTimers } from "./workerTimers.js";
 import { WorkerMessage, sendMessageToWindow, getMessageBody, getMessageHeader } from "./workerInterface.js";
 class TransmissionWorker {
     _socketManager;
     _statesBuffer;
+    timers;
     constructor() {
         this._socketManager = SocketManager.getInstance();
         this._statesBuffer = new StatesBuffer();
         onmessage = this.onMessage.bind(this);
+        this.timers = WorkerTimers.getInstance();
     }
     onMessage(e) {
         switch (getMessageHeader(e)) {
@@ -55,6 +58,9 @@ class TransmissionWorker {
         else {
             sendMessageToWindow(WorkerMessage.VALUES, values.toArray(), values.toArrayBuffers());
         }
+        sendMessageToWindow(WorkerMessage.SET_TIMER, ["transformation", this.timers.transformationTimer]);
+        sendMessageToWindow(WorkerMessage.SET_TIMER, ["parsing", this.timers.parsingTimer]);
+        sendMessageToWindow(WorkerMessage.SET_TIMER, ["receiving", this.timers.receivingTimer]);
     }
     async resetSimulation() {
         if (!this._socketManager.isConnected)

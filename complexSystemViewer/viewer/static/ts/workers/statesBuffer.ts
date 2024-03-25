@@ -1,5 +1,7 @@
 import { TransformableValues } from "../transformableValues.js";
 import { SocketManager } from "./socketManager.js";
+import { WorkerTimers } from "./workerTimers.js";
+
 
 export class StatesBuffer{
 
@@ -12,6 +14,8 @@ export class StatesBuffer{
 
     private _socketManager : SocketManager;
 
+    public timers : WorkerTimers
+
     
 
 
@@ -22,6 +26,7 @@ export class StatesBuffer{
         this._socketManager.onDataReceived = function(data : any){
             this.onStateReceived(data);
         }.bind(this);
+        this.timers = WorkerTimers.getInstance();
     };
 
     public get hasNewValue() : boolean {
@@ -76,6 +81,8 @@ export class StatesBuffer{
 
 
     public transformState(){
+        this.timers.startTransformationTimer();
         this._transformedValues.setWithBackendValues(this._states);
+        this.timers.stopTransformationTimer();
     }
 }

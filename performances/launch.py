@@ -48,49 +48,20 @@ class Configuration() :
 
 class SampleMean() :
     def __init__(self):
-        self.rendering = 0.
-        self.updating = 0.
-        self.picking = 0.
-        self.fps = 0.
-
-        self.n_rendering = 0
-        self.n_updating = 0
-        self.n_picking = 0
-        self.n_fps = 0
+        self.values : dict[str, tuple[float, int]] = {}
 
     def add_value(self, name : str, value : float):
-        match (name):
-            case "rendering" :
-                self._add_rendering(value)
-            case "updating" :
-                self._add_updating(value)
-            case "picking" : 
-                self._add_picking(value)
-            case "fps" :
-                self._add_fps(value)
-
-    def _add_rendering(self, value : float):
-        self.rendering += value
-        self.n_rendering += 1
-    
-    def _add_updating(self, value : float):
-        self.updating += value
-        self.n_updating += 1
-
-    def _add_picking(self, value : float):
-        self.picking += value
-        self.n_picking += 1
-
-    def _add_fps(self, value : float):
-        self.fps += value
-        self.n_fps += 1
+        if name in self.values:
+            self.values[name] = (self.values[name][0] + value, self.values[name][1] + 1)
+        else:
+            self.values[name] = (value, 1)
 
     def get_values(self) -> dict :
-        return {"rendering" : self.rendering / self.n_rendering if self.n_rendering != 0 else 0,
-                "updating" : self.updating / self.n_updating if self.n_updating != 0 else 0,
-                "picking" : self.picking / self.n_picking if self.n_picking != 0 else 0,
-                "fps" : self.fps / self.n_fps if self.n_fps != 0 else 0}
+        ret = {}
+        for key, (value, n) in self.values.items():
+            ret[key] = value / n if n != 0 else 0
 
+        return ret
 
 
 def test_nb_elements(sizes : list[int], driver : Firefox) -> list[tuple[Configuration, SampleMean]]:
@@ -104,21 +75,16 @@ def test_nb_elements(sizes : list[int], driver : Firefox) -> list[tuple[Configur
         button_reset.click()
         button_play.click()
         print(grid_size.get_attribute("value"))
-        NB_UPDATE = 5
+        NB_UPDATE = 100
 
         sample = SampleMean()
         config = Configuration(get_model_selector(driver).all_selected_options[0].text, i * i, 1)
-        i = 0
-        current_update = get_updating_time(driver)
-        while(i < NB_UPDATE):
-            update = get_updating_time(driver)
-            if (update == current_update):
-                time.sleep(0.1)
-                continue
-            current_update = update
-            sample.add_value("updating", float(current_update))
+        for i in range(NB_UPDATE):
+            sample.add_value("updating", float(get_updating_time(driver)))
             sample.add_value("rendering", float(get_rendering_time(driver)))
-            i += 1
+            sample.add_value("receiving", float(get_receiving_time(driver)))
+            sample.add_value("parsing", float(get_parsing_time(driver)))
+            sample.add_value("transformation", float(get_transformation_time(driver)))
         ret.append((config, sample))
     return ret
 
@@ -138,8 +104,8 @@ def test_models(models : list[str], driver : Firefox, sleep : int = 3):
     timer.clear()
 
     ret : list[tuple[Configuration, SampleMean]] = []
-    for i in range(2):
-        timer.send_keys(Keys.LEFT)
+    for i in range(30):
+        timer.send_keys(Keys.RIGHT)
     for model in models:
         selector.select_by_value(model)
         time.sleep(1)
@@ -150,6 +116,7 @@ def test_models(models : list[str], driver : Firefox, sleep : int = 3):
 
         print(model)
         ret += test_nb_elements([10, 100, 200, 300, 400, 500, 600, 700, 800], driver)
+        # ret += test_nb_elements([10, 100, 200], driver)
     return ret
 
 def get_reset_button(driver : Firefox):
@@ -184,6 +151,17 @@ def get_rendering_time(driver : Firefox):
     el = driver.find_element(By.ID, "renderingMs")
     return el.text.split(": ")[1].split(" ")[0]
 
+def get_transformation_time(driver : Firefox):
+    return driver.find_element(By.ID, "transformationTimer").get_attribute("innerText")
+
+def get_parsing_time(driver : Firefox):
+    return driver.find_element(By.ID, "parsingTimer").get_attribute("innerText")
+
+def get_receiving_time(driver : Firefox):
+    return driver.find_element(By.ID, "receivingTimer").get_attribute("innerText")
+
+
+
 def get_total_total(driver : Firefox):
     el = driver.find_element(By.ID, "totalMs")
     return el.text.split(": ")[1].split(" ")[0]
@@ -192,39 +170,23 @@ values = test_models(["Gol", "Lenia"], driver, 5)
 
 
 def print_perf(values, models : list[str], name : str):
-    plt.xlabel("Number of elements")
-    plt.ylabel("Time (ms)")
-    # plt.xscale("log")
-    for model in models:
-        x = []
-        y = []
-        for config, sample in values:
-            if (config.model == model):
-                x.append(config.nb_element)
-                y.append(sample.get_values()["rendering"])
 
-        plt.plot(x, y, marker='o', linestyle='dashed', label=model)
-    plt.legend()
-    plt.savefig("./" + "rendering_" + name + ".png")
-    plt.cla()
+    for key in values[0][1].get_values().keys():
+        plt.xlabel("Number of elements")
+        plt.ylabel("Time (ms)")
+        # plt.xscale("log")
+        for model in models:
+            x = []
+            y = []
+            for config, sample in values:
+                if (config.model == model):
+                    x.append(config.nb_element)
+                    y.append(sample.get_values()[key])
 
-    plt.xlabel("Number of elements")
-    plt.ylabel("Time (ms)")
-    # plt.xscale("log")
-    for model in models:
-        x = []
-        y = []
-        for config, sample in values:
-            if (config.model == model):
-                x.append(config.nb_element)
-                y.append(sample.get_values()["updating"])
-
-        plt.plot(x, y, marker='o', linestyle='dashed', label=model)
-    plt.xlim(min(x), max(x))
-    plt.legend()
-    plt.savefig("./" + "updating_" + name + ".png")
-    plt.cla()
-
+            plt.plot(x, y, marker='o', linestyle='dashed', label=model)
+        plt.legend()
+        plt.savefig("./" + key + "_" + name + ".png")
+        plt.cla()
 
 
 

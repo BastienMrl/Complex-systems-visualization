@@ -51,11 +51,6 @@ export class Viewer {
         }
 
         this.context = context;
-        this._stats = new Stats(document.getElementById("renderingFps") as HTMLElement,
-                                document.getElementById("updateMs") as HTMLElement,
-                                document.getElementById("renderingMs") as HTMLElement,
-                                document.getElementById("pickingMs") as HTMLElement,
-                                document.getElementById("totalMs") as HTMLElement);
 
         this._animationTimer = new AnimationTimer(0.15, false);
         this._animationIds = new Map<shaderUtils.AnimableValue, number>();
@@ -260,6 +255,9 @@ export class Viewer {
                 break;
             case WorkerMessage.RESET:
                 this.onReset();
+                break;
+            case WorkerMessage.SET_TIMER:
+                this._stats.displayWorkerTimer(getMessageBody(e)[0], getMessageBody(e)[1])
                 break;
         }
     }
