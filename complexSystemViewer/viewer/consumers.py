@@ -1,6 +1,6 @@
 import orjson
 import jax.numpy as jnp
-from .modelManager import ModelManager
+from .simulationManager import SimulationManager
 from channels.generic.websocket import AsyncWebsocketConsumer
 from simulation.simulation import Simulation
 
@@ -10,15 +10,12 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
         super().__init__(*args, **kwargs)
         self.isConnected = False
         self.sim : Simulation = None
-        self.init_parameters = None
-    
-
-
+        self.init_parameters = None   
     
     async def connect(self):
         await self.accept()
-        self.init_parameters = ModelManager.get_initialization_parameters("Gol")
-        self.sim = ModelManager.get_simulation_model("Gol")
+        self.init_parameters = SimulationManager.get_initialization_parameters("Gol")
+        self.sim = SimulationManager.get_simulation_model("Gol")
         self.isConnected = True
     
     async def disconnect(self, close_code):
@@ -51,24 +48,18 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
         await self.send(bytes_data=orjson.dumps(self.sim.to_JSON_object()))
         self.sim.step()
 
-
     async def updateInitParams(self, params):
         json = orjson.loads(params)
         for p in self.init_parameters:
             if p.id_param == json["paramId"]:
                 p.set_param(json)
 
-
     async def updateRule(self, params):
         self.sim.updateRule(orjson.loads(params))
 
-
     async def initNewSimulation(self, name):
-        self.init_parameters = ModelManager.get_initialization_parameters(name)
-        self.sim = ModelManager.get_simulation_model(name)
-
-
-
+        self.init_parameters = SimulationManager.get_initialization_parameters(name)
+        self.sim = SimulationManager.get_simulation_model(name)
         await self.sendOneStep()    
 
     async def resetSimulation(self):

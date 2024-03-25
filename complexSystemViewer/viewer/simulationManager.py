@@ -4,12 +4,12 @@ from simulation.models.game_of_life import GOLSimulation
 from simulation.models.lenia import LeniaSimulation
 from simulation.models.flocking import FlockingSimulation
 
-class ModelEnum(Enum):
+class SimulationEnum(Enum):
     GOL = "Gol"
     LENIA = "Lenia"
     FLOCKING = "Flocking"
 
-class ModelManager(object):
+class SimulationManager(object):
 
     @staticmethod
     def get_simulation_model(model_name : str, states = None):
