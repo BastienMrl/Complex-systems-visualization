@@ -42,13 +42,13 @@ python manage.py runserver
 
 Démonstration générale du projet : 
 
-https://youtu.be/2VxnvdJWnyQ?si=tYZlP-0knwq7luYX
+<iframe width="1280" height="720" src="https://www.youtube.com/embed/2VxnvdJWnyQ?list=PLicm65r9hfEL8m3mh3B4AFHPbdZ8ZIOW9" title="Démonstration ALife Simulator" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
 
 Playlist avec d'autres vidéos sur différents systèmes complexes :
 
 https://youtube.com/playlist?list=PLicm65r9hfEL8m3mh3B4AFHPbdZ8ZIOW9&si=NEcGsk8mqDfWtVh0
 
-![Exemple de capture d'écran](lien_vers_capture.png)
 
 
 ## Licence
