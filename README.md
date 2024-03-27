@@ -53,7 +53,7 @@ https://youtube.com/playlist?list=PLicm65r9hfEL8m3mh3B4AFHPbdZ8ZIOW9&si=NEcGsk8m
 
 ## Licence
 
-A définir..
+A définir...
 
 ## Auteurs
 
