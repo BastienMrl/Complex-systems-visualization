@@ -1,10 +1,10 @@
-import { AnimableValue } from "../shaderUtils.js";
 import { Viewer } from "../viewer.js";
 import { TransformType } from "../transformer/transformType.js";
 import { TransformersInterface } from "./transformerInterface.js";
 import { sendMessageToWorker, WorkerMessage } from "../workers/workerInterface.js"
 import { SelectionMode } from "./selectionTools/selectionManager.js";
 import { AnimationInterface } from "./animation/animationInterface.js";
+import { Stats } from "./stats.js";
 
 export class UserInterface {
     // Singleton
@@ -14,11 +14,14 @@ export class UserInterface {
 
     private _transformers : TransformersInterface;
     private _animationCurves : AnimationInterface;
+    private _stats : Stats;
 
     private _viewer : Viewer;
 
     private _ctrlPressed : boolean;
     private _wheelPressed : boolean;
+
+
 
     private constructor() {
         let GridSizeInput = (document.querySelector("input[paramId=gridSize]") as HTMLInputElement);
@@ -45,6 +48,7 @@ export class UserInterface {
         this.initInterfaceHandlers();
         this.initTransformers();
         this.initAnimationCurves();
+        this.initStats();
     }
 
     private initMouseKeyHandlers(){
@@ -362,6 +366,28 @@ export class UserInterface {
         this._animationCurves = new AnimationInterface(this._viewer);
         let animationTimerEl = (document.querySelector('#animationTimer') as HTMLDivElement);
         this._animationCurves.setDurationElement(animationTimerEl);
+    }
+
+    private initStats(){
+        let fpsElement = document.getElementById("renderingFps") as HTMLElement;
+        let updtateElement = document.getElementById("updateMs") as HTMLElement;
+        let renderingElement = document.getElementById("renderingMs") as HTMLElement;
+        let pickingElement = document.getElementById("pickingMs") as HTMLElement;
+        let totalElement = document.getElementById("totalMs") as HTMLElement;
+        let transformationEl = document.getElementById("transformationTimer") as HTMLElement;
+        let parsingEl = document.getElementById("parsingTimer") as HTMLElement;
+        let receivingEl = document.getElementById("receivingTimer") as HTMLElement;
+
+        let modelSelector = (document.getElementById("modelSelector") as HTMLSelectElement);
+        
+        this._stats = new Stats(fpsElement, updtateElement, renderingElement, pickingElement,
+                                totalElement, transformationEl, parsingEl, receivingEl);
+        this._stats.withLog = true;
+        this._viewer.stats = this._stats;
+        this._stats.logModel(modelSelector.value);
+        modelSelector.addEventListener("change", () => {
+            this._stats.logModel(modelSelector.value);
+        });
     }
 
 }

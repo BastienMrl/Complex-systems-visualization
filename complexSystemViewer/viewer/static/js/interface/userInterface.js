@@ -3,12 +3,14 @@ import { TransformersInterface } from "./transformerInterface.js";
 import { sendMessageToWorker, WorkerMessage } from "../workers/workerInterface.js";
 import { SelectionMode } from "./selectionTools/selectionManager.js";
 import { AnimationInterface } from "./animation/animationInterface.js";
+import { Stats } from "./stats.js";
 export class UserInterface {
     // Singleton
     static _instance;
     _nbElements;
     _transformers;
     _animationCurves;
+    _stats;
     _viewer;
     _ctrlPressed;
     _wheelPressed;
@@ -33,6 +35,7 @@ export class UserInterface {
         this.initInterfaceHandlers();
         this.initTransformers();
         this.initAnimationCurves();
+        this.initStats();
     }
     initMouseKeyHandlers() {
         // LeftMouseButtonDown
@@ -307,5 +310,23 @@ export class UserInterface {
         this._animationCurves = new AnimationInterface(this._viewer);
         let animationTimerEl = document.querySelector('#animationTimer');
         this._animationCurves.setDurationElement(animationTimerEl);
+    }
+    initStats() {
+        let fpsElement = document.getElementById("renderingFps");
+        let updtateElement = document.getElementById("updateMs");
+        let renderingElement = document.getElementById("renderingMs");
+        let pickingElement = document.getElementById("pickingMs");
+        let totalElement = document.getElementById("totalMs");
+        let transformationEl = document.getElementById("transformationTimer");
+        let parsingEl = document.getElementById("parsingTimer");
+        let receivingEl = document.getElementById("receivingTimer");
+        let modelSelector = document.getElementById("modelSelector");
+        this._stats = new Stats(fpsElement, updtateElement, renderingElement, pickingElement, totalElement, transformationEl, parsingEl, receivingEl);
+        this._stats.withLog = true;
+        this._viewer.stats = this._stats;
+        this._stats.logModel(modelSelector.value);
+        modelSelector.addEventListener("change", () => {
+            this._stats.logModel(modelSelector.value);
+        });
     }
 }

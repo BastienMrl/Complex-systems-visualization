@@ -2,7 +2,6 @@ import * as shaderUtils from "./shaderUtils.js";
 import { Vec3 } from "./ext/glMatrix/index.js";
 import { Camera } from "./camera.js";
 import { MultipleMeshInstances } from "./mesh.js";
-import { Stats } from "./interface/stats.js";
 import { AnimationTimer } from "./animationTimer.js";
 import { TransformableValues } from "./transformableValues.js";
 import { WorkerMessage, getMessageBody, getMessageHeader, sendMessageToWorker } from "./workers/workerInterface.js";
@@ -36,10 +35,9 @@ export class Viewer {
             throw "Could not create WebGL2 context";
         }
         this.context = context;
-        this._stats = new Stats(document.getElementById("renderingFps"), document.getElementById("updateMs"), document.getElementById("renderingMs"), document.getElementById("pickingMs"), document.getElementById("totalMs"));
         this._animationTimer = new AnimationTimer(0.15, false);
         this._animationIds = new Map();
-        this._selectionManager = new SelectionManager(this, this._stats);
+        this._selectionManager = new SelectionManager(this);
         this._currentValue = null;
         this._nextValue = null;
         this._transmissionWorker = new Worker("/static/js/workers/transmissionWorker.js", { type: "module" });
@@ -47,6 +45,10 @@ export class Viewer {
         this._drawable = false;
         this._currentMeshFile = "/static/models/roundedCube1.obj";
         this.shaderProgram = new shaderUtils.ProgramWithTransformer(context);
+    }
+    set stats(stats) {
+        this._stats = stats;
+        this._selectionManager.stats = stats;
     }
     // initialization methods
     async initialization(srcVs, srcFs) {
@@ -182,12 +184,16 @@ export class Viewer {
                 break;
             case WorkerMessage.VALUES_RESHAPED:
                 this.onValuesReceived(getMessageBody(e), true);
+                this._stats.logShape(this._currentValue.nbElements, this._currentValue.nbChannels);
                 break;
             case WorkerMessage.VALUES:
                 this.onValuesReceived(getMessageBody(e), false);
                 break;
             case WorkerMessage.RESET:
                 this.onReset();
+                break;
+            case WorkerMessage.SET_TIMER:
+                this._stats.displayWorkerTimer(getMessageBody(e)[0], getMessageBody(e)[1]);
                 break;
         }
     }

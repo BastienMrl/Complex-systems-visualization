@@ -10,6 +10,7 @@ export var WorkerMessage;
     WorkerMessage["APPLY_INTERACTION"] = "send_interaction";
     WorkerMessage["CHANGE_SIMULATION"] = "change_simulation";
     WorkerMessage["UPDATE_INIT_PARAM"] = "update_init_p";
+    WorkerMessage["SET_TIMER"] = "set_timer";
 })(WorkerMessage || (WorkerMessage = {}));
 export function sendMessageToWorker(worker, header, message, transfer) {
     if (transfer != undefined)

@@ -22,13 +22,12 @@ export class SelectionManager{
     
     private _stats : Stats;
 
-    constructor(viewer : Viewer, stats : Stats){
+    constructor(viewer : Viewer){
         this._tools = new Array(3);
         this._tools[SelectionMode.BOX] = new SelectionBoxTool(viewer, 0); 
         this._tools[SelectionMode.BRUSH] = new SelectionBrushTool(viewer, 0);
         this._tools[SelectionMode.LASSO] = new SelectionLassoTool(viewer, 0);
 
-        this._stats = stats;
 
 
         viewer.canvas.addEventListener('mousemove', (e : MouseEvent) => {
@@ -48,6 +47,10 @@ export class SelectionManager{
                 this._stats.stopPickingTimer();
             }
         });
+    }
+
+    public set stats (stats : Stats){
+        this._stats = stats;
     }
     
     public switchMode(mode : SelectionMode){

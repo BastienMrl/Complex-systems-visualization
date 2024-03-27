@@ -9,6 +9,7 @@ export enum WorkerMessage {
     APPLY_INTERACTION = "send_interaction",
     CHANGE_SIMULATION = "change_simulation",
     UPDATE_INIT_PARAM = "update_init_p",
+    SET_TIMER = "set_timer",
 }
 
 export function sendMessageToWorker(worker : Worker, header : WorkerMessage, message? : any, transfer? : Transferable[]){

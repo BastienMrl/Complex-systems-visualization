@@ -53,16 +53,11 @@ export class Viewer {
         }
 
         this.context = context;
-        this._stats = new Stats(document.getElementById("renderingFps") as HTMLElement,
-                                document.getElementById("updateMs") as HTMLElement,
-                                document.getElementById("renderingMs") as HTMLElement,
-                                document.getElementById("pickingMs") as HTMLElement,
-                                document.getElementById("totalMs") as HTMLElement);
 
         this._animationTimer = new AnimationTimer(0.15, false);
         this._animationIds = new Map<shaderUtils.AnimableValue, number>();
 
-        this._selectionManager = new SelectionManager(this, this._stats);
+        this._selectionManager = new SelectionManager(this);
         
         this._currentValue = null;
         this._nextValue = null;
@@ -74,6 +69,11 @@ export class Viewer {
         this._currentMeshFile = "/static/models/roundedCube1.obj";
 
         this.shaderProgram = new shaderUtils.ProgramWithTransformer(context);
+    }
+
+    public set stats (stats : Stats){
+        this._stats = stats;
+        this._selectionManager.stats = stats;
     }
     
     // initialization methods
@@ -255,12 +255,16 @@ export class Viewer {
                 break;
             case WorkerMessage.VALUES_RESHAPED:
                 this.onValuesReceived(getMessageBody(e), true);
+                this._stats.logShape(this._currentValue.nbElements, this._currentValue.nbChannels);
                 break;
             case WorkerMessage.VALUES:
                 this.onValuesReceived(getMessageBody(e), false);
                 break;
             case WorkerMessage.RESET:
                 this.onReset();
+                break;
+            case WorkerMessage.SET_TIMER:
+                this._stats.displayWorkerTimer(getMessageBody(e)[0], getMessageBody(e)[1])
                 break;
         }
     }
