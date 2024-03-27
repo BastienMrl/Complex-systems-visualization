@@ -174,7 +174,6 @@ def print_perf(values, models : list[str], name : str):
     for key in values[0][1].get_values().keys():
         plt.xlabel("Number of elements")
         plt.ylabel("Time (ms)")
-        # plt.xscale("log")
         for model in models:
             x = []
             y = []
