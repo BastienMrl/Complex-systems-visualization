@@ -59,12 +59,12 @@ export class ViewerMultipleMeshes extends Viewer {
         this._camera.aspectRatio = this.canvas.clientWidth / this.canvas.clientHeight;
     }
     updateScene(values) {
-        this._multipleInstances.updateStates(values);
+        return;
     }
     clear() {
         this.context.clear(this.context.COLOR_BUFFER_BIT | this.context.DEPTH_BUFFER_BIT);
     }
-    draw() {
+    draw(textures) {
         this.context.useProgram(this._shaderProgram.program);
         let projLoc = this.context.getUniformLocation(this._shaderProgram.program, "u_proj");
         let viewLoc = this.context.getUniformLocation(this._shaderProgram.program, "u_view");
@@ -78,12 +78,32 @@ export class ViewerMultipleMeshes extends Viewer {
         // times
         let times = new Float32Array(Object.values(shaderUtils.AnimableValue).length / 2);
         for (let i = 0; i < Object.values(shaderUtils.AnimableValue).length / 2; i++) {
-            let location = this.context.getUniformLocation(this._shaderProgram.program, shaderUtils.getAnimableValueUniformName(i));
             times[i] = this._manager.getAnimationTime(i);
         }
         this.context.bindBuffer(gl.UNIFORM_BUFFER, this._timeBuffer);
         this.context.bufferSubData(gl.UNIFORM_BUFFER, 0, times);
         // ...
+        if (textures.getStatesTexture(0) != null) {
+            let id = 0;
+            this.context.activeTexture(gl.TEXTURE0 + id);
+            this.context.bindTexture(gl.TEXTURE_2D, textures.getPosXTexture(0));
+            this.context.uniform1i(this.context.getUniformLocation(this._shaderProgram.program, shaderUtils.ShaderMeshInputs.TEX_POS_X_T0), id++);
+            this.context.activeTexture(gl.TEXTURE0 + id);
+            this.context.bindTexture(gl.TEXTURE_2D, textures.getPosYTexture(0));
+            this.context.uniform1i(this.context.getUniformLocation(this._shaderProgram.program, shaderUtils.ShaderMeshInputs.TEX_POS_Y_T0), id++);
+            this.context.activeTexture(gl.TEXTURE0 + id);
+            this.context.bindTexture(gl.TEXTURE_2D, textures.getStatesTexture(0)[0]);
+            this.context.uniform1i(this.context.getUniformLocation(this._shaderProgram.program, shaderUtils.ShaderMeshInputs.TEX_STATE_0_T0), id++);
+            this.context.activeTexture(gl.TEXTURE0 + id);
+            this.context.bindTexture(gl.TEXTURE_2D, textures.getPosXTexture(1));
+            this.context.uniform1i(this.context.getUniformLocation(this._shaderProgram.program, shaderUtils.ShaderMeshInputs.TEX_POS_X_T1), id++);
+            this.context.activeTexture(gl.TEXTURE0 + id);
+            this.context.bindTexture(gl.TEXTURE_2D, textures.getPosYTexture(1));
+            this.context.uniform1i(this.context.getUniformLocation(this._shaderProgram.program, shaderUtils.ShaderMeshInputs.TEX_POS_Y_T1), id++);
+            this.context.activeTexture(gl.TEXTURE0 + id);
+            this.context.bindTexture(gl.TEXTURE_2D, textures.getStatesTexture(1)[0]);
+            this.context.uniform1i(this.context.getUniformLocation(this._shaderProgram.program, shaderUtils.ShaderMeshInputs.TEX_STATE_0_T1), id++);
+        }
         this.context.uniform2fv(aabb, this._multipleInstances.aabb, 0, 0);
         this._multipleInstances.draw();
     }
@@ -161,10 +181,7 @@ export class ViewerMultipleMeshes extends Viewer {
         this._multipleInstances.updateMouseOverBuffer(selection);
     }
     onReset(newValues) {
-        if (this._multipleInstances == null)
-            return;
-        this._multipleInstances.updateStates(newValues);
-        this._multipleInstances.updateStates(newValues);
+        return;
     }
     async onNbElementsChanged(newValues) {
         await this.initMesh(newValues);

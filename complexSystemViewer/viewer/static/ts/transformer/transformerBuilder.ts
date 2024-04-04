@@ -23,8 +23,8 @@ export class TransformerBuilder{
 
     private addInputVariableDeclaration(transformType : TransformType, intputType : InputType, name : string){
         let s = `float ${name} = `;
-        let onT0 = "";
-        let onT1 = "";
+        let onT0 = "texelFetch(";
+        let onT1 = "texelFetch(";
         let time = "";
         let normalized = false;
         let need_normalization = false;
@@ -54,40 +54,42 @@ export class TransformerBuilder{
         }
         switch(intputType){
             case InputType.POSITION_X:
-                onT0 = ShaderMeshInputs.TRANSLATION_T0 + ".x";
-                onT1 = ShaderMeshInputs.TRANLSATION_T1 + ".x";
+                onT0 += ShaderMeshInputs.TEX_POS_X_T0;
+                onT1 += ShaderMeshInputs.TEX_POS_X_T1;
                 normalized = true && need_normalization;
                 normalization_axis = 0;
                 break;
             case InputType.POSITION_Y:
-                onT0 = ShaderMeshInputs.TRANSLATION_T0 + ".y";
-                onT1 = ShaderMeshInputs.TRANLSATION_T1 + ".y";
+                onT0 += ShaderMeshInputs.TEX_POS_Y_T0;
+                onT1 += ShaderMeshInputs.TEX_POS_Y_T1;
                 normalized = true && need_normalization;
                 normalization_axis = 2;
                 break;
             case InputType.POSITION_Z:
-                onT0 = ShaderMeshInputs.TRANSLATION_T0 + ".z";
-                onT1 = ShaderMeshInputs.TRANLSATION_T1 + ".z";
+                onT0 += ShaderMeshInputs.TEX_POS_X_T0;
+                onT1 += ShaderMeshInputs.TEX_POS_X_T1;
                 normalized = true && need_normalization;
                 normalization_axis = 1;
                 break;
             case InputType.STATE_0:
-                onT0 = ShaderMeshInputs.STATE_0_T0;
-                onT1 = ShaderMeshInputs.STATE_0_T1;
+                onT0 += ShaderMeshInputs.TEX_STATE_0_T0;
+                onT1 += ShaderMeshInputs.TEX_STATE_0_T1;
                 break;
             case InputType.STATE_1:
-                onT0 = ShaderMeshInputs.STATE_1_T0;
-                onT1 = ShaderMeshInputs.STATE_1_T1;
+                onT0 += ShaderMeshInputs.TEX_STATE_0_T0;
+                onT1 += ShaderMeshInputs.TEX_STATE_0_T1;
                 break;
             case InputType.STATE_2:
-                onT0 = ShaderMeshInputs.STATE_2_T0;
-                onT1 = ShaderMeshInputs.STATE_2_T1;
+                onT0 += ShaderMeshInputs.TEX_STATE_0_T0;
+                onT1 += ShaderMeshInputs.TEX_STATE_0_T1;
                 break;
             case InputType.STATE_3:
-                onT0 = ShaderMeshInputs.STATE_3_T0;
-                onT1 = ShaderMeshInputs.STATE_3_T1;
+                onT0 += ShaderMeshInputs.TEX_STATE_0_T0;
+                onT1 += ShaderMeshInputs.TEX_STATE_0_T1;
                 break;
         }
+        onT0 += `, ${ShaderMeshInputs.UV}, 0).r`;
+        onT1 += `, ${ShaderMeshInputs.UV}, 0).r`;
         s += `mix(${onT0}, ${onT1}, ${time});`;
         if (normalized)
             s += `\n${ShaderFunction.NORMALIZE_POSITION}(${name}, ${normalization_axis});`;

@@ -56,6 +56,7 @@ export class ProgramWithTransformer {
         this.reloadProgram();
     }
     updateProgramTransformers(transformers) {
+        console.log("transformers = ", transformers);
         this._currentTransformers = transformers;
         if (this._templateVertexShader == undefined)
             return;
@@ -64,6 +65,7 @@ export class ProgramWithTransformer {
     }
     reloadProgram() {
         let vertexShader = getShaderFromString(this._vertexShader, this._context.VERTEX_SHADER, this._context);
+        console.log("vertexShader = ", vertexShader);
         let fragmentShader = getShaderFromString(this._fragmentShader, this._context.FRAGMENT_SHADER, this._context);
         let shaderProgram = this._context.createProgram();
         if (shaderProgram == null) {
@@ -116,16 +118,13 @@ var ShaderBlockBindingPoint;
 })(ShaderBlockBindingPoint || (ShaderBlockBindingPoint = {}));
 var ShaderMeshInputs;
 (function (ShaderMeshInputs) {
-    ShaderMeshInputs["TRANSLATION_T0"] = "a_translation_t0";
-    ShaderMeshInputs["TRANLSATION_T1"] = "a_translation_t1";
-    ShaderMeshInputs["STATE_0_T0"] = "a_state_0_t0";
-    ShaderMeshInputs["STATE_0_T1"] = "a_state_0_t1";
-    ShaderMeshInputs["STATE_1_T0"] = "a_state_1_t0";
-    ShaderMeshInputs["STATE_1_T1"] = "a_state_1_t1";
-    ShaderMeshInputs["STATE_2_T0"] = "a_state_2_t0";
-    ShaderMeshInputs["STATE_2_T1"] = "a_state_2_t1";
-    ShaderMeshInputs["STATE_3_T0"] = "a_state_3_t0";
-    ShaderMeshInputs["STATE_3_T1"] = "a_state_3_t1";
+    ShaderMeshInputs["UV"] = "a_uvs";
+    ShaderMeshInputs["TEX_POS_X_T0"] = "tex_pos_x_t0";
+    ShaderMeshInputs["TEX_POS_Y_T0"] = "tex_pos_y_t0";
+    ShaderMeshInputs["TEX_STATE_0_T0"] = "tex_state_0_t0";
+    ShaderMeshInputs["TEX_POS_X_T1"] = "tex_pos_x_t1";
+    ShaderMeshInputs["TEX_POS_Y_T1"] = "tex_pos_y_t1";
+    ShaderMeshInputs["TEX_STATE_0_T1"] = "tex_state_0_t1";
 })(ShaderMeshInputs || (ShaderMeshInputs = {}));
 var ShaderVariable;
 (function (ShaderVariable) {
@@ -148,15 +147,6 @@ var ShaderLocation;
     ShaderLocation[ShaderLocation["UV"] = 2] = "UV";
     ShaderLocation[ShaderLocation["ID"] = 3] = "ID";
     ShaderLocation[ShaderLocation["SELECTED"] = 4] = "SELECTED";
-    ShaderLocation[ShaderLocation["TRANSLATION_T0"] = 5] = "TRANSLATION_T0";
-    ShaderLocation[ShaderLocation["TRANLSATION_T1"] = 6] = "TRANLSATION_T1";
-    ShaderLocation[ShaderLocation["STATE_0_T0"] = 7] = "STATE_0_T0";
-    ShaderLocation[ShaderLocation["STATE_0_T1"] = 8] = "STATE_0_T1";
-    ShaderLocation[ShaderLocation["STATE_1_T0"] = 9] = "STATE_1_T0";
-    ShaderLocation[ShaderLocation["STATE_1_T1"] = 10] = "STATE_1_T1";
-    ShaderLocation[ShaderLocation["STATE_2_T0"] = 11] = "STATE_2_T0";
-    ShaderLocation[ShaderLocation["STATE_2_T1"] = 12] = "STATE_2_T1";
-    ShaderLocation[ShaderLocation["STATE_3_T0"] = 13] = "STATE_3_T0";
-    ShaderLocation[ShaderLocation["STATE_3_T1"] = 14] = "STATE_3_T1";
+    ShaderLocation[ShaderLocation["UVS"] = 13] = "UVS";
 })(ShaderLocation || (ShaderLocation = {}));
 export { initShaders, ShaderVariable, ShaderFunction, ShaderMeshInputs, ShaderUniforms, ShaderLocation, AnimableValue, ShaderBlockIndex, ShaderBlockBindingPoint };

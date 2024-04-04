@@ -1,6 +1,7 @@
 import { TransformableValues } from "./transformableValues";
 import { TransformerBuilder } from "./transformer/transformerBuilder";
 import { Viewer } from "./viewer";
+import { ViewerManager } from "./viewerManager";
 
 export class ViewerTexture extends Viewer{
 

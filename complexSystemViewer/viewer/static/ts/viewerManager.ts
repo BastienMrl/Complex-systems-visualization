@@ -36,8 +36,7 @@ export class ViewerManager {
     private _needAnimationPlayOnReceived : boolean = false;
     private _needOneAnimationLoop : boolean = false;
 
-    private _currentValue : TransformableValues | null;
-    private _nextValue : TransformableValues | null;
+    private _values : TransformableValues | null;
 
     private _textures : TexturesContainer;
 
@@ -53,14 +52,13 @@ export class ViewerManager {
         this._animationTimer = new AnimationTimer(0.15, false);
         this._animationIds = new Map<shaderUtils.AnimableValue, number>();
         
-        this._currentValue = null;
-        this._nextValue = null;
+        this._values = null;
         this.transmissionWorker = new Worker("/static/js/workers/transmissionWorker.js", {type : "module"});
         this.transmissionWorker.onmessage = this.onTransmissionWorkerMessage.bind(this);
         this._currentViewer = new ViewerMultipleMeshes(this.canvas, this.context, this);
 
         this._viewers = [this._currentViewer];
-        this._textures = new TexturesContainer()
+        this._textures = new TexturesContainer(this.context);
     }
 
     public set stats (stats : Stats){
@@ -108,13 +106,12 @@ export class ViewerManager {
     }
     
     private updateScene(){
-        if (this._nextValue == null){
+        if (this._values == null){
             return;
         }
         this._stats.startUpdateTimer();
-        this._currentValue = this._nextValue;
-        this._nextValue = null;
-        this._currentViewer.updateScene(this._currentValue);
+        this._values = null;
+        this._textures.step();
         this.context.finish();
         this._stats.stopUpdateTimer();
         sendMessageToWorker(this.transmissionWorker, WorkerMessage.GET_VALUES);
@@ -142,7 +139,7 @@ export class ViewerManager {
         if (this._currentViewer.isDrawable){
             this._stats.startRenderingTimer(delta);
             this._currentViewer.clear();
-            this._currentViewer.draw();
+            this._currentViewer.draw(this._textures);
             this.context.finish();
             this._stats.stopRenderingTimer();
         }
@@ -161,7 +158,7 @@ export class ViewerManager {
                 break;
             case WorkerMessage.VALUES_RESHAPED:
                 this.onValuesReceived(getMessageBody(e), true);
-                this._stats.logShape(this._currentValue.nbElements, this._currentValue.nbChannels);
+                this._stats.logShape(this._values.nbElements, this._values.nbChannels);
                 break;
             case WorkerMessage.VALUES:
                 this.onValuesReceived(getMessageBody(e), false);
@@ -176,30 +173,31 @@ export class ViewerManager {
     }
 
     private async onReset(){
-        this._nextValue = null;
-        while (this._nextValue == null){
+        this._values = null;
+        while (this._values == null){
             await new Promise(resolve => setTimeout(resolve, 1));
         };
-        this._currentValue = TransformableValues.fromInstance(this._nextValue);
-        this._currentViewer.onReset(this._currentValue);
+        this._textures.createBuffers(this._values);
+        this._currentViewer.onReset(this._values);
     }
 
     public async onValuesReceived(data : Array<Float32Array>, isReshaped : boolean = false){
-        this._nextValue = TransformableValues.fromValuesAsArray(data);
-        this._textures.createBuffers(this._nextValue, this.context);
-        if( this._currentValue == null){
-            this._currentValue = TransformableValues.fromInstance(this._nextValue);
-            this._currentViewer.onNbElementsChanged(this._currentValue);
-        }
+        this._values = TransformableValues.fromValuesAsArray(data);
         if (isReshaped){
-            if (this._currentValue.nbChannels != this._nextValue.nbChannels){
-                UserInterface.getInstance().nbChannels = this._nextValue.nbChannels;
-                this._currentViewer.onNbChannelsChanged(this._currentValue)
+            let isChannels = this._values.nbChannels != this._textures.nbChannels;
+            let isElements = this._values.nbElements != this._textures.nbElements;
+            if (isChannels){
+                UserInterface.getInstance().nbChannels = this._values.nbChannels;
+                this._textures.createBuffers(this._values);
+                this._currentViewer.onNbChannelsChanged(this._values)
             }
-            if (this._currentValue.nbElements != this._nextValue.nbElements){
-                this._currentValue = TransformableValues.fromInstance(this._nextValue);
-                this._currentViewer.onNbElementsChanged(this._currentValue);
+            if (isElements){
+                this._textures.updateBuffers(this._values);
+                this._currentViewer.onNbElementsChanged(this._values);
             }
+        }
+        else{
+            this._textures.updateBuffers(this._values);
         }
         if (!this._animationTimer.isRunning && this._needAnimationPlayOnReceived){
             this._needAnimationPlayOnReceived = false;
@@ -208,7 +206,7 @@ export class ViewerManager {
         }
         else if (!this._animationTimer.isRunning && this._needOneAnimationLoop){
             this._needOneAnimationLoop = false;
-            this._currentViewer.updateScene(this._nextValue);
+            this._textures.updateBuffers(this._values);
             this.startOneAnimationLoop();
         }
     }
@@ -224,13 +222,11 @@ export class ViewerManager {
                 this._animationTimer.loop = true;
             return;
         }
-        this.updateScene();
         this._animationTimer.loop = true;
         this._animationTimer.play();
     }
 
     public stopVisualizationAnimation() {
-        this._currentViewer.updateScene(this._currentValue);
         this._animationTimer.stop();
     }
 
@@ -250,12 +246,12 @@ export class ViewerManager {
         if (this._animationTimer.isRunning && this._animationTimer.loop){
             this.stopVisualizationAnimation();
             this._needAnimationPlayOnReceived = true;
-            this._currentViewer.updateScene(this._currentValue);
+            this._textures.updateBuffers(this._values);
         }
         else{
             this._needOneAnimationLoop = true;
         }
-        let values = TransformableValues.fromInstance(this._currentValue);
+        let values = TransformableValues.fromInstance(this._values);
         sendMessageToWorker(this.transmissionWorker, WorkerMessage.APPLY_INTERACTION,
                             [interaction, [mask].concat(values.toArray())], [mask.buffer].concat(values.toArrayBuffers()));
     }
@@ -279,43 +275,143 @@ export class ViewerManager {
 
 }
 
-class TexturesContainer{
-    private _posXTexture : WebGLTexture;
-    private _posYTexture : WebGLTexture;
-    private _statesTextures : Array<WebGLTexture>;
+export class TexturesContainer{
+    private _posXTexture : Array<WebGLTexture>;
 
-    public createBuffers(values : TransformableValues, context : WebGL2RenderingContext){
-        let time = performance.now();
+    private _posYTexture : Array<WebGLTexture>;
+
+    private _statesTextures : Array<Array<WebGLTexture>>;
+
+    public context : WebGL2RenderingContext;
+
+    private _step : 0 | 1 | 2 = 0;
+
+    private _currentT : 0 | 1 | 2;
+
+    private readonly _nbSteps = 3;
+
+    private _nbElements : number;
+    private _nbChannels : number; 
+
+    public constructor(context : WebGL2RenderingContext){
+        this.context = context;
+        this._posXTexture = new Array<WebGLTexture>(this._nbSteps);
+        this._posYTexture = new Array<WebGLTexture>(this._nbSteps);
+        this._statesTextures = new Array<Array<WebGLTexture>>(this._nbSteps);
+
+    }
+
+    public get nbElements() : number{
+        return this._nbElements;
+    }
+
+    public get nbChannels() : number{
+        return this._nbChannels;
+    }
+
+    public getPosXTexture(t : 0 | 1){
+        switch (this._step){
+            case 0:
+                return t == 0 ? this._posXTexture[0] : this._posXTexture[1];
+            case 1:
+                return t == 0 ? this._posXTexture[1] : this._posXTexture[2];
+            case 2:
+                return t == 0 ? this._posXTexture[2] : this._posXTexture[0];
+        }
+    }
+
+    public getPosYTexture(t : 0 | 1){
+        switch (this._step){
+            case 0:
+                return t == 0 ? this._posYTexture[0] : this._posYTexture[1];
+            case 1:
+                return t == 0 ? this._posYTexture[1] : this._posYTexture[2];
+            case 2:
+                return t == 0 ? this._posYTexture[2] : this._posYTexture[0];
+        }
+    }
+
+    public getStatesTexture(t : 0 | 1){
+        switch (this._step){
+            case 0:
+                return t == 0 ? this._statesTextures[0] : this._statesTextures[1];
+            case 1:
+                return t == 0 ? this._statesTextures[1] : this._statesTextures[2];
+            case 2:
+                return t == 0 ? this._statesTextures[2] : this._statesTextures[0];
+        }
+    }
+
+    public createBuffers(values : TransformableValues){
+
+        this._nbElements = values.nbElements;
+        this._nbChannels = values.nbChannels;
+
+        for (let i = 0; i < this._nbSteps; ++i){
+
+            this._posXTexture[i] = this.context.createTexture();
+            this.context.bindTexture(gl.TEXTURE_2D, this._posXTexture[i]);
+            this.context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            this.context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            this.context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+            this.context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+            this._posYTexture[i] = this.context.createTexture();
+            this.context.bindTexture(gl.TEXTURE_2D, this._posYTexture[i]);
+            this.context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            this.context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            this.context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+            this.context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+            this._statesTextures[i] = new Array<WebGLTexture>(values.nbChannels);
+            for (let k = 0; k < values.nbChannels; ++k){
+                this._statesTextures[i][k] = this.context.createTexture();
+                this.context.bindTexture(gl.TEXTURE_2D, this._statesTextures[i][k]);
+                this.context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                this.context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                this.context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+                this.context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+            }
+        }
+
+        this._currentT = 0;
+        this.updateBuffers(values);
+    }
+
+    public updateBuffers(values : TransformableValues){
+        this._nbElements = values.nbElements
+        let t = this._currentT;
         let width = Math.ceil(Math.sqrt(values.nbElements));
         let height = width;
-        this._posXTexture = context.createTexture();
-        context.bindTexture(gl.TEXTURE_2D, this._posXTexture);
-        context.texImage2D(gl.TEXTURE_2D, 0, gl.R32F, width, height, 0, gl.RED, gl.FLOAT,
-            values.states[0]);
-        context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-        context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        this.context.bindTexture(gl.TEXTURE_2D, this._posXTexture[(this._step + t) % this._nbSteps]);
+        this.context.texImage2D(gl.TEXTURE_2D, 0, gl.R32F, width, height, 0, gl.RED, gl.FLOAT,
+            values.positionX);
 
-        this._posYTexture = context.createTexture();
-        context.bindTexture(gl.TEXTURE_2D, this._posYTexture);
-        context.texImage2D(gl.TEXTURE_2D, 0, gl.R32F, width, height, 0, gl.RED, gl.FLOAT,
-            values.states[0]);
-        context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-        context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        this.context.bindTexture(gl.TEXTURE_2D, this._posYTexture[(this._step + t) % this._nbSteps]);
+        this.context.texImage2D(gl.TEXTURE_2D, 0, gl.R32F, width, height, 0, gl.RED, gl.FLOAT,
+            values.positionY);
 
-        this._statesTextures = new Array<WebGLTexture>(values.nbChannels);
         for (let i = 0; i < values.nbChannels; ++i){
-            this._statesTextures[i] = context.createTexture();
-            context.bindTexture(gl.TEXTURE_2D, this._statesTextures[i]);
-            context.texImage2D(gl.TEXTURE_2D, 0, gl.R32F, width, height, 0, gl.RED, gl.FLOAT,
+            this.context.bindTexture(gl.TEXTURE_2D, this._statesTextures[(this._step + t) % this._nbSteps][i]);
+            this.context.texImage2D(gl.TEXTURE_2D, 0, gl.R32F, width, height, 0, gl.RED, gl.FLOAT,
                 values.states[i]);
-            context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-            context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-            context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-            context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        }
+        this._currentT += 1;
+        if (this._currentT >= this._nbSteps)
+            this._currentT = 2;
+
+    }
+
+    public step(){
+        switch (this._step){
+            case 0:
+                this._step = 1;
+                break
+            case 1:
+                this._step = 2;
+                break;
+            case 2:
+                this._step = 0;
+                break;
         }
     }
 }

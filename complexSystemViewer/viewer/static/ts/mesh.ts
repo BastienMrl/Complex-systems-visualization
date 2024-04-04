@@ -16,14 +16,12 @@ export class MultipleMeshInstances{
 
     private _vertPositions : Float32Array;
     private _vertNormals : Float32Array;
-    private _vertUVs : Float32Array;
     private _vertIndices : Float32Array;
 
     
-    private _translationBuffer : InstanceAttribBuffer;
-    private _stateBuffers : Array<InstanceAttribBuffer>;
+    private _uvBuffer : InstanceAttribBuffer;
     // TODO: defined by the user hardware
-    private readonly _nbStates = 4;
+    private readonly _nbStates = 1;
 
     private _vao : WebGLVertexArrayObject | null;
     private _mouseOverBuffer : WebGLBuffer | null;
@@ -36,19 +34,19 @@ export class MultipleMeshInstances{
 
         
         this._vao = this._context.createVertexArray();
-        this._translationBuffer = new InstanceAttribBuffer(context);
-        this._translationBuffer.initialize(values.translations);
 
-        this._stateBuffers = new Array<InstanceAttribBuffer>(this._nbStates);
-        values.states.forEach((e, i) => {
-            this._stateBuffers[i] = new InstanceAttribBuffer(context);
-            this._stateBuffers[i].initialize(e);
-        });
+        this._uvBuffer = new InstanceAttribBuffer(context);
 
-        for (let i = values.nbChannels; i < this._nbStates; i++){
-            this._stateBuffers[i] = new InstanceAttribBuffer(context);
-            this._stateBuffers[i].initialize(new Float32Array(values.nbElements).fill(0.))    
+        let uvs = new Int32Array(values.nbElements * 2);
+        let width = Math.ceil(Math.sqrt(values.nbElements));
+        for (let i = 0 ; i < values.nbElements; ++i){
+            let u = Math.floor(i / width);
+            let v = i % width;
+            uvs[i * 2] = u;
+            uvs[i * 2 + 1] = v;
         }
+        
+        this._uvBuffer.initialize(uvs);
     }
 
     // getters
@@ -111,13 +109,10 @@ export class MultipleMeshInstances{
         this._context.vertexAttribPointer(ShaderLocation.NORMAL, 3, gl.FLOAT, false, 0, 0);
         this._context.enableVertexAttribArray(1);
 
-        // translation
-        this._translationBuffer.bindAttribs(ShaderLocation.TRANSLATION_T0, 1, 3, gl.FLOAT, false, 0);
         
-        // states
-        for (let i = 0; i < this._nbStates; i++){
-            this._stateBuffers[i].bindAttribs(ShaderLocation.STATE_0_T0 + 2 * i, 1, 1, gl.FLOAT, false, 0);
-        }
+
+        // uvs
+        this._uvBuffer.bindAttribs(ShaderLocation.UVS, 1, 2, gl.INT, false, 0);
         
         // mouse over
         this._mouseOverBuffer = this._context.createBuffer();
@@ -152,15 +147,6 @@ export class MultipleMeshInstances{
         aabb[5] = aabb[5] > z ? aabb[5] : z;
     }
 
-    public updateStates(values : TransformableValues){
-        if (values == null)
-            return;
-        this._translationBuffer.updateAttribs(values.translations);
-        values.states.forEach((e, i) => {
-            this._stateBuffers[i].updateAttribs(e);
-        });
-    }
-
     public updateMouseOverBuffer(indices : Array<number> | null){
         const arr = new Float32Array(this._nbInstances).fill(0.);
         if (indices != null)
@@ -174,7 +160,7 @@ export class MultipleMeshInstances{
 
     public draw(){
         this._context.bindVertexArray(this._vao);
-        this._context.drawElementsInstanced(gl.TRIANGLES, this._vertIndices.length, gl.UNSIGNED_INT, 0, this._nbInstances)
+        this._context.drawElementsInstanced(gl.TRIANGLES, this._vertIndices.length, gl.UNSIGNED_INT, 0, this._nbInstances);
         this._context.bindVertexArray(null);
     }
 
@@ -270,7 +256,7 @@ class InstanceAttribBuffer{
         this._bufferT1 = this._context.createBuffer();
     }
 
-    public initialize(data : Float32Array){
+    public initialize(data : ArrayBuffer){
         this._context.bindBuffer(gl.ARRAY_BUFFER, this._bufferT0);
         this._context.bufferData(gl.ARRAY_BUFFER, data, gl.DYNAMIC_DRAW);
         
@@ -280,7 +266,7 @@ class InstanceAttribBuffer{
         this._context.bindBuffer(gl.ARRAY_BUFFER, null);
     }
 
-    public updateAttribs(data : Float32Array){
+    public updateAttribs(data : ArrayBuffer){
         this._context.bindBuffer(gl.ARRAY_BUFFER, this._bufferT1);
         this._context.bindBuffer(gl.COPY_WRITE_BUFFER, this._bufferT0);
 
@@ -294,13 +280,29 @@ class InstanceAttribBuffer{
     public bindAttribs(location : number, nbLocations : number, size : number,
                         type : number, normalized : boolean, stride : number){
                             
+        console.log("location = ", location);
         // assumes that type == gl.FLOAT
-        const byteLength = 4;
+        let byteLength = 4;
+        switch (type){
+            case gl.FLOAT:
+                byteLength = 4;
+                break;
+            case gl.INT:
+                byteLength = 4;
+                break;                
+        }
         
         this._context.bindBuffer(gl.ARRAY_BUFFER, this._bufferT0);
         for (let i = 0; i < nbLocations; i++){
             let offset = i * size * byteLength;
-            this._context.vertexAttribPointer(location, size, type, normalized, stride, offset);
+            switch (type){
+                case gl.FLOAT:
+                    this._context.vertexAttribPointer(location, size, type, normalized, stride, offset);
+                    break;
+                case gl.INT:
+                    this._context.vertexAttribIPointer(location, size, type, stride, offset);
+                    break;                
+            }
             this._context.vertexAttribDivisor(location, 1);
             this._context.enableVertexAttribArray(location);
             location++;
@@ -310,7 +312,14 @@ class InstanceAttribBuffer{
         this._context.bindBuffer(gl.ARRAY_BUFFER, this._bufferT1);
         for (let i = 0; i < nbLocations; i++){
             let offset = i * size * byteLength;
-            this._context.vertexAttribPointer(location, size, type, normalized, stride, offset);
+            switch (type){
+                case gl.FLOAT:
+                    this._context.vertexAttribPointer(location, size, type, normalized, stride, offset);
+                    break;
+                case gl.INT:
+                    this._context.vertexAttribIPointer(location, size, type, stride, offset);
+                    break;
+            }
             this._context.vertexAttribDivisor(location, 1);
             this._context.enableVertexAttribArray(location);
             location++;

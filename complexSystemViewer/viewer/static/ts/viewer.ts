@@ -2,7 +2,7 @@ import { AnimationTimer } from "./animationTimer";
 import { SelectionManager } from "./interface/selectionTools/selectionManager";
 import { TransformableValues } from "./transformableValues";
 import { TransformerBuilder } from "./transformer/transformerBuilder";
-import { ViewerManager } from "./viewerManager";
+import { TexturesContainer, ViewerManager } from "./viewerManager";
 
 export abstract class Viewer{
     public context : WebGL2RenderingContext;
@@ -52,7 +52,7 @@ export abstract class Viewer{
 
     public abstract clear();
 
-    public abstract draw();
+    public abstract draw(textures : TexturesContainer);
 
     public abstract getElementOver(posX : number, posY : number) : number | null;
     

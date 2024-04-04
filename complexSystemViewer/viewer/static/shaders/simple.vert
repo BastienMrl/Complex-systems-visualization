@@ -8,20 +8,7 @@ layout (location = 2) in vec2 a_uv;
 
 //.... per mesh  attributes ....
 
-layout(location = 5) in vec3 a_translation_t0;
-layout(location = 6) in vec3 a_translation_t1;
-
-layout(location = 7) in float a_state_0_t0;
-layout(location = 8) in float a_state_0_t1;
-
-layout(location = 9) in float a_state_1_t0;
-layout(location = 10) in float a_state_1_t1;
-
-layout(location = 11) in float a_state_2_t0;
-layout(location = 12) in float a_state_2_t1;
-
-layout(location = 13) in float a_state_3_t0;
-layout(location = 14) in float a_state_3_t1;
+layout(location = 13) in ivec2 a_uvs;
 
 
 // selection
@@ -38,6 +25,14 @@ out vec3 feedback_translation;
 
 uniform mat4 u_proj;
 uniform mat4 u_view;
+
+uniform sampler2D tex_pos_x_t0;
+uniform sampler2D tex_pos_y_t0;
+uniform sampler2D tex_state_0_t0;
+
+uniform sampler2D tex_pos_x_t1;
+uniform sampler2D tex_pos_y_t1;
+uniform sampler2D tex_state_0_t1;
 
 
 uniform Time {
