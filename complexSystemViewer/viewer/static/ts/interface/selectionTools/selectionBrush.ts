@@ -1,4 +1,4 @@
-import { Viewer } from "../../viewer.js";
+import { ViewerManager } from "../../viewerManager.js";
 import { SelectionTool } from "./selectionTool.js";
 
 export enum BrushShape{
@@ -20,7 +20,7 @@ export class SelectionBrushTool extends SelectionTool{
     private _idValues : Map<number, number>;
 
     
-    public constructor(viewer : Viewer, interactionButton : number){
+    public constructor(viewer : ViewerManager, interactionButton : number){
         super(viewer);
         this._interactionButton = interactionButton;
         this._shape = BrushShape.CIRCLE;
@@ -162,46 +162,46 @@ export class SelectionBrushTool extends SelectionTool{
     }
 
     private getIdValuesInsideBrush(from : number) : Map<number, number>{
-
-        let ret = new Map<number, number>();
+        return new Map<number, number>();
+        // let ret = new Map<number, number>();
         
-        let centerCoord = this.idToCoords(from);
+        // let centerCoord = this.idToCoords(from);
         
-        let iMin = centerCoord[0] - this._radius;
-        let iMax = centerCoord[0] + this._radius;
-        let jMin = centerCoord[1] - this._radius; 
-        let jMax = centerCoord[1] + this._radius;
+        // let iMin = centerCoord[0] - this._radius;
+        // let iMax = centerCoord[0] + this._radius;
+        // let jMin = centerCoord[1] - this._radius; 
+        // let jMax = centerCoord[1] + this._radius;
 
-        if (iMin < 0)
-            iMin = 0;
-        if (iMax >= this._meshes.nbRow)
-            iMax = this._meshes.nbRow - 1;
-        if (jMin < 0)
-            jMin = 0;
-        if (jMax >= this._meshes.nbCol)
-            jMax = this._meshes.nbCol - 1;
+        // if (iMin < 0)
+        //     iMin = 0;
+        // if (iMax >= this._meshes.nbRow)
+        //     iMax = this._meshes.nbRow - 1;
+        // if (jMin < 0)
+        //     jMin = 0;
+        // if (jMax >= this._meshes.nbCol)
+        //     jMax = this._meshes.nbCol - 1;
 
         
-        for(let i = iMin; i < iMax + 1; i++){
-            for (let j = jMin; j < jMax + 1; j++){
-                let absI = Math.abs(centerCoord[0] - i);
-                let absJ = Math.abs(centerCoord[1] - j);
-                // attenuationFunction exclude this case
-                let distance = this._radius + 1;
-                switch (this._shape){
-                    case BrushShape.SQUARE:
-                        distance = Math.max(absI, absJ);
-                        break;
-                    case BrushShape.CIRCLE:
-                        distance = Math.sqrt(absI * absI + absJ * absJ);
-                        break;
-                }
-                if (distance <= this._radius)
-                    ret.set(this.coordToId(i, j), this._attenuationFunction(distance));                
-            }
-        }
+        // for(let i = iMin; i < iMax + 1; i++){
+        //     for (let j = jMin; j < jMax + 1; j++){
+        //         let absI = Math.abs(centerCoord[0] - i);
+        //         let absJ = Math.abs(centerCoord[1] - j);
+        //         // attenuationFunction exclude this case
+        //         let distance = this._radius + 1;
+        //         switch (this._shape){
+        //             case BrushShape.SQUARE:
+        //                 distance = Math.max(absI, absJ);
+        //                 break;
+        //             case BrushShape.CIRCLE:
+        //                 distance = Math.sqrt(absI * absI + absJ * absJ);
+        //                 break;
+        //         }
+        //         if (distance <= this._radius)
+        //             ret.set(this.coordToId(i, j), this._attenuationFunction(distance));                
+        //     }
+        // }
 
-        return ret;
+        // return ret;
     }
 
     public setParam(attribute:string, value:number){

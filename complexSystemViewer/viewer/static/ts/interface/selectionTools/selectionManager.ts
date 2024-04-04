@@ -1,7 +1,5 @@
-import { MultipleMeshInstances } from "../../mesh.js";
 import { Stats } from "../stats.js";
-import { TransformerBuilder } from "../../transformer/transformerBuilder.js";
-import { Viewer } from "../../viewer.js";
+import { ViewerManager } from "../../viewerManager.js";
 import { SelectionBoxTool } from "./selectionBox.js";
 import { SelectionBrushTool } from "./selectionBrush.js";
 import { SelectionLassoTool } from "./selectionLasso.js";
@@ -22,7 +20,7 @@ export class SelectionManager{
     
     private _stats : Stats;
 
-    constructor(viewer : Viewer){
+    constructor(viewer : ViewerManager){
         this._tools = new Array(3);
         this._tools[SelectionMode.BOX] = new SelectionBoxTool(viewer, 0); 
         this._tools[SelectionMode.BRUSH] = new SelectionBrushTool(viewer, 0);
@@ -60,14 +58,6 @@ export class SelectionManager{
             this._tools[this._mode].resetTool();
         }
         this._mode = mode;
-    }
-
-    public setMeshes(meshes : MultipleMeshInstances){
-        this._tools.forEach(e => e.setMeshes(meshes));
-    }
-
-    public setTransformer(transformer : TransformerBuilder){
-        this._tools.forEach(e => e.setTransformer(transformer));
     }
 
     public setSelectionParameter(attribute:string, value:number){

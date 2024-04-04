@@ -25,7 +25,7 @@ export class MultipleMeshInstances {
         this._vao = this._context.createVertexArray();
         this._translationBuffer = new InstanceAttribBuffer(context);
         this._translationBuffer.initialize(values.translations);
-        this._stateBuffers = new Array;
+        this._stateBuffers = new Array(this._nbStates);
         values.states.forEach((e, i) => {
             this._stateBuffers[i] = new InstanceAttribBuffer(context);
             this._stateBuffers[i].initialize(e);

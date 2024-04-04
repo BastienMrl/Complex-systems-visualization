@@ -1,5 +1,5 @@
 import { SelectionTool } from "./selectionTool.js";
-import { Viewer } from "../../viewer.js";
+import { ViewerManager } from "../../viewerManager.js";
 
 export class SelectionBoxTool extends SelectionTool{
 
@@ -7,7 +7,7 @@ export class SelectionBoxTool extends SelectionTool{
     private _lastId : number | null = null;
     private _interactionButton : number;
 
-    public constructor(viewer : Viewer, interactionButton : number){
+    public constructor(viewer : ViewerManager, interactionButton : number){
         super(viewer);
         this._interactionButton = interactionButton;
     }   

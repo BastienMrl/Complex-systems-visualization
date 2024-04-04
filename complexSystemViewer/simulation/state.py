@@ -46,13 +46,18 @@ class GridState(State) :
         y_row = [val for val in single_y_row for _ in range(self.width)]
 
         domain = [self.width * self.height, self.grid.shape[2]]
-        l = [domain, x_row, y_row]
+        domain.append(float(np.min(x_row)))
+        domain.append(float(np.max(x_row)))
+        domain.append(float(np.min(y_row)))
+        domain.append(float(np.max(y_row)))
+        l = [x_row, y_row]
 
         for i in range(self.grid.shape[2]):
             val = self.grid[:, :, i].flatten().tolist()
+            domain.append(float(0.))
+            domain.append(float(1.))
             l.append(val)
-        
-        return l
+        return [domain] + l
 
     def set_grid(self, grid) : 
         self.grid = grid

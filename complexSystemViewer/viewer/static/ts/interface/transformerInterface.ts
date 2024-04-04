@@ -1,18 +1,17 @@
-import { Viewer } from "../viewer.js";
+import { ViewerManager } from "../viewerManager.js";
 import { TransformerBuilder } from "../transformer/transformerBuilder.js";
 import { InputType } from "../transformer/inputType.js";
 import { TransformType } from "../transformer/transformType.js";
 
 export class TransformersInterface {
-    private _viewer : Viewer;
+    private _viewer : ViewerManager;
     private _currentTransformerBuilder : TransformerBuilder;
     private _nbChannels : number;
 
-    public constructor(viewer : Viewer){
+    public constructor(viewer : ViewerManager){
         this._viewer = viewer;
         this._currentTransformerBuilder = new TransformerBuilder();
         this._nbChannels = 1;
-        this._viewer.selectionManager.setTransformer(this._currentTransformerBuilder);
     }
 
     public setNumberOfStatesOutput(nb : number){

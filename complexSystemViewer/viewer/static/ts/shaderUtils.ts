@@ -131,10 +131,20 @@ enum AnimableValue {
 
 
 enum ShaderUniforms {
-    TIME_COLOR = "u_time_color",
-    TIME_TRANSLATION = "u_time_translation",
-    TIME_ROTATION = "u_time_rotation",
-    TIME_SCALING = "u_time_scaling"
+    TIME_COLOR = "time.color",
+    TIME_TRANSLATION = "time.translation",
+    TIME_ROTATION = "time.rotation",
+    TIME_SCALING = "time.scaling"
+}
+
+enum ShaderBlockIndex {
+    TIME = "Time",
+    DOMAIN = "Domain"
+}
+
+enum ShaderBlockBindingPoint {
+    TIME = 0,
+    DOMAIN = 1
 }
 
 
@@ -187,4 +197,4 @@ enum ShaderLocation {
 }
 
 
-export {initShaders, ShaderVariable, ShaderFunction, ShaderMeshInputs, ShaderUniforms, ShaderLocation, AnimableValue}
+export {initShaders, ShaderVariable, ShaderFunction, ShaderMeshInputs, ShaderUniforms, ShaderLocation, AnimableValue, ShaderBlockIndex, ShaderBlockBindingPoint}

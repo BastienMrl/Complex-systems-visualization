@@ -20,8 +20,8 @@ export class AnimationInterface {
         let animationKeysValue = Object.values(AnimableValue);
         for (let i = 0; i < animationKeysValue.length / 2; i++) {
             let option = document.createElement("option");
-            option.value = animationKeysValue.at(i).toString();
-            option.innerText = animationKeysValue.at(i).toString();
+            option.value = animationKeysValue[i].toString();
+            option.innerText = animationKeysValue[i].toString();
             option.setAttribute("animationFunction", "easeOut");
             select.appendChild(option);
         }

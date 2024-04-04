@@ -39,12 +39,16 @@ out vec3 feedback_translation;
 uniform mat4 u_proj;
 uniform mat4 u_view;
 
-uniform float u_time_color;
-uniform float u_time_translation;
-uniform float u_time_rotation;
-uniform float u_time_scaling;
+
+uniform Time {
+    float color;
+    float translation;
+    float rotation;
+    float scaling;
+} time;
 
 uniform vec2 u_aabb[3];
+
 
 
 

@@ -99,11 +99,21 @@ var AnimableValue;
 })(AnimableValue || (AnimableValue = {}));
 var ShaderUniforms;
 (function (ShaderUniforms) {
-    ShaderUniforms["TIME_COLOR"] = "u_time_color";
-    ShaderUniforms["TIME_TRANSLATION"] = "u_time_translation";
-    ShaderUniforms["TIME_ROTATION"] = "u_time_rotation";
-    ShaderUniforms["TIME_SCALING"] = "u_time_scaling";
+    ShaderUniforms["TIME_COLOR"] = "time.color";
+    ShaderUniforms["TIME_TRANSLATION"] = "time.translation";
+    ShaderUniforms["TIME_ROTATION"] = "time.rotation";
+    ShaderUniforms["TIME_SCALING"] = "time.scaling";
 })(ShaderUniforms || (ShaderUniforms = {}));
+var ShaderBlockIndex;
+(function (ShaderBlockIndex) {
+    ShaderBlockIndex["TIME"] = "Time";
+    ShaderBlockIndex["DOMAIN"] = "Domain";
+})(ShaderBlockIndex || (ShaderBlockIndex = {}));
+var ShaderBlockBindingPoint;
+(function (ShaderBlockBindingPoint) {
+    ShaderBlockBindingPoint[ShaderBlockBindingPoint["TIME"] = 0] = "TIME";
+    ShaderBlockBindingPoint[ShaderBlockBindingPoint["DOMAIN"] = 1] = "DOMAIN";
+})(ShaderBlockBindingPoint || (ShaderBlockBindingPoint = {}));
 var ShaderMeshInputs;
 (function (ShaderMeshInputs) {
     ShaderMeshInputs["TRANSLATION_T0"] = "a_translation_t0";
@@ -149,4 +159,4 @@ var ShaderLocation;
     ShaderLocation[ShaderLocation["STATE_3_T0"] = 13] = "STATE_3_T0";
     ShaderLocation[ShaderLocation["STATE_3_T1"] = 14] = "STATE_3_T1";
 })(ShaderLocation || (ShaderLocation = {}));
-export { initShaders, ShaderVariable, ShaderFunction, ShaderMeshInputs, ShaderUniforms, ShaderLocation, AnimableValue };
+export { initShaders, ShaderVariable, ShaderFunction, ShaderMeshInputs, ShaderUniforms, ShaderLocation, AnimableValue, ShaderBlockIndex, ShaderBlockBindingPoint };

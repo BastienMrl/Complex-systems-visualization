@@ -45,12 +45,6 @@ export class SelectionManager {
         }
         this._mode = mode;
     }
-    setMeshes(meshes) {
-        this._tools.forEach(e => e.setMeshes(meshes));
-    }
-    setTransformer(transformer) {
-        this._tools.forEach(e => e.setTransformer(transformer));
-    }
     setSelectionParameter(attribute, value) {
         this._tools[this._mode].setParam(attribute, value);
     }

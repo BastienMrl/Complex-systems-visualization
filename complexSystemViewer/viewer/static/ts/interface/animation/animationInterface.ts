@@ -1,16 +1,16 @@
-import { Viewer } from "../../viewer.js";
+import { ViewerManager } from "../../viewerManager.js";
 import { AnimationFunction } from "./animationFunctions.js";
 import { AnimableValue } from "../../shaderUtils.js";
 
 export class AnimationInterface{
-    private _viewer : Viewer;
+    private _viewer : ViewerManager;
 
     private MAX_REFRESH_RATE = 30.;
     private MIN_REFRESH_RATE = 0.5;
     private REFRESH_STEP = 0.5;
     private DEFAULT_REFRESH_RATE = 6.;
 
-    constructor(viewer : Viewer){
+    constructor(viewer : ViewerManager){
         this._viewer = viewer;
         //.... AnimationCurves ....
         // Default animation curve is easeOut, without any bind it would be fc0
@@ -23,11 +23,11 @@ export class AnimationInterface{
     private initAnimationItem(){
         let animationItem = document.getElementById("animationFunctionsGrid") as HTMLDivElement;
         let select = document.getElementById("animableSelect") as HTMLSelectElement
-        let animationKeysValue = Object.values(AnimableValue)
+        let animationKeysValue = Object.values(AnimableValue);
         for(let i=0; i<animationKeysValue.length/2; i++){
             let option = document.createElement("option")
-            option.value = animationKeysValue.at(i).toString();
-            option.innerText = animationKeysValue.at(i).toString();
+            option.value = animationKeysValue[i].toString();
+            option.innerText = animationKeysValue[i].toString();
             option.setAttribute("animationFunction","easeOut");
             select.appendChild(option)
         }

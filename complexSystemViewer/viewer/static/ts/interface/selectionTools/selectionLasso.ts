@@ -1,5 +1,5 @@
 import { SelectionTool } from "./selectionTool.js";
-import { Viewer } from "../../viewer.js";
+import { ViewerManager } from "../../viewerManager.js";
 
 export class SelectionLassoTool extends SelectionTool {
 
@@ -10,7 +10,7 @@ export class SelectionLassoTool extends SelectionTool {
 
     private _interactionButton : number;
 
-    public constructor(viewer : Viewer, interactionButton : number){
+    public constructor(viewer : ViewerManager, interactionButton : number){
         super(viewer);
         this.resetAabb();
         this._interactionButton = interactionButton;

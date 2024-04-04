@@ -1,8 +1,8 @@
-import { Viewer } from "../viewer.js";
+import { ViewerManager } from "../viewerManager.js";
 import { TransformType } from "../transformer/transformType.js";
 import { TransformersInterface } from "./transformerInterface.js";
 import { sendMessageToWorker, WorkerMessage } from "../workers/workerInterface.js"
-import { SelectionMode } from "./selectionTools/selectionManager.js";
+import { SelectionManager, SelectionMode } from "./selectionTools/selectionManager.js";
 import { AnimationInterface } from "./animation/animationInterface.js";
 import { Stats } from "./stats.js";
 
@@ -16,7 +16,8 @@ export class UserInterface {
     private _animationCurves : AnimationInterface;
     private _stats : Stats;
 
-    private _viewer : Viewer;
+    private _viewer : ViewerManager;
+    private _selectionManager : SelectionManager;
 
     private _ctrlPressed : boolean;
     private _wheelPressed : boolean;
@@ -42,8 +43,9 @@ export class UserInterface {
         return this._nbElements;
     }
 
-    public initHandlers(viewer : Viewer){
+    public initHandlers(viewer : ViewerManager){
         this._viewer = viewer;
+        this._selectionManager = new SelectionManager(viewer);
         this.initMouseKeyHandlers();
         this.initInterfaceHandlers();
         this.initTransformers();
@@ -82,14 +84,14 @@ export class UserInterface {
         //zoomIn/zoomOut
         this._viewer.canvas.addEventListener('wheel', (e : WheelEvent) =>{
             let delta : number = e.deltaY * 0.001;
-            this._viewer.camera.moveForward(-delta);
+            this._viewer.onWheelMoved(delta);
         });
         
         
 
         this._viewer.canvas.addEventListener('mousemove', (e : MouseEvent) => {
             if (this._ctrlPressed || this._wheelPressed)
-                this._viewer.camera.rotateCamera(e.movementY * 0.005, e.movementX * 0.005);
+                this._viewer.onMouseMoved(e.movementY * 0.005, e.movementX * 0.005);
         });
     }
 
@@ -175,10 +177,10 @@ export class UserInterface {
                 let sm = (e.target as HTMLDivElement).parentElement.getAttribute("selectionMode")
                 switch(sm){
                     case "BRUSH":
-                        this._viewer.selectionManager.switchMode(SelectionMode.BRUSH);
+                        this._selectionManager.switchMode(SelectionMode.BRUSH);
                         break;
                     case "BOX":
-                        this._viewer.selectionManager.switchMode(SelectionMode.BOX);
+                        this._selectionManager.switchMode(SelectionMode.BOX);
                         break;
                     default:
                         console.error("Selection mode "+ sm +" is undefined." )
@@ -248,22 +250,22 @@ export class UserInterface {
         })
         this.initSimulationItem();
 
-        meshInputFile.addEventListener("change", () => {
-            let meshFile : string = "/static/models/" + meshInputFile.value;
-            this._viewer.currentMeshFile = meshFile;
-            this._viewer.loadMesh(meshFile);
+        // meshInputFile.addEventListener("change", () => {
+        //     let meshFile : string = "/static/models/" + meshInputFile.value;
+        //     this._viewer.currentMeshFile = meshFile;
+        //     this._viewer.loadMesh(meshFile);
 
-        });
+        // });
 
         for(let i=0; i<toolSettings.length; i++){
             toolSettings.item(i).addEventListener("change", () => {
-                this._viewer.selectionManager.setSelectionParameter(toolSettings.item(i).name, Number.parseFloat(toolSettings.item(i).value));
+                this._selectionManager.setSelectionParameter(toolSettings.item(i).name, Number.parseFloat(toolSettings.item(i).value));
             });
         }
     }
 
     private displayToolMenu(){
-        let toolParam = JSON.parse(this._viewer.selectionManager.getSelectionParameter());
+        let toolParam = JSON.parse(this._selectionManager.getSelectionParameter());
         let toolSettings = document.getElementById("toolSettings")
         toolSettings.replaceChildren("");
         if(!toolParam){
@@ -289,7 +291,7 @@ export class UserInterface {
             valueDisplay.innerText = toolParam[toolName]["value"]
             param.addEventListener("change", ()=>{
                 valueDisplay.innerText = param.value;
-                this._viewer.selectionManager.setSelectionParameter(toolName, Number.parseFloat(param.value));
+                this._selectionManager.setSelectionParameter(toolName, Number.parseFloat(param.value));
             })
             let paramContainer = document.createElement("div");
             paramContainer.classList.add("toolParamItem");
