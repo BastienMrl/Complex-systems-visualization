@@ -62,19 +62,22 @@ class FlockingSimulation(Simulation):
     ]
         
         
+    def __init__(self, init_states : ParticleState = None, rules = default_rules): 
+        super().__init__()
+        self.initSimulation(init_states, rules)
 
     #methods added to simplify usage of jax
     def JAX_to_ParticleState(self, state) :
         boids = state['boids']
         
         for i in range(len(boids.theta)):
-            p = self.current_states[0].particles[i]
+            p : Particle = self.current_states.particles[i]
             p.pos_x = boids.R[i][0]
             p.pos_y = boids.R[i][1]
             p.values = [boids.theta[i]/(2*np.pi)]
             
         
-    def particleState_to_JAX(self, state) :
+    def particleState_to_JAX(self, state : ParticleState) :
         v_R = vectorize(lambda p : jnp.array([p.pos_x, p.pos_y]), otypes=[jnp.ndarray])
         v_theta = vectorize(lambda p : p.values[0] * 2 * np.pi)
         boids = Boid(
@@ -83,9 +86,6 @@ class FlockingSimulation(Simulation):
         )
         return {'boids' :boids}
 
-    def __init__(self, init_states = None, rules = default_rules): 
-        super().__init__()
-        self.initSimulation(init_states, rules)
 
     def initSimulation(self, init_states = None, rules = default_rules, init_param = initialization_parameters):
 
@@ -96,22 +96,25 @@ class FlockingSimulation(Simulation):
         self.rules = rules
 
         if init_states != None:
-            self.current_states = init_states
+            self.current_states : ParticleState = init_states
+            self.current_states.id = 0
         else:
             self.init_default_sim()
+        self.current_states.to_JSON_object()
             
 
         self.interactions : list[Interaction] = None
 
         self.displacement, self.shift = space.periodic(self.box_size)
 
-        self.state = self.particleState_to_JAX(self.current_states[0])
+        self.state = self.particleState_to_JAX(self.current_states)
 
+        print(self.as_json)
 
  
-    def step(self) :
+    def _step(self) :
         speed = self.getRuleById("speed")
-        state =  self.state
+        state = self.state
         R, theta = state['boids']
         
         dstate = quantity.force(self.energy_fn)(state)
@@ -120,8 +123,7 @@ class FlockingSimulation(Simulation):
 
         state['boids'] = Boid(self.shift(R, self.dt * (speed * n + dR)), 
                             theta + self.dt * dtheta)
-        #self.JAX_to_ParticleState(state)
-        self.state = state
+        self.JAX_to_ParticleState(state)
 
 
     def set_current_state_from_array(self, new_state):
@@ -133,14 +135,16 @@ class FlockingSimulation(Simulation):
         self.init_random_sim() #default behaviour for now
 
     def init_random_sim(self):
-        self.current_states = [ParticleState(self.box_size, self.box_size, 
+        self.current_states = ParticleState(self.box_size, self.box_size, 
                 [
                     Particle(
                         random.random()*self.box_size,
                         random.random()*self.box_size, 
                         [random.random()]) 
                     for _ in range(self.boid_count)
-                ])]
+                ])
+        self.current_states.id = 0
+
     def energy_fn(self, state):
         
         boids = state['boids']
@@ -168,7 +172,8 @@ class FlockingSimulation(Simulation):
         domain = [self.boid_count, 1]
         val_row = ((boids.theta % (2 * jnp.pi)) / (2 * jnp.pi)).tolist()
         l = [domain, x_row, y_row, val_row]
-        return l
+        self.as_json = l
+    
 
 @vmap
 def normal(theta):

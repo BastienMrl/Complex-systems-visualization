@@ -40,7 +40,7 @@ from dataclasses import dataclass
 class Particle:
     pos_x : float 
     pos_y : float 
-    values : list()
+    values : list
     #values : jnp.ndarray =  field(init=False)
 
 

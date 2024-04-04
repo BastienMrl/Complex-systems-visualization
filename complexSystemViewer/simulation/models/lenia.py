@@ -39,11 +39,11 @@ class LeniaSimulation(Simulation):
                     default_value=0.65, min_value=0.0, max_value=1.0, step=0.05)]
     
     
-    def __init__(self, init_states = None, rules = default_rules): 
+    def __init__(self, init_states : GridState = None, rules : list[Param] = default_rules): 
         super().__init__()
         self.initSimulation(init_states, rules)
            
-    def initSimulation(self, init_states : list[State] = None, rules : list[Param] = default_rules, init_param : list[Param]= initialization_parameters):
+    def initSimulation(self, init_states : State = None, rules : list[Param] = default_rules, init_param : list[Param]= initialization_parameters):
         
         self.random_start : bool = [p for p in init_param if p.id_param == "randomStart"][0].value
         self.grid_size : int = [p for p in init_param if p.id_param == "gridSize"][0].value
@@ -71,16 +71,18 @@ class LeniaSimulation(Simulation):
         self.c_params = self.kernel_computer(params)
 
         if init_states != None:
-            self.current_states = init_states
-            self.width = init_states[0].width
-            self.height = init_states[0].height
+            self.current_states : GridState = init_states
+            self.width = init_states.width
+            self.height = init_states.height
+            self.current_states.id = 0
         elif self.random_start:
             self.init_random_sim(state_seed)
         else:
             self.init_default_sim()
+        self.to_JSON_object()
 
-        self.interactions : list[Interaction]= []
-        def lenia_interaction(channel : int, mask : jnp.ndarray, states : list[State]):
+        self.interactions : list[Interaction] = []
+        def lenia_interaction(channel : int, mask : jnp.ndarray, states : State):
             mask = jnp.expand_dims(mask, 2)
             shape = list(mask.shape)
 
@@ -94,7 +96,7 @@ class LeniaSimulation(Simulation):
                         new_mask = jnp.dstack((new_mask, minus_one))
 
 
-            states[0].grid = jnp.where(new_mask >= 0, new_mask, states[0].grid)
+            states.grid = jnp.where(new_mask >= 0, new_mask, states.grid)
 
         for i in range(self.C):
             self.interactions.append(Interaction(str(i), partial(lenia_interaction, i)))
@@ -121,9 +123,10 @@ class LeniaSimulation(Simulation):
     def init_default_sim(self):
         grid = jnp.zeros((self.grid_size, self.grid_size, self.C))
         state = GridState(grid)
-        self.current_states = [state]
+        self.current_states : GridState = state
         self.width = self.grid_size
         self.height = self.grid_size
+        self.current_states.id = 0
 
     def init_random_sim(self, state_seed):
         SX = SY = self.grid_size
@@ -135,17 +138,18 @@ class LeniaSimulation(Simulation):
             jax.random.uniform(state_seed, (2*offsetX, 2*offsetY, self.C))
         )
         state = GridState(A0)
-        self.current_states = [state]
+        self.current_states : GridState = state
         self.width = self.grid_size
         self.height = self.grid_size
+        self.current_states.id = 0
 
         
         
        
 
-    def step(self) :
+    def _step(self) :
 
-        A = self.current_states[0].grid
+        A = self.current_states.grid
 
         fA = jnp.fft.fft2(A, axes=(0,1))  # (x,y,c)
 
@@ -158,7 +162,7 @@ class LeniaSimulation(Simulation):
         U = jnp.dstack([ U[:, :, self.c1[c]].sum(axis=-1) for c in range(self.C) ])  # (x,y,c)
 
         nA = jnp.clip(A + self.dt * U, 0., 1.)
-        self.current_states[0].grid = nA
+        self.current_states.grid = nA
         
     
     

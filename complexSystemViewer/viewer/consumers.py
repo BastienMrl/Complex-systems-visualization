@@ -45,8 +45,8 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
                     await self.applyInteraction(text_data_json["mask"], text_data_json["currentStates"], text_data_json["interaction"])
 
     async def sendOneStep(self):
-        await self.send(bytes_data=orjson.dumps(self.sim.to_JSON_object()))
-        self.sim.step()
+        await self.send(bytes_data=orjson.dumps(self.sim.as_json))
+        self.sim.newStep()
 
     async def updateInitParams(self, params):
         json = orjson.loads(params)

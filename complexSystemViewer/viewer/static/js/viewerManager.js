@@ -273,15 +273,20 @@ export class TexturesContainer {
     createBuffers(values) {
         this._nbElements = values.nbElements;
         this._nbChannels = values.nbChannels;
+        let width = Math.ceil(Math.sqrt(values.nbElements));
+        let height = width;
+        let blankTexture = new Float32Array(width * height).fill(0.);
         for (let i = 0; i < this._nbSteps; ++i) {
             this._posXTexture[i] = this.context.createTexture();
             this.context.bindTexture(gl.TEXTURE_2D, this._posXTexture[i]);
+            this.context.texImage2D(gl.TEXTURE_2D, 0, gl.R32F, width, height, 0, gl.RED, gl.FLOAT, blankTexture);
             this.context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
             this.context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
             this.context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
             this.context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
             this._posYTexture[i] = this.context.createTexture();
             this.context.bindTexture(gl.TEXTURE_2D, this._posYTexture[i]);
+            this.context.texImage2D(gl.TEXTURE_2D, 0, gl.R32F, width, height, 0, gl.RED, gl.FLOAT, blankTexture);
             this.context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
             this.context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
             this.context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
@@ -290,6 +295,7 @@ export class TexturesContainer {
             for (let k = 0; k < values.nbChannels; ++k) {
                 this._statesTextures[i][k] = this.context.createTexture();
                 this.context.bindTexture(gl.TEXTURE_2D, this._statesTextures[i][k]);
+                this.context.texImage2D(gl.TEXTURE_2D, 0, gl.R32F, width, height, 0, gl.RED, gl.FLOAT, blankTexture);
                 this.context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
                 this.context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
                 this.context.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
@@ -305,12 +311,12 @@ export class TexturesContainer {
         let width = Math.ceil(Math.sqrt(values.nbElements));
         let height = width;
         this.context.bindTexture(gl.TEXTURE_2D, this._posXTexture[(this._step + t) % this._nbSteps]);
-        this.context.texImage2D(gl.TEXTURE_2D, 0, gl.R32F, width, height, 0, gl.RED, gl.FLOAT, values.positionX);
+        this.context.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, width, height, gl.RED, gl.FLOAT, values.positionX);
         this.context.bindTexture(gl.TEXTURE_2D, this._posYTexture[(this._step + t) % this._nbSteps]);
-        this.context.texImage2D(gl.TEXTURE_2D, 0, gl.R32F, width, height, 0, gl.RED, gl.FLOAT, values.positionY);
+        this.context.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, width, height, gl.RED, gl.FLOAT, values.positionY);
         for (let i = 0; i < values.nbChannels; ++i) {
             this.context.bindTexture(gl.TEXTURE_2D, this._statesTextures[(this._step + t) % this._nbSteps][i]);
-            this.context.texImage2D(gl.TEXTURE_2D, 0, gl.R32F, width, height, 0, gl.RED, gl.FLOAT, values.states[i]);
+            this.context.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, width, height, gl.RED, gl.FLOAT, values.states[i]);
         }
         this._currentT += 1;
         if (this._currentT >= this._nbSteps)

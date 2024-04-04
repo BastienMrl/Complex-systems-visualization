@@ -8,6 +8,7 @@ import time
 class State(ABC): 
     width : int = None
     height : int = None
+    id : int = 0
 
     def __init__(self, height : float, width : float):
         if height > 0 :
@@ -19,7 +20,9 @@ class State(ABC):
         else :
             raise ValueError("width must be a postive float")
     
-        
+    @abstractmethod
+    def to_JSON_object(sefl):
+        pass
 
 
 class GridState(State) :
@@ -63,7 +66,7 @@ class GridState(State) :
         self.grid = grid
 
 class ParticleState(State) :
-    particles = None
+    particles : list[Particle] = None
     
     
     

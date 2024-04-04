@@ -6,6 +6,7 @@ from .param import *
 from .interaction import *
 import numpy as np
 import time
+import copy
 
 
 class Simulation(ABC):   
@@ -39,14 +40,17 @@ class Simulation(ABC):
         """
         pass
     
-    #: A list of State to be updated at each step. This attibute can contain a single state as long it is in a single element list
-    current_states = None
+    
 
-    def __init__(self, init_states : list[State] = None, rules : list[Param]  = None): 
-        self.current_states = None
-        self.rules = None
-        self.width = None
-        self.height = None
+    def __init__(self, init_states : State = None, rules : list[Param]  = None): 
+        self.HISTORY_SIZE = 5
+        self._history_idx = 0
+        self.past_states : list[State] = [None] * self.HISTORY_SIZE
+        self.current_states : State = None
+        self.rules : list[Param] = None
+        self.width : int = None
+        self.height : int = None
+        self.as_json : list[list[float]] = None
         if init_states != None :
              self.current_states = init_states
         if rules != None :
@@ -64,7 +68,7 @@ class Simulation(ABC):
         pass
 
     @abstractmethod
-    def step(self) : 
+    def _step(self) : 
         """Method executing a state of the simulation. It is expected to update the attribute :py:attr:current_states.
         """
         pass
@@ -84,10 +88,8 @@ class Simulation(ABC):
         
         :returns: a JSON-serializable representation of the current states of the simulation.
         """
-        t0 = time.time()
-        tsl = self.current_states[0].to_JSON_object()
-        #print("json obj ok - ", 1000*(time.time()-t0), "ms\n")
-        return tsl
+        tsl = self.current_states.to_JSON_object()
+        self.as_json = tsl
 
     def getRules(self): 
         """Access the rules parameters
@@ -133,8 +135,14 @@ class Simulation(ABC):
 
         interaction.apply(mask, self.current_states)
 
+    def newStep(self):      
+        self.past_states[self._history_idx] = copy.deepcopy(self.current_states)
+        self._history_idx = (self._history_idx + 1) % self.HISTORY_SIZE
+        self._step()
+        self.current_states.id += 1
+        self.to_JSON_object()
+        print("print states")
+        for states in self.past_states:
+            if (states == None) : continue
+            print("states id = ", states.id)
         
-        
-        
-        
-    
