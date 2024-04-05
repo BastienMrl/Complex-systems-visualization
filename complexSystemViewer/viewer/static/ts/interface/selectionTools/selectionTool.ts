@@ -1,7 +1,4 @@
 import { ViewerManager } from "../../viewerManager.js";
-import { MultipleMeshInstances } from "../../mesh.js";
-import { TransformerBuilder } from "../../transformer/transformerBuilder.js";
-
 
 export abstract class SelectionTool{
     protected _viewer : ViewerManager;

@@ -1,4 +1,4 @@
-import { ViewerManager } from "../viewerManager.js";
+import { ViewerManager, ViewerType } from "../viewerManager.js";
 import { TransformType } from "../transformer/transformType.js";
 import { TransformersInterface } from "./transformerInterface.js";
 import { sendMessageToWorker, WorkerMessage } from "../workers/workerInterface.js"
@@ -121,6 +121,8 @@ export class UserInterface {
         let toolSettings = (document.getElementById("toolSettings") as HTMLDivElement).children as HTMLCollectionOf<HTMLInputElement>;
         
         let meshInputFile = (document.getElementById("meshLoader") as HTMLSelectElement);
+
+        let viewerSelector = (document.getElementById("currentViewer") as HTMLSelectElement);
 
         playButton.addEventListener('click', () => {
             this._viewer.startVisualizationAnimation();
@@ -256,6 +258,19 @@ export class UserInterface {
         //     this._viewer.loadMesh(meshFile);
 
         // });
+
+        viewerSelector.addEventListener("change", () =>{
+            let viewerType = null;
+            switch(viewerSelector.value){
+                case ("Meshes"):
+                    viewerType = ViewerType.MULTIPLE_MESHES;
+                    break;
+                case ("Texture"):
+                    viewerType = ViewerType.TEXTURE;
+                    break;
+            }
+            this._viewer.switchViewer(viewerType);
+        });
 
         for(let i=0; i<toolSettings.length; i++){
             toolSettings.item(i).addEventListener("change", () => {

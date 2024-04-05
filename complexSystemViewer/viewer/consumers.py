@@ -42,7 +42,7 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
                     await self.updateRule(text_data_json["params"])
             case "ApplyInteraction":
                 if self.isConnected:
-                    await self.applyInteraction(text_data_json["mask"], text_data_json["currentStates"], text_data_json["interaction"])
+                    await self.applyInteraction(text_data_json["mask"], text_data_json["id"], text_data_json["interaction"])
 
     async def sendOneStep(self):
         await self.send(bytes_data=orjson.dumps(self.sim.as_json))
@@ -66,8 +66,8 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
         self.sim.initSimulation(init_param=self.init_parameters)
         await self.sendOneStep()
 
-    async def applyInteraction(self, mask : list[float], currentValues : list[list[float]], interaction : str):
-        self.sim.set_current_state_from_array(currentValues)
+    async def applyInteraction(self, mask : list[float], stateId : int, interaction : str):
+        self.sim.set_current_state_from_id(stateId)
         mask_jnp = jnp.asarray(mask, dtype=jnp.float32)
         mask_jnp = mask_jnp.reshape(self.sim.width, self.sim.height)
         self.sim.applyInteraction(interaction, mask_jnp)

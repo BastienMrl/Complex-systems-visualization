@@ -1,0 +1,10 @@
+<div id="viewerSelectorItem" class="configurationItem">
+    <h2>Viewer Selector</h2>
+    <div id="viewerSelector" class="centerSelect">
+        <select id="currentViewer">
+            {% for viewer in viewers %}
+                <option value="{{viewer}}" {% if file == "Meshes" %}selected{% endif %}>{{viewer}}</option>
+            {% endfor %}
+        </select>
+    </div>
+</div>

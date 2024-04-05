@@ -1,6 +1,7 @@
 {% load static %}
 <div id="visualizationPanel" class="withTransition configurationPanel">
     <h3>Visualization</h3>
+    {% include "visualizationPanel/viewerSelectorItem.html" %}
     {% include "visualizationPanel/meshLoaderItem.html" %}
     {% include "visualizationPanel/animationItem.html" %}
     {% for transformer, parameters in transformers.items %}

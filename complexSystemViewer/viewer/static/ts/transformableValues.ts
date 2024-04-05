@@ -7,13 +7,14 @@ const idxY = 2;
 const idxFirstState = 3;
 
 
-const idxNbElements = 0;
-const idxNbChannels = 1;
-const idxMinX = 2;
-const idxMaxX = 3;
-const idxMinY = 4;
-const idxMaxY = 5;
-const idxDomainStatesFirst = 6;
+const idxId = 0
+const idxNbElements = 1;
+const idxNbChannels = 2;
+const idxMinX = 3;
+const idxMaxX = 4;
+const idxMinY = 5;
+const idxMaxY = 6;
+const idxDomainStatesFirst = 7;
 
 
 
@@ -27,7 +28,7 @@ export class TransformableValues{
 
 
     
-    public constructor(domain : Float32Array = new Float32Array([0, 0, 0, 0, 0, 0])){
+    public constructor(domain : Float32Array = new Float32Array([0, 0, 0, 0, 0, 0, 0])){
         this.domain = domain;
         this.reshape();
     }
@@ -109,6 +110,10 @@ export class TransformableValues{
 
     public get nbChannels() : number{
         return this.domain[idxNbChannels];
+    }
+
+    public get id() : number{
+        return this.domain[idxId];
     }
 
     public getBoundsX() : [number, number]{

@@ -100,7 +100,6 @@ class FlockingSimulation(Simulation):
             self.current_states.id = 0
         else:
             self.init_default_sim()
-        self.current_states.to_JSON_object()
             
 
         self.interactions : list[Interaction] = None
@@ -109,7 +108,7 @@ class FlockingSimulation(Simulation):
 
         self.state = self.particleState_to_JAX(self.current_states)
 
-        print(self.as_json)
+        self.current_states.to_JSON_object()
 
  
     def _step(self) :

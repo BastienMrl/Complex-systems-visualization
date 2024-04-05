@@ -1,6 +1,6 @@
 import { TransformableValues } from "./transformableValues";
 import { TransformerBuilder } from "./transformer/transformerBuilder";
-import { Viewer } from "./viewer";
+import { Viewer } from "./viewer.js";
 import { ViewerManager } from "./viewerManager";
 
 export class ViewerTexture extends Viewer{
@@ -11,7 +11,8 @@ export class ViewerTexture extends Viewer{
     }
 
     public initialization() {
-        throw new Error("Method not implemented.");
+        // throw new Error("Method not implemented.");
+        return
     }
     public onCanvasResize() {
         throw new Error("Method not implemented.");

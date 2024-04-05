@@ -135,14 +135,18 @@ class Simulation(ABC):
 
         interaction.apply(mask, self.current_states)
 
+    def set_current_state_from_id(self, id : int):
+        for state in self.past_states:
+            if (state.id == id):
+                current_id = self.current_states.id
+                self.current_states = self.past_states
+                self.current_states.id = current_id + 1
+                break
+
     def newStep(self):      
         self.past_states[self._history_idx] = copy.deepcopy(self.current_states)
         self._history_idx = (self._history_idx + 1) % self.HISTORY_SIZE
         self._step()
         self.current_states.id += 1
         self.to_JSON_object()
-        print("print states")
-        for states in self.past_states:
-            if (states == None) : continue
-            print("states id = ", states.id)
         

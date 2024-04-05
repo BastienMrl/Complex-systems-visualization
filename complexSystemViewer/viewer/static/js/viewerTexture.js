@@ -1,10 +1,11 @@
-import { Viewer } from "./viewer";
+import { Viewer } from "./viewer.js";
 export class ViewerTexture extends Viewer {
     constructor(canvas, context, manager) {
         super(canvas, context, manager);
     }
     initialization() {
-        throw new Error("Method not implemented.");
+        // throw new Error("Method not implemented.");
+        return;
     }
     onCanvasResize() {
         throw new Error("Method not implemented.");

@@ -28,9 +28,10 @@ def index(request):
 
     meshPath = os.path.join(settings.BASE_DIR, "viewer/"+settings.STATIC_URL+"models/")
     meshFiles = os.listdir(meshPath)
+    viewers = ["Meshes", "Texture"]
     return render(request, "index.html", {"model":modelSelected , "modelsName":modelsName, "initParameters":initParameters,
                                           "rulesParameters":rulesParameters, "transformers":transformersParam, 
-                                          "toolsList":toolsList, "meshFiles":meshFiles}) 
+                                          "toolsList":toolsList, "meshFiles":meshFiles, "viewers":viewers}) 
 
 def addTransformer(request, transformerType):
     baseTransformer = TransformerItem.objects.filter(transformerType=transformerType).first()

@@ -48,7 +48,7 @@ class GridState(State) :
         x_row = single_x_row * self.height
         y_row = [val for val in single_y_row for _ in range(self.width)]
 
-        domain = [self.width * self.height, self.grid.shape[2]]
+        domain = [self.id, self.width * self.height, self.grid.shape[2]]
         domain.append(float(np.min(x_row)))
         domain.append(float(np.max(x_row)))
         domain.append(float(np.min(y_row)))

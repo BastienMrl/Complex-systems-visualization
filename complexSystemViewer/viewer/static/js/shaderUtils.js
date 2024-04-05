@@ -56,7 +56,6 @@ export class ProgramWithTransformer {
         this.reloadProgram();
     }
     updateProgramTransformers(transformers) {
-        console.log("transformers = ", transformers);
         this._currentTransformers = transformers;
         if (this._templateVertexShader == undefined)
             return;
@@ -65,7 +64,6 @@ export class ProgramWithTransformer {
     }
     reloadProgram() {
         let vertexShader = getShaderFromString(this._vertexShader, this._context.VERTEX_SHADER, this._context);
-        console.log("vertexShader = ", vertexShader);
         let fragmentShader = getShaderFromString(this._fragmentShader, this._context.FRAGMENT_SHADER, this._context);
         let shaderProgram = this._context.createProgram();
         if (shaderProgram == null) {

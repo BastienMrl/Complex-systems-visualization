@@ -140,20 +140,16 @@ export class SocketManager {
             'simuName': name
         }));
     }
-    applyInteraction(mask, currentValues, id) {
+    applyInteraction(mask, interaction, id) {
         if (!this._isConnected) {
             this._awaitingRequests.push(this.applyInteraction.bind(this, mask));
             return;
         }
-        let values = new Array(currentValues.length);
-        currentValues.forEach((e, i) => {
-            values[i] = Array.from(e);
-        });
         let string = JSON.stringify({
             'message': this._applyInteractionMessage,
             'mask': Array.from(mask),
-            'currentStates': values,
-            'interaction': id
+            'id': id,
+            'interaction': interaction
         });
         this._socket.send(string);
     }
