@@ -14,8 +14,8 @@ export class SelectionBrushTool extends SelectionTool {
     _attenuationFunction;
     _prevId;
     _idValues;
-    constructor(viewer, interactionButton) {
-        super(viewer);
+    constructor(viewer, interactionButton, sizes) {
+        super(viewer, sizes);
         this._interactionButton = interactionButton;
         this._shape = BrushShape.CIRCLE;
         this._radius = 3;

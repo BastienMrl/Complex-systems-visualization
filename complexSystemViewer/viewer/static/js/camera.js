@@ -6,6 +6,7 @@ export class Camera {
     _near;
     _far;
     _projectionMatrix;
+    _isOrthographic = false;
     // camera parameters
     _cameraPosition;
     _cameraTarget;
@@ -21,21 +22,34 @@ export class Camera {
     _angleY = 0;
     _minAngleX = -Math.PI / 2;
     _maxAngleX = -Math.PI / 16;
-    constructor(cameraPosition, cameraTarget, up, fovy, aspect, near, far) {
+    constructor(cameraPosition, cameraTarget, up) {
         this._cameraMatrix = new Mat4();
         this._viewMatrix = new Mat4();
         this._projectionMatrix = new Mat4();
         this._projViewMatrix = new Mat4();
-        this._fovy = fovy;
-        this._aspect = aspect;
-        this._near = near;
-        this._far = far;
-        this.updateProjectionMatrix();
         this._cameraPosition = cameraPosition;
         this._cameraTarget = cameraTarget;
         this._up = up;
         this._distance = Vec3.distance(this._cameraPosition, this._cameraTarget);
         this.updateCameraMatrix();
+    }
+    static getPerspectiveCamera(cameraPosition, cameraTarget, up, fovy, aspect, near, far) {
+        let camera = new Camera(cameraPosition, cameraTarget, up);
+        camera._fovy = fovy;
+        camera._aspect = aspect;
+        camera._near = near;
+        camera._far = far;
+        camera.updateProjectionMatrix();
+        return camera;
+    }
+    static getOrthographicCamera(cameraPosition, cameraTarget, up, aspect, near, far) {
+        let camera = new Camera(cameraPosition, cameraTarget, up);
+        camera._isOrthographic = true;
+        camera._aspect = aspect;
+        camera._near = near;
+        camera._far = far;
+        camera.updateProjectionMatrix();
+        return camera;
     }
     // getters
     get projectionMatrix() {
@@ -58,14 +72,31 @@ export class Camera {
         Vec3.copy(copy, this._cameraPosition);
         return copy;
     }
+    get distance() {
+        return this._distance;
+    }
+    get aspectRatio() {
+        return this._aspect;
+    }
     // setters
     set aspectRatio(aspect) {
         this._aspect = aspect;
         this.updateProjectionMatrix();
     }
+    set distanceMin(dst) {
+        this._distanceMin = dst;
+    }
+    set distanceMax(dst) {
+        this._distanceMax = dst;
+    }
     // private methods
     updateProjectionMatrix() {
-        this._projectionMatrix.perspectiveNO(this._fovy, this._aspect, this._near, this._far);
+        if (this._isOrthographic) {
+            this._projectionMatrix.orthoNO(-this._distance * this._aspect, this._distance * this._aspect, -this._distance, this._distance, this._near, this._far);
+        }
+        else {
+            this._projectionMatrix.perspectiveNO(this._fovy, this._aspect, this._near, this._far);
+        }
         this.updateProjViewMatrix();
     }
     updateCameraMatrix() {
@@ -88,6 +119,9 @@ export class Camera {
         this._cameraPosition.add(dir);
         this._distance -= distance;
         this.updateCameraMatrix();
+        if (this._isOrthographic) {
+            this.updateProjectionMatrix();
+        }
     }
     rotateCamera(deltaX, deltaY) {
         this._angleY -= deltaY % (2 * Math.PI);
@@ -99,6 +133,11 @@ export class Camera {
         transform.rotateX(this._angleX);
         transform.translate(Vec3.fromValues(0., 0., this._distance));
         Vec3.transformMat4(this._cameraPosition, Vec3.fromValues(0., 0., 0.), transform);
+        this.updateCameraMatrix();
+    }
+    move(deltaX, deltaZ) {
+        this._cameraTarget.add(Vec3.fromValues(deltaX, 0, deltaZ));
+        this._cameraPosition.add(Vec3.fromValues(deltaX, 0, deltaZ));
         this.updateCameraMatrix();
     }
 }

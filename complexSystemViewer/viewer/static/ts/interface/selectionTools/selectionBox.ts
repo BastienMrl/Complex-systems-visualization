@@ -7,8 +7,8 @@ export class SelectionBoxTool extends SelectionTool{
     private _lastId : number | null = null;
     private _interactionButton : number;
 
-    public constructor(viewer : ViewerManager, interactionButton : number){
-        super(viewer);
+    public constructor(viewer : ViewerManager, interactionButton : number, maskSize : [number, number]){
+        super(viewer, maskSize);
         this._interactionButton = interactionButton;
     }   
 

@@ -10,8 +10,8 @@ export class SelectionLassoTool extends SelectionTool {
 
     private _interactionButton : number;
 
-    public constructor(viewer : ViewerManager, interactionButton : number){
-        super(viewer);
+    public constructor(viewer : ViewerManager, interactionButton : number, sizes : [number, number]){
+        super(viewer, sizes);
         this.resetAabb();
         this._interactionButton = interactionButton;
     }

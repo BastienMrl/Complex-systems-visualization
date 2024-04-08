@@ -3,8 +3,8 @@ export class SelectionBoxTool extends SelectionTool {
     _firstId = null;
     _lastId = null;
     _interactionButton;
-    constructor(viewer, interactionButton) {
-        super(viewer);
+    constructor(viewer, interactionButton, maskSize) {
+        super(viewer, maskSize);
         this._interactionButton = interactionButton;
     }
     onMouseMove(e) {

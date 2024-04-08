@@ -1,4 +1,5 @@
 import { AnimationTimer } from "./animationTimer";
+import { Camera } from "./camera.js";
 import { SelectionManager } from "./interface/selectionTools/selectionManager";
 import { TransformableValues } from "./transformableValues";
 import { TransformerBuilder } from "./transformer/transformerBuilder";
@@ -9,7 +10,7 @@ export abstract class Viewer{
     public canvas : HTMLCanvasElement;
     protected _manager : ViewerManager;
 
-    
+    protected _camera : Camera;
 
     protected _selectionManager : SelectionManager
 
@@ -42,6 +43,9 @@ export abstract class Viewer{
         this._isDrawable = value;
     }
 
+    public get camera() : Camera{
+        return this._camera
+    }
 
     // initialization methods
     public abstract initialization();
@@ -53,8 +57,6 @@ export abstract class Viewer{
     public abstract clear();
 
     public abstract draw(textures : TexturesContainer);
-
-    public abstract getElementOver(posX : number, posY : number) : number | null;
     
     public abstract currentSelectionChanged(selection : Array<number> | null);
 
@@ -70,4 +72,7 @@ export abstract class Viewer{
 
     public abstract onWheelMoved(delta : number);
 
+    public abstract getViewBoundaries() : [number, number, number, number];
+
+    protected abstract initCamera();
 }

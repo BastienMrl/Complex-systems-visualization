@@ -3,8 +3,8 @@ export class SelectionLassoTool extends SelectionTool {
     _pathIds = [];
     _aabb = [-1, -1, -1, -1];
     _interactionButton;
-    constructor(viewer, interactionButton) {
-        super(viewer);
+    constructor(viewer, interactionButton, sizes) {
+        super(viewer, sizes);
         this.resetAabb();
         this._interactionButton = interactionButton;
     }

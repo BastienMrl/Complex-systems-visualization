@@ -34,6 +34,11 @@ uniform sampler2D tex_pos_x_t1;
 uniform sampler2D tex_pos_y_t1;
 uniform sampler2D tex_state_0_t1;
 
+uniform sampler2D tex_selection;
+
+
+uniform vec2 u_dimensions;
+
 
 uniform Time {
     float color;
@@ -98,7 +103,8 @@ void main(){
     vec3 translation = vec3(0., 0., 0.);
     vec3 color = vec3(0., 0., 0.);
     vec3 rotation = vec3(0., 0., 0.);
-    vec3 scaling = vec3(0., 0., 0.);
+    vec3 scaling = vec3(0., 0., 0.);    
+    ivec2 tex_coord = a_uvs;
 
 //${TRANSFORMERS}
 
@@ -112,6 +118,10 @@ void main(){
     v_normal = transpose(inverse(mat3(transform))) * a_normal;
     v_color = color;
     v_uv = a_uv;
-    v_selected = a_selected;
+
+    v_selected = texture(tex_selection, vec2(float(tex_coord.x) / u_dimensions[0], float(tex_coord.y) / u_dimensions[1])).r;
+    v_selected = step(-0.5, v_selected);
+
+
     feedback_translation = translation;
 }

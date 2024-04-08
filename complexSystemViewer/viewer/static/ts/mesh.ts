@@ -6,6 +6,89 @@ import { ShaderLocation } from "./shaderUtils.js";
 // provides access to gl constants
 const gl = WebGL2RenderingContext;
 
+export class PlanMesh{
+    private _context : WebGL2RenderingContext;
+    private _vertPositions : Float32Array;
+    private _vertNormals : Float32Array;
+    private _vertUV : Float32Array;
+    private _vertIndices : Uint32Array;
+    private _vao : WebGLVertexArrayObject;
+
+    public constructor(context : WebGL2RenderingContext, size : number){
+        this._context = context;
+        this._vao = this._context.createVertexArray();
+
+        this._vertIndices = new Uint32Array([0, 1, 2, 0, 2, 3]);
+
+        let scale = size / 2;
+        
+        
+        this._vertNormals = new Float32Array(4 * 3).fill(0.);
+        for (let i = 0; i < 4; i ++){
+            this._vertNormals[i * 3 + 1] = 1;
+        }
+        
+        
+        this._vertPositions = new Float32Array(4 * 3).fill(0.);
+        this._vertPositions[0] = -scale;
+        this._vertPositions[2] = scale;
+        this._vertPositions[3] = scale;
+        this._vertPositions[5] = scale;
+        this._vertPositions[6] = +scale;
+        this._vertPositions[8] = -scale;
+        this._vertPositions[9] = -scale;
+        this._vertPositions[11] = -scale;
+        
+        this._vertUV = new Float32Array(4 * 2);
+        this._vertUV[0] = 0;
+        this._vertUV[1] = 1;
+        this._vertUV[2] = 1;
+        this._vertUV[3] = 1;
+        this._vertUV[4] = 1;
+        this._vertUV[5] = 0;
+        this._vertUV[6] = 0;
+        this._vertUV[7] = 0;
+
+        this.initDrawVAO();
+        
+    }
+
+    private initDrawVAO(){
+        this._context.bindVertexArray(this._vao);
+
+        //positions
+        this._context.bindBuffer(gl.ARRAY_BUFFER, this._context.createBuffer());
+        this._context.bufferData(gl.ARRAY_BUFFER, this._vertPositions, gl.STATIC_DRAW);
+        this._context.vertexAttribPointer(ShaderLocation.POS, 3, gl.FLOAT, false, 0, 0);
+        this._context.enableVertexAttribArray(ShaderLocation.POS);
+
+        // normals
+        this._context.bindBuffer(gl.ARRAY_BUFFER, this._context.createBuffer());
+        this._context.bufferData(gl.ARRAY_BUFFER, this._vertNormals, gl.STATIC_DRAW);
+        this._context.vertexAttribPointer(ShaderLocation.NORMAL, 3, gl.FLOAT, false, 0, 0);
+        this._context.enableVertexAttribArray(ShaderLocation.NORMAL);
+
+        // uvs
+        this._context.bindBuffer(gl.ARRAY_BUFFER, this._context.createBuffer());
+        this._context.bufferData(gl.ARRAY_BUFFER, this._vertUV, gl.STATIC_DRAW);
+        this._context.vertexAttribPointer(ShaderLocation.UV, 2, gl.FLOAT, false, 0, 0);
+        this._context.enableVertexAttribArray(ShaderLocation.UV);
+
+        this._context.bindBuffer(gl.ARRAY_BUFFER, null);
+        
+        this._context.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._context.createBuffer());
+        this._context.bufferData(gl.ELEMENT_ARRAY_BUFFER, this._vertIndices, gl.STATIC_DRAW);
+        
+        this._context.bindVertexArray(null);
+    }
+
+    public draw(){
+        this._context.bindVertexArray(this._vao);
+        this._context.drawElements(gl.TRIANGLES, this._vertIndices.length, gl.UNSIGNED_INT, 0);
+        this._context.bindVertexArray(null);
+    }
+}
+
 
 export class MultipleMeshInstances{
     
@@ -280,7 +363,6 @@ class InstanceAttribBuffer{
     public bindAttribs(location : number, nbLocations : number, size : number,
                         type : number, normalized : boolean, stride : number){
                             
-        console.log("location = ", location);
         // assumes that type == gl.FLOAT
         let byteLength = 4;
         switch (type){

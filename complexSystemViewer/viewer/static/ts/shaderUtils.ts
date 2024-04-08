@@ -52,6 +52,9 @@ export class ProgramWithTransformer {
     private _context : WebGL2RenderingContext;
     private _program : WebGLProgram;
     private _templateVertexShader : string;
+    private _templateFragmentShader : string;
+
+    private _templateInsideVertex : boolean
     private _currentTransformers : string;
 
     private _fragmentShader : string;
@@ -60,8 +63,9 @@ export class ProgramWithTransformer {
     private static readonly _transformersKey : string = "//${TRANSFORMERS}";
 
 
-    constructor(context : WebGL2RenderingContext){
+    constructor(context : WebGL2RenderingContext, isInsideVertex : boolean = true){
         this._context = context;
+        this._templateInsideVertex = isInsideVertex;
     }
 
     public get program() : WebGLProgram {
@@ -69,21 +73,37 @@ export class ProgramWithTransformer {
     }
     
     public async generateProgram(srcVertex : string, srcFragment : string){
-        this._fragmentShader = await fetch(srcFragment, { cache: "no-cache"}).then(response => response.text());
+        this._templateFragmentShader = await fetch(srcFragment, { cache: "no-cache"}).then(response => response.text());
         this._templateVertexShader = await fetch(srcVertex, { cache: "no-cache"}).then(response => response.text());
-        if (this._currentTransformers != undefined)
-            this._vertexShader = this._templateVertexShader.replace(ProgramWithTransformer._transformersKey, this._currentTransformers);
-        else
-            this._vertexShader = this._templateVertexShader;
+
+        this._vertexShader = this._templateVertexShader;
+        this._fragmentShader = this._templateFragmentShader;
+
+        if (this._currentTransformers != undefined){
+            if (this._templateInsideVertex){
+                this._vertexShader = this._templateVertexShader.replace(ProgramWithTransformer._transformersKey, this._currentTransformers);
+            }
+            else{
+                this._fragmentShader = this._templateFragmentShader.replace(ProgramWithTransformer._transformersKey, this._currentTransformers);
+            }
+        }
+
         this.reloadProgram();
     }
 
     public updateProgramTransformers(transformers : string) : void{
         this._currentTransformers = transformers;
-        if (this._templateVertexShader == undefined)
-            return;
-        this._vertexShader = this._templateVertexShader.replace(ProgramWithTransformer._transformersKey, this._currentTransformers);
-        this.reloadProgram();
+        if (this._templateInsideVertex){
+            if (this._templateVertexShader == undefined)
+                return;
+            this._vertexShader = this._templateVertexShader.replace(ProgramWithTransformer._transformersKey, this._currentTransformers);
+        }
+        else{
+            if (this._templateFragmentShader == undefined)
+                return;
+            this._fragmentShader = this._templateFragmentShader.replace(ProgramWithTransformer._transformersKey, this._currentTransformers);
+        }
+        this.reloadProgram();   
     }
     
     private reloadProgram(){
@@ -134,7 +154,10 @@ enum ShaderUniforms {
     TIME_COLOR = "time.color",
     TIME_TRANSLATION = "time.translation",
     TIME_ROTATION = "time.rotation",
-    TIME_SCALING = "time.scaling"
+    TIME_SCALING = "time.scaling",
+
+    POS_DOMAIN = "u_pos_domain",
+    DIMENSION = "u_dimensions"
 }
 
 enum ShaderBlockIndex {
@@ -148,7 +171,7 @@ enum ShaderBlockBindingPoint {
 }
 
 
-enum ShaderMeshInputs {
+enum ShaderElementInputs {
     UV = "a_uvs",
 
     TEX_POS_X_T0 = "tex_pos_x_t0",
@@ -158,6 +181,8 @@ enum ShaderMeshInputs {
     TEX_POS_X_T1 = "tex_pos_x_t1",
     TEX_POS_Y_T1 = "tex_pos_y_t1",
     TEX_STATE_0_T1 = "tex_state_0_t1",
+
+    TEX_SELECTION = "tex_selection"
 }
 
 
@@ -165,7 +190,8 @@ enum ShaderVariable {
     COLOR = "color",
     TRANSLATION = "translation",
     SCALING = "scaling",
-    ROTATION = "rotation"
+    ROTATION = "rotation",
+    TEX_COORD = "tex_coord"
 }
 
 enum ShaderFunction {
@@ -187,4 +213,4 @@ enum ShaderLocation {
 }
 
 
-export {initShaders, ShaderVariable, ShaderFunction, ShaderMeshInputs, ShaderUniforms, ShaderLocation, AnimableValue, ShaderBlockIndex, ShaderBlockBindingPoint}
+export {initShaders, ShaderVariable, ShaderFunction, ShaderElementInputs, ShaderUniforms, ShaderLocation, AnimableValue, ShaderBlockIndex, ShaderBlockBindingPoint}

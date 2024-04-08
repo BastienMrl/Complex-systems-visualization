@@ -20,11 +20,16 @@ export class SelectionManager{
     
     private _stats : Stats;
 
+    private _sizes : [number, number] = [200, 200]
+
     constructor(viewer : ViewerManager){
+        viewer.createMaskTexture(this._sizes[0], this._sizes[1]);
+        this._stats = viewer.stats;
+
         this._tools = new Array(3);
-        this._tools[SelectionMode.BOX] = new SelectionBoxTool(viewer, 0); 
-        this._tools[SelectionMode.BRUSH] = new SelectionBrushTool(viewer, 0);
-        this._tools[SelectionMode.LASSO] = new SelectionLassoTool(viewer, 0);
+        this._tools[SelectionMode.BOX] = new SelectionBoxTool(viewer, 0, this._sizes); 
+        this._tools[SelectionMode.BRUSH] = new SelectionBrushTool(viewer, 0, this._sizes);
+        this._tools[SelectionMode.LASSO] = new SelectionLassoTool(viewer, 0, this._sizes);
 
 
 

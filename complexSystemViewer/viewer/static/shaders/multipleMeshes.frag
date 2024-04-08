@@ -14,6 +14,10 @@ layout (location = 1) out vec4 id;
 uniform vec3 u_light_loc;
 
 
+uniform vec4 u_pos_domain;
+
+
+
 vec4 get_normal_color(in vec3 normal){
     vec3 color = (normal + 1.) * 0.5;
     return vec4(color, 1.);
@@ -30,6 +34,7 @@ vec4 get_color(in vec3 normal, in vec3 position){
 }
 
 void main(){
+    
     vec3 normal = normalize(v_normal);
     // out_color = get_normal_color(normal);
     out_color = get_color(normal, v_position);

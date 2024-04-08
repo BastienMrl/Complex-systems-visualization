@@ -12,3 +12,30 @@ export var TransformType;
     TransformType[TransformType["ROTATION_Z"] = 9] = "ROTATION_Z";
     TransformType[TransformType["SCALING"] = 10] = "SCALING";
 })(TransformType || (TransformType = {}));
+export var TransformFlag;
+(function (TransformFlag) {
+    TransformFlag[TransformFlag["ALL"] = 1] = "ALL";
+    TransformFlag[TransformFlag["COLOR"] = 2] = "COLOR";
+    TransformFlag[TransformFlag["POSITION"] = 4] = "POSITION";
+    TransformFlag[TransformFlag["ROTATION"] = 8] = "ROTATION";
+    TransformFlag[TransformFlag["SCALING"] = 16] = "SCALING";
+})(TransformFlag || (TransformFlag = {}));
+export function transformTypeMatchFlag(type, flag) {
+    switch (type) {
+        case TransformType.COLOR:
+        case TransformType.COLOR_R:
+        case TransformType.COLOR_G:
+        case TransformType.COLOR_B:
+            return 0 < (flag & (TransformFlag.ALL | TransformFlag.COLOR));
+        case TransformType.POSITION_X:
+        case TransformType.POSITION_Y:
+        case TransformType.POSITION_Z:
+            return 0 < (flag & (TransformFlag.ALL | TransformFlag.POSITION));
+        case TransformType.ROTATION_X:
+        case TransformType.ROTATION_Y:
+        case TransformType.ROTATION_Z:
+            return 0 < (flag & (TransformFlag.ALL | TransformFlag.ROTATION));
+        case TransformType.SCALING:
+            return 0 < (flag & (TransformFlag.ALL | TransformFlag.SCALING));
+    }
+}

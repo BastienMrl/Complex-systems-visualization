@@ -20,8 +20,8 @@ export class SelectionBrushTool extends SelectionTool{
     private _idValues : Map<number, number>;
 
     
-    public constructor(viewer : ViewerManager, interactionButton : number){
-        super(viewer);
+    public constructor(viewer : ViewerManager, interactionButton : number, sizes : [number, number]){
+        super(viewer, sizes);
         this._interactionButton = interactionButton;
         this._shape = BrushShape.CIRCLE;
         this._radius = 3;

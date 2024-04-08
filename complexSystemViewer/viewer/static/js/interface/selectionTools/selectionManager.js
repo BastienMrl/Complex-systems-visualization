@@ -13,11 +13,14 @@ export class SelectionManager {
     _mode = SelectionMode.DISABLE;
     _tools;
     _stats;
+    _sizes = [200, 200];
     constructor(viewer) {
+        viewer.createMaskTexture(this._sizes[0], this._sizes[1]);
+        this._stats = viewer.stats;
         this._tools = new Array(3);
-        this._tools[SelectionMode.BOX] = new SelectionBoxTool(viewer, 0);
-        this._tools[SelectionMode.BRUSH] = new SelectionBrushTool(viewer, 0);
-        this._tools[SelectionMode.LASSO] = new SelectionLassoTool(viewer, 0);
+        this._tools[SelectionMode.BOX] = new SelectionBoxTool(viewer, 0, this._sizes);
+        this._tools[SelectionMode.BRUSH] = new SelectionBrushTool(viewer, 0, this._sizes);
+        this._tools[SelectionMode.LASSO] = new SelectionLassoTool(viewer, 0, this._sizes);
         viewer.canvas.addEventListener('mousemove', (e) => {
             if (this._mode != SelectionMode.DISABLE)
                 this._tools[this._mode].receiveMouseMoveEvent(e);

@@ -2,6 +2,7 @@ export class Viewer {
     context;
     canvas;
     _manager;
+    _camera;
     _selectionManager;
     _animationTimer;
     _transmissionWorker;
@@ -23,5 +24,8 @@ export class Viewer {
     }
     set isDrawable(value) {
         this._isDrawable = value;
+    }
+    get camera() {
+        return this._camera;
     }
 }

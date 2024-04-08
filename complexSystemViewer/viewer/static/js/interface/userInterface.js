@@ -340,6 +340,7 @@ export class UserInterface {
         this._stats = new Stats(fpsElement, updtateElement, renderingElement, pickingElement, totalElement, transformationEl, parsingEl, receivingEl);
         this._stats.withLog = true;
         this._viewer.stats = this._stats;
+        this._selectionManager.stats = this._stats;
         this._stats.logModel(modelSelector.value);
         modelSelector.addEventListener("change", () => {
             this._stats.logModel(modelSelector.value);
