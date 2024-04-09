@@ -88,7 +88,7 @@ export abstract class SelectionTool{
             x = (boundaries[1] - boundaries[0]) * 0.5 * ((2.0 * this.mouseX) / this._viewer.canvas.width - 1.0);
             y = this._viewer.camera.position.y;
             z = (boundaries[2] - boundaries[3]) * 0.5 * (1.0 - (2.0 * this.mouseY) / this._viewer.canvas.height);
-            origin = Vec3.fromValues(x, y, z);
+            origin = Vec3.fromValues(x, y, z).add(this._viewer.camera.position);
             Vec3.sub(direction, this._viewer.camera.target, this._viewer.camera.position);
             direction.normalize();
         }
