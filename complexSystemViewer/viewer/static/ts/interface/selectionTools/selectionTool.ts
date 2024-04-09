@@ -75,15 +75,36 @@ export abstract class SelectionTool{
 
     protected getMouseOver() : number | null{
         let boundaries = this._viewer.getViewBoundaries();
+        let origin : Vec3 = Vec3.create();
+        let x : number = null;
+        let y : number = null;
+        let z : number = null;
+        let direction : Vec3 = Vec3.create();
 
-        // ray initialization
-        let origin = this._viewer.camera.position;
-        let x = (2.0 * this.mouseX) / this._viewer.canvas.width - 1.0;
-        let y = 1.0 - (2.0 * this.mouseY) / this._viewer.canvas.height;
-        let z = 1.0;
-        let direction = Vec3.fromValues(x, y, z);
-        Vec3.transformMat4(direction, direction, this._viewer.camera.projViewMatrix.invert());
-        direction.normalize();
+
+
+        if (this._viewer.camera.isOrthographic){
+            let boundaries = this._viewer.camera.getOrthographicBoundaries();
+            x = (boundaries[1] - boundaries[0]) * 0.5 * ((2.0 * this.mouseX) / this._viewer.canvas.width - 1.0);
+            y = this._viewer.camera.position.y;
+            z = (boundaries[2] - boundaries[3]) * 0.5 * (1.0 - (2.0 * this.mouseY) / this._viewer.canvas.height);
+            origin = Vec3.fromValues(x, y, z);
+            Vec3.sub(direction, this._viewer.camera.target, this._viewer.camera.position);
+            direction.normalize();
+        }
+        else{
+
+            // ray initialization
+            origin = this._viewer.camera.position;
+            x = (2.0 * this.mouseX) / this._viewer.canvas.width - 1.0;
+            y = 1.0 - (2.0 * this.mouseY) / this._viewer.canvas.height;
+            z = 1.0
+            direction = Vec3.fromValues(x, y, z);
+            Vec3.transformMat4(direction, direction, this._viewer.camera.projViewMatrix.invert());
+            direction.normalize();
+        }
+
+
 
         let normal = Vec3.fromValues(0, 1, 0);
 
@@ -105,12 +126,7 @@ export abstract class SelectionTool{
         dir.scale(t);
         Vec3.add(position, origin, dir);
         
-        console.log("position = ", position)
-        if (position.x >= boundaries[0] && position.x <= boundaries[1] && position.z >= boundaries[2] && position.z <= boundaries[3]){
-            console.log("inside !")
-        }
-        else{
-            console.log("ouside !")
+        if (position.x < boundaries[0] || position.x > boundaries[1] || position.z < boundaries[2] || position.z > boundaries[3]){
             return null;
         }
 

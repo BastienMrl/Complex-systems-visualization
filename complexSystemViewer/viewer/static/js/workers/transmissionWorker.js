@@ -1,4 +1,3 @@
-import { TransformableValues } from "../transformableValues.js";
 import { SocketManager } from "./socketManager.js";
 import { StatesBuffer } from "./statesBuffer.js";
 import { WorkerTimers } from "./workerTimers.js";
@@ -87,12 +86,11 @@ class TransmissionWorker {
             await this.waitSocketConnection();
         this._socketManager.updateInitParams(params);
     }
-    async applyInteraction(data, interaction, id) {
+    async applyInteraction(mask, interaction, id) {
         if (!this._socketManager.isConnected)
             await this.waitSocketConnection();
         this._statesBuffer.flush();
-        let values = TransformableValues.fromValuesAsArray(data.slice(1));
-        this._socketManager.applyInteraction(data[0], interaction, id);
+        this._socketManager.applyInteraction(mask, interaction, id);
         await this.waitNewValues();
         await this.sendValues(true);
     }

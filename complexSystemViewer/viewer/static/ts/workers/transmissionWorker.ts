@@ -100,13 +100,12 @@ class TransmissionWorker{
         this._socketManager.updateInitParams(params);
     }
 
-    private async applyInteraction(data : Array<Float32Array>, interaction : string, id : number){
+    private async applyInteraction(mask : Float32Array, interaction : string, id : number){
         if (!this._socketManager.isConnected)
             await this.waitSocketConnection();
         
         this._statesBuffer.flush();
-        let values = TransformableValues.fromValuesAsArray(data.slice(1));
-        this._socketManager.applyInteraction(data[0], interaction, id);
+        this._socketManager.applyInteraction(mask, interaction, id);
         
         await this.waitNewValues();
         

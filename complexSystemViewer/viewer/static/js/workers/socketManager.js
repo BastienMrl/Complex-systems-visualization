@@ -142,7 +142,7 @@ export class SocketManager {
     }
     applyInteraction(mask, interaction, id) {
         if (!this._isConnected) {
-            this._awaitingRequests.push(this.applyInteraction.bind(this, mask));
+            this._awaitingRequests.push(this.applyInteraction.bind(this, mask, interaction, id));
             return;
         }
         let string = JSON.stringify({

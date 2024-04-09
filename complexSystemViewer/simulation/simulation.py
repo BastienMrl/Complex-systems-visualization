@@ -134,12 +134,13 @@ class Simulation(ABC):
             return
 
         interaction.apply(mask, self.current_states)
+        self.to_JSON_object()
 
     def set_current_state_from_id(self, id : int):
         for state in self.past_states:
             if (state.id == id):
                 current_id = self.current_states.id
-                self.current_states = self.past_states
+                self.current_states = state
                 self.current_states.id = current_id + 1
                 break
 

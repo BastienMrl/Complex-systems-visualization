@@ -1,8 +1,10 @@
 import orjson
 import jax.numpy as jnp
+import jax.image as jimage
 from .simulationManager import SimulationManager
 from channels.generic.websocket import AsyncWebsocketConsumer
 from simulation.simulation import Simulation
+import math
 
 
 class ViewerConsumerV2(AsyncWebsocketConsumer):
@@ -67,9 +69,12 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
         await self.sendOneStep()
 
     async def applyInteraction(self, mask : list[float], stateId : int, interaction : str):
+        mask_width = int(math.sqrt(len(mask)))
+        
         self.sim.set_current_state_from_id(stateId)
         mask_jnp = jnp.asarray(mask, dtype=jnp.float32)
-        mask_jnp = mask_jnp.reshape(self.sim.width, self.sim.height)
+        mask_jnp = mask_jnp.reshape((mask_width, mask_width))
+        mask_jnp = jimage.resize(mask_jnp, (self.sim.width, self.sim.height), "linear")
         self.sim.applyInteraction(interaction, mask_jnp)
         await self.sendOneStep()        
 

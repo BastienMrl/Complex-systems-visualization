@@ -72,11 +72,22 @@ export class Camera {
         Vec3.copy(copy, this._cameraPosition);
         return copy;
     }
+    get target() {
+        let copy = Vec3.create();
+        Vec3.copy(copy, this._cameraTarget);
+        return copy;
+    }
     get distance() {
         return this._distance;
     }
     get aspectRatio() {
         return this._aspect;
+    }
+    get isOrthographic() {
+        return this._isOrthographic;
+    }
+    getOrthographicBoundaries() {
+        return [-this._distance * this._aspect, this._distance * this._aspect, -this._distance, this._distance];
     }
     // setters
     set aspectRatio(aspect) {

@@ -13,7 +13,7 @@ export class SelectionManager {
     _mode = SelectionMode.DISABLE;
     _tools;
     _stats;
-    _sizes = [200, 200];
+    _sizes = [100, 100];
     constructor(viewer) {
         viewer.createMaskTexture(this._sizes[0], this._sizes[1]);
         this._stats = viewer.stats;

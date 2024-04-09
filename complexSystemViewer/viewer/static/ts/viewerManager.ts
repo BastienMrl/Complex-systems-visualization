@@ -229,7 +229,6 @@ export class ViewerManager {
         }
         else if (!this._animationTimer.isRunning && this._needOneAnimationLoop){
             this._needOneAnimationLoop = false;
-            this._textures.updateBuffers(this._values);
             this.startOneAnimationLoop();
         }
     }
@@ -533,7 +532,6 @@ export class TexturesContainer{
     }
 
     public step(){
-        let before = this._step
         switch (this._step){
             case 0:
                 this._step = 1;

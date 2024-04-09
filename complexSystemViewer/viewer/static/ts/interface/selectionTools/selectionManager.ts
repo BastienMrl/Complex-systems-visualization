@@ -20,7 +20,7 @@ export class SelectionManager{
     
     private _stats : Stats;
 
-    private _sizes : [number, number] = [200, 200]
+    private _sizes : [number, number] = [100, 100]
 
     constructor(viewer : ViewerManager){
         viewer.createMaskTexture(this._sizes[0], this._sizes[1]);
