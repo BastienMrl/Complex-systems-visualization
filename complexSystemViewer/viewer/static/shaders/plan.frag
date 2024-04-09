@@ -43,7 +43,8 @@ void interpolation_transformer(inout vec3 value, const vec3 factor_t0, const vec
 
 
 void main(){
-    vec3 color = vec3(1., 1., 1.) * step(-0.5, texture(tex_selection, v_uv).r);
+    vec3 color = vec3(0., 0., 0.);
+
 
     float x_coord = map(v_uv.x, 0., 1., 0., u_dimensions.x);
     float y_coord = map(v_uv.y, 0., 1., 0., u_dimensions.y);
@@ -52,5 +53,10 @@ void main(){
 
 //${TRANSFORMERS}
 
-    out_color = vec4(color, 1.) ;
+    float op = - sign(max(color.x, max(color.y, color.z)) - 0.5);
+    vec3 selected = step(-0.5, texture(tex_selection, v_uv).r) * vec3(0.3, 0.3, 0.3);
+
+
+
+    out_color = vec4(color + op * selected, 1.) ;
 }
