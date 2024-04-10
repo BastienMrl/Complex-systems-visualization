@@ -69,34 +69,37 @@ class FlockingSimulation(Simulation):
     #methods added to simplify usage of jax
     def JAX_to_ParticleState(self, state) :
         boids = state['boids']
-        
-        for i in range(len(boids.theta)):
-            p : Particle = self.current_states.particles[i]
-            p.pos_x = boids.R[i][0]
-            p.pos_y = boids.R[i][1]
-            p.values = [boids.theta[i]/(2*np.pi)]
+
+        theta = (boids.theta % (2 * jnp.pi)) / (2. * jnp.pi)
+
+        particles = jnp.stack((boids.R[:, 0] - self.box_size / 2, boids.R[:, 1] - self.box_size / 2, theta), 1)
+
+        self.current_states.particles = particles
             
         
     def particleState_to_JAX(self, state : ParticleState) :
-        v_R = vectorize(lambda p : jnp.array([p.pos_x, p.pos_y]), otypes=[jnp.ndarray])
-        v_theta = vectorize(lambda p : p.values[0] * 2 * np.pi)
         boids = Boid(
-            jnp.array(np.stack(v_R(state.particles))),
-            jnp.array(v_theta(state.particles))
+            jnp.array(np.vstack(state.particles[:, :2])),
+            jnp.array(state.particles[:, 2] * 2 * jnp.pi)
         )
         return {'boids' :boids}
 
 
     def initSimulation(self, init_states = None, rules = default_rules, init_param = initialization_parameters):
+        self.rules = rules
+        self.init_param = init_param
 
-        self.dt = [p for p in init_param if p.id_param == "dt"][0].value
-        self.box_size = [p for p in init_param if p.id_param == "boxSize"][0].value
-        self.boid_count = [p for p in init_param if p.id_param == "boidCount"][0].value
+
+        self.dt = self.get_init_param("dt").value
+        self.box_size = self.get_init_param("boxSize").value
+        self.boid_count = self.get_init_param("boidCount").value
 
         self.rules = rules
 
         if init_states != None:
             self.current_states : ParticleState = init_states
+            self.current_states.width = self.box_size
+            self.current_states.height = self.box_size
             self.current_states.id = 0
         else:
             self.init_default_sim()
@@ -107,8 +110,7 @@ class FlockingSimulation(Simulation):
         self.displacement, self.shift = space.periodic(self.box_size)
 
         self.state = self.particleState_to_JAX(self.current_states)
-
-        self.current_states.to_JSON_object()
+        self.to_JSON_object()
 
  
     def _step(self) :
@@ -134,14 +136,13 @@ class FlockingSimulation(Simulation):
         self.init_random_sim() #default behaviour for now
 
     def init_random_sim(self):
-        self.current_states = ParticleState(self.box_size, self.box_size, 
-                [
-                    Particle(
-                        random.random()*self.box_size,
-                        random.random()*self.box_size, 
-                        [random.random()]) 
-                    for _ in range(self.boid_count)
-                ])
+        key = jax.random.key(1)
+        positions = jax.random.uniform(key, (self.boid_count, 2), minval= -self.box_size / 2, maxval=self.box_size / 2)
+        theta = jax.random.uniform(key, (self.boid_count, 1))
+        
+        
+        self.current_states = ParticleState(self.box_size, self.box_size, [0.], [1.],
+                jnp.hstack((positions, theta)))
         self.current_states.id = 0
 
     def energy_fn(self, state):
@@ -163,15 +164,15 @@ class FlockingSimulation(Simulation):
         return (0.5 * np.sum(E_align(dR, N, N) + E_avoid(dR)) + 
           np.sum(E_cohesion(dR, N)))
 
-    def to_JSON_object(self) :
-        boids = self.state['boids']
-        pos_row = jnp.transpose(boids.R)
-        x_row = (pos_row[0] - (self.box_size/2)).tolist()
-        y_row = (pos_row[1] - (self.box_size/2)).tolist()
-        domain = [self.boid_count, 1]
-        val_row = ((boids.theta % (2 * jnp.pi)) / (2 * jnp.pi)).tolist()
-        l = [domain, x_row, y_row, val_row]
-        self.as_json = l
+    # def to_JSON_object(self) :
+    #     boids = self.state['boids']
+    #     pos_row = jnp.transpose(boids.R)
+    #     x_row = (pos_row[0] - (self.box_size/2)).tolist()
+    #     y_row = (pos_row[1] - (self.box_size/2)).tolist()
+    #     domain = [self.boid_count, 1]
+    #     val_row = ((boids.theta % (2 * jnp.pi)) / (2 * jnp.pi)).tolist()
+    #     l = [domain, x_row, y_row, val_row]
+    #     self.as_json = l
     
 
 @vmap

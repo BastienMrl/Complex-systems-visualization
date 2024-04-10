@@ -6,7 +6,7 @@ from ..simulation import *
 
 class DiffusionSimulation(Simulation):
     initialization_parameters = [
-        BoolParam(id_p="randomStart", name="Random start", default_value=False),
+        BoolParam(id_p="randomStart", name="Random start", default_value=True),
         IntParam(id_p="gridSize", name="Grid size",
                  default_value=100, min_value=0, step=1),
         IntParam(id_p="channels", name = "Nb Channels", default_value=1,
@@ -101,7 +101,3 @@ class DiffusionSimulation(Simulation):
         gauss = jnp.exp(-0.5 * jnp.square(ax) / jnp.square(sigma))
         kernel = jnp.outer(gauss, gauss)
         self.kernel = kernel / jnp.sum(kernel)
-
-
-            # kernel = jnp.expand_dims(kernel, [2, 3])
-            # self.kernel = jnp.transpose(kernel, [3, 2, 0, 1])
