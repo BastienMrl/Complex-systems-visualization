@@ -1,4 +1,5 @@
 #version 300 es
+precision mediump sampler2DArray;
 
 //.... per vertex attributes ....
 layout (location = 0) in vec3 a_position;
@@ -26,13 +27,9 @@ out vec3 feedback_translation;
 uniform mat4 u_proj;
 uniform mat4 u_view;
 
-uniform sampler2D tex_pos_x_t0;
-uniform sampler2D tex_pos_y_t0;
-uniform sampler2D tex_state_0_t0;
+uniform sampler2DArray tex_t0;
+uniform sampler2DArray tex_t1;
 
-uniform sampler2D tex_pos_x_t1;
-uniform sampler2D tex_pos_y_t1;
-uniform sampler2D tex_state_0_t1;
 
 uniform sampler2D tex_selection;
 

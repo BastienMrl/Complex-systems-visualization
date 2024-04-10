@@ -58,17 +58,11 @@ export class ViewerTexture extends Viewer {
         this.context.uniformMatrix4fv(viewLoc, false, this._camera.viewMatrix);
         this.context.uniform4f(domainLoc, textures.getXMin(0), textures.getXMax(0), textures.getYMin(0), textures.getYMax(0));
         this.context.uniform2f(dimensionLoc, textures.width, textures.height);
-        if (textures.getStatesTexture(0) != null) {
+        if (textures.getTextures(0) != null) {
             let id = 0;
             this.context.activeTexture(gl.TEXTURE0 + id);
-            this.context.bindTexture(gl.TEXTURE_2D, textures.getPosXTexture(0));
-            this.context.uniform1i(this.context.getUniformLocation(this._shaderProgram.program, ShaderElementInputs.TEX_POS_X_T0), id++);
-            this.context.activeTexture(gl.TEXTURE0 + id);
-            this.context.bindTexture(gl.TEXTURE_2D, textures.getPosYTexture(0));
-            this.context.uniform1i(this.context.getUniformLocation(this._shaderProgram.program, ShaderElementInputs.TEX_POS_Y_T0), id++);
-            this.context.activeTexture(gl.TEXTURE0 + id);
-            this.context.bindTexture(gl.TEXTURE_2D, textures.getStatesTexture(0)[0]);
-            this.context.uniform1i(this.context.getUniformLocation(this._shaderProgram.program, ShaderElementInputs.TEX_STATE_0_T0), id++);
+            this.context.bindTexture(gl.TEXTURE_2D_ARRAY, textures.getTextures(0));
+            this.context.uniform1i(this.context.getUniformLocation(this._shaderProgram.program, ShaderElementInputs.TEX_T0), id++);
             this.context.activeTexture(gl.TEXTURE0 + id);
             this.context.bindTexture(gl.TEXTURE_2D, textures.getMask());
             this.context.uniform1i(this.context.getUniformLocation(this._shaderProgram.program, ShaderElementInputs.TEX_SELECTION), id++);

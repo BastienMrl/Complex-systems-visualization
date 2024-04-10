@@ -83,26 +83,14 @@ export class ViewerMultipleMeshes extends Viewer {
         this.context.bindBuffer(gl.UNIFORM_BUFFER, this._timeBuffer);
         this.context.bufferSubData(gl.UNIFORM_BUFFER, 0, times);
         // ...
-        if (textures.getStatesTexture(0) != null) {
+        if (textures.getTextures(0) != null) {
             let id = 0;
             this.context.activeTexture(gl.TEXTURE0 + id);
-            this.context.bindTexture(gl.TEXTURE_2D, textures.getPosXTexture(0));
-            this.context.uniform1i(this.context.getUniformLocation(this._shaderProgram.program, shaderUtils.ShaderElementInputs.TEX_POS_X_T0), id++);
+            this.context.bindTexture(gl.TEXTURE_2D_ARRAY, textures.getTextures(0));
+            this.context.uniform1i(this.context.getUniformLocation(this._shaderProgram.program, shaderUtils.ShaderElementInputs.TEX_T0), id++);
             this.context.activeTexture(gl.TEXTURE0 + id);
-            this.context.bindTexture(gl.TEXTURE_2D, textures.getPosYTexture(0));
-            this.context.uniform1i(this.context.getUniformLocation(this._shaderProgram.program, shaderUtils.ShaderElementInputs.TEX_POS_Y_T0), id++);
-            this.context.activeTexture(gl.TEXTURE0 + id);
-            this.context.bindTexture(gl.TEXTURE_2D, textures.getStatesTexture(0)[0]);
-            this.context.uniform1i(this.context.getUniformLocation(this._shaderProgram.program, shaderUtils.ShaderElementInputs.TEX_STATE_0_T0), id++);
-            this.context.activeTexture(gl.TEXTURE0 + id);
-            this.context.bindTexture(gl.TEXTURE_2D, textures.getPosXTexture(1));
-            this.context.uniform1i(this.context.getUniformLocation(this._shaderProgram.program, shaderUtils.ShaderElementInputs.TEX_POS_X_T1), id++);
-            this.context.activeTexture(gl.TEXTURE0 + id);
-            this.context.bindTexture(gl.TEXTURE_2D, textures.getPosYTexture(1));
-            this.context.uniform1i(this.context.getUniformLocation(this._shaderProgram.program, shaderUtils.ShaderElementInputs.TEX_POS_Y_T1), id++);
-            this.context.activeTexture(gl.TEXTURE0 + id);
-            this.context.bindTexture(gl.TEXTURE_2D, textures.getStatesTexture(1)[0]);
-            this.context.uniform1i(this.context.getUniformLocation(this._shaderProgram.program, shaderUtils.ShaderElementInputs.TEX_STATE_0_T1), id++);
+            this.context.bindTexture(gl.TEXTURE_2D_ARRAY, textures.getTextures(1));
+            this.context.uniform1i(this.context.getUniformLocation(this._shaderProgram.program, shaderUtils.ShaderElementInputs.TEX_T1), id++);
             this.context.activeTexture(gl.TEXTURE0 + id);
             this.context.bindTexture(gl.TEXTURE_2D, textures.getMask());
             this.context.uniform1i(this.context.getUniformLocation(this._shaderProgram.program, shaderUtils.ShaderElementInputs.TEX_SELECTION), id++);

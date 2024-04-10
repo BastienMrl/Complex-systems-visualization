@@ -1,5 +1,6 @@
 #version 300 es
 precision mediump float;
+precision mediump sampler2DArray;
 
 in vec3 v_position;
 in vec3 v_normal;
@@ -8,9 +9,7 @@ in vec2 v_uv;
 layout (location = 0) out vec4 out_color;
 
 
-uniform sampler2D tex_pos_x_t0;
-uniform sampler2D tex_pos_y_t0;
-uniform sampler2D tex_state_0_t0;
+uniform sampler2DArray tex_t0;
 uniform sampler2D tex_selection;
 
 uniform vec4 u_pos_domain;

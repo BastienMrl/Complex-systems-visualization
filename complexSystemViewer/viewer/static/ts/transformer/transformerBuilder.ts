@@ -26,31 +26,32 @@ export class TransformerBuilder{
     private addInputVariableDeclaration(transformType : TransformType, inputType : InputType, name : string){
         let s = `float ${name} = texelFetch(`;
 
+        let idx = 0;
         switch(inputType){
             case InputType.POSITION_X:
-                s += ShaderElementInputs.TEX_POS_X_T0;
+                idx = 0;
                 break;
             case InputType.POSITION_Y:
-                s += ShaderElementInputs.TEX_POS_Y_T0;
+                idx = 1;
                 break;
             case InputType.POSITION_Z:
-                s += ShaderElementInputs.TEX_POS_X_T0;
+                idx = 0;
                 break;
             case InputType.STATE_0:
-                s += ShaderElementInputs.TEX_STATE_0_T0;
+                idx = 2;
                 break;
             case InputType.STATE_1:
-                s += ShaderElementInputs.TEX_STATE_0_T0;
+                idx = 3;
                 break;
             case InputType.STATE_2:
-                s += ShaderElementInputs.TEX_STATE_0_T0;
+                idx = 4;
                 break;
             case InputType.STATE_3:
-                s += ShaderElementInputs.TEX_STATE_0_T0;
+                idx = 5;
                 break;
         }
 
-        s += `, ${ShaderVariable.TEX_COORD}, 0).r;`;
+        s += `${ShaderElementInputs.TEX_T0}, ivec3(${ShaderVariable.TEX_COORD}, ${idx}), 0).r;`;
         this._inputDeclarations.push(s);
 
     }
@@ -86,44 +87,38 @@ export class TransformerBuilder{
                 break;
             
         }
+        let idx = 0;
         switch(inputType){
             case InputType.POSITION_X:
-                onT0 += ShaderElementInputs.TEX_POS_X_T0;
-                onT1 += ShaderElementInputs.TEX_POS_X_T1;
+                idx = 0;
                 normalized = true && need_normalization;
                 normalization_axis = 0;
                 break;
             case InputType.POSITION_Y:
-                onT0 += ShaderElementInputs.TEX_POS_Y_T0;
-                onT1 += ShaderElementInputs.TEX_POS_Y_T1;
+                idx = 1;
                 normalized = true && need_normalization;
                 normalization_axis = 2;
                 break;
             case InputType.POSITION_Z:
-                onT0 += ShaderElementInputs.TEX_POS_X_T0;
-                onT1 += ShaderElementInputs.TEX_POS_X_T1;
+                idx = 0;
                 normalized = true && need_normalization;
                 normalization_axis = 1;
                 break;
             case InputType.STATE_0:
-                onT0 += ShaderElementInputs.TEX_STATE_0_T0;
-                onT1 += ShaderElementInputs.TEX_STATE_0_T1;
+                idx = 2;
                 break;
             case InputType.STATE_1:
-                onT0 += ShaderElementInputs.TEX_STATE_0_T0;
-                onT1 += ShaderElementInputs.TEX_STATE_0_T1;
+                idx = 3;
                 break;
             case InputType.STATE_2:
-                onT0 += ShaderElementInputs.TEX_STATE_0_T0;
-                onT1 += ShaderElementInputs.TEX_STATE_0_T1;
+                idx = 4;
                 break;
             case InputType.STATE_3:
-                onT0 += ShaderElementInputs.TEX_STATE_0_T0;
-                onT1 += ShaderElementInputs.TEX_STATE_0_T1;
+                idx = 5;
                 break;
         }
-        onT0 += `, ${ShaderVariable.TEX_COORD}, 0).r`;
-        onT1 += `, ${ShaderVariable.TEX_COORD}, 0).r`;
+        onT0 += `${ShaderElementInputs.TEX_T0}, ivec3(${ShaderVariable.TEX_COORD}, ${idx}), 0).r`;
+        onT1 += `${ShaderElementInputs.TEX_T1}, ivec3(${ShaderVariable.TEX_COORD}, ${idx}), 0).r`;
         s += `mix(${onT0}, ${onT1}, ${time});`;
         if (normalized)
             s += `\n${ShaderFunction.NORMALIZE_POSITION}(${name}, ${normalization_axis});`;

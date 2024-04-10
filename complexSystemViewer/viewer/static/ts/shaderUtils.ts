@@ -109,6 +109,7 @@ export class ProgramWithTransformer {
     private reloadProgram(){
         let vertexShader = getShaderFromString(this._vertexShader, this._context.VERTEX_SHADER, this._context);
         let fragmentShader = getShaderFromString(this._fragmentShader, this._context.FRAGMENT_SHADER, this._context);
+
         
         
         let shaderProgram : WebGLProgram | null = this._context.createProgram(); 
@@ -174,13 +175,8 @@ enum ShaderBlockBindingPoint {
 enum ShaderElementInputs {
     UV = "a_uvs",
 
-    TEX_POS_X_T0 = "tex_pos_x_t0",
-    TEX_POS_Y_T0 = "tex_pos_y_t0",
-    TEX_STATE_0_T0 = "tex_state_0_t0",
-
-    TEX_POS_X_T1 = "tex_pos_x_t1",
-    TEX_POS_Y_T1 = "tex_pos_y_t1",
-    TEX_STATE_0_T1 = "tex_state_0_t1",
+    TEX_T0 = "tex_t0",
+    TEX_T1 = "tex_t1",
 
     TEX_SELECTION = "tex_selection"
 }

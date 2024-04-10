@@ -135,12 +135,8 @@ var ShaderBlockBindingPoint;
 var ShaderElementInputs;
 (function (ShaderElementInputs) {
     ShaderElementInputs["UV"] = "a_uvs";
-    ShaderElementInputs["TEX_POS_X_T0"] = "tex_pos_x_t0";
-    ShaderElementInputs["TEX_POS_Y_T0"] = "tex_pos_y_t0";
-    ShaderElementInputs["TEX_STATE_0_T0"] = "tex_state_0_t0";
-    ShaderElementInputs["TEX_POS_X_T1"] = "tex_pos_x_t1";
-    ShaderElementInputs["TEX_POS_Y_T1"] = "tex_pos_y_t1";
-    ShaderElementInputs["TEX_STATE_0_T1"] = "tex_state_0_t1";
+    ShaderElementInputs["TEX_T0"] = "tex_t0";
+    ShaderElementInputs["TEX_T1"] = "tex_t1";
     ShaderElementInputs["TEX_SELECTION"] = "tex_selection";
 })(ShaderElementInputs || (ShaderElementInputs = {}));
 var ShaderVariable;

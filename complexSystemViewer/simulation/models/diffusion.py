@@ -82,11 +82,11 @@ class DiffusionSimulation(Simulation):
     def _step(self):
         state : GridState = self.current_states
         grid = state.grid
-        grid = jnp.expand_dims(jnp.squeeze(grid), (0))
-        out = lax.conv(grid, self.kernel, (1, 1), 'SAME')
 
+        out = jnp.dstack([jsp.signal.convolve2d(grid[:, :, c], self.kernel, mode = "same")
+                            for c in range(grid.shape[-1])])
         out *= (1. - self.decay)
-        state.set_grid(jnp.expand_dims(jnp.squeeze(out), (2)))
+        state.set_grid(out)
 
     def _set_decay(self):
         decay : float = self.get_rules_param("decay").value
@@ -100,7 +100,8 @@ class DiffusionSimulation(Simulation):
         ax = jnp.linspace(-length, length, kernel_size)
         gauss = jnp.exp(-0.5 * jnp.square(ax) / jnp.square(sigma))
         kernel = jnp.outer(gauss, gauss)
-        kernel = kernel / jnp.sum(kernel)
+        self.kernel = kernel / jnp.sum(kernel)
 
-        kernel = jnp.expand_dims(kernel, [2, 3])
-        self.kernel = jnp.transpose(kernel, [3, 2, 0, 1])
+
+            # kernel = jnp.expand_dims(kernel, [2, 3])
+            # self.kernel = jnp.transpose(kernel, [3, 2, 0, 1])
