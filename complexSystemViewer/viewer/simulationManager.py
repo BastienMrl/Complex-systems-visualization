@@ -3,11 +3,13 @@ import copy as cp
 from simulation.models.game_of_life import GOLSimulation
 from simulation.models.lenia import LeniaSimulation
 from simulation.models.flocking import FlockingSimulation
+from simulation.models.diffusion import DiffusionSimulation
 
 class SimulationEnum(Enum):
     GOL = "Gol"
     LENIA = "Lenia"
     FLOCKING = "Flocking"
+    DIFFUSION = "Diffusion"
 
 class SimulationManager(object):
 
@@ -20,6 +22,8 @@ class SimulationManager(object):
                 return LeniaSimulation(init_states=states)
             case "Flocking":
                 return FlockingSimulation(init_states=states)
+            case "Diffusion":
+                return DiffusionSimulation(init_states=states)
             
     @staticmethod
     def get_default_rules(model_name : str):
@@ -30,6 +34,8 @@ class SimulationManager(object):
                 return cp.deepcopy(LeniaSimulation.default_rules)
             case "Flocking":
                 return cp.deepcopy(FlockingSimulation.default_rules)
+            case "Diffusion":
+                return cp.deepcopy(DiffusionSimulation.default_rules)
     
     @staticmethod
     def get_initialization_parameters(model_name : str):
@@ -40,4 +46,6 @@ class SimulationManager(object):
                 return cp.deepcopy(LeniaSimulation.initialization_parameters)
             case "Flocking":
                 return cp.deepcopy(FlockingSimulation.initialization_parameters)
+            case "Diffusion":
+                return cp.deepcopy(DiffusionSimulation.initialization_parameters)
 

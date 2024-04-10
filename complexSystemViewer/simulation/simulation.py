@@ -42,7 +42,8 @@ class Simulation(ABC):
     
     
 
-    def __init__(self, init_states : State = None, rules : list[Param]  = None): 
+    def __init__(self, init_states : State = None, rules : list[Param]  = None, needJSON : bool = True): 
+        self.NEED_JSON = needJSON
         self.HISTORY_SIZE = 5
         self._history_idx = 0
         self.past_states : list[State] = [None] * self.HISTORY_SIZE
@@ -51,6 +52,7 @@ class Simulation(ABC):
         self.width : int = None
         self.height : int = None
         self.as_json : list[list[float]] = None
+        self.init_param : list[Param] = None
         if init_states != None :
              self.current_states = init_states
         if rules != None :
@@ -70,15 +72,6 @@ class Simulation(ABC):
     @abstractmethod
     def _step(self) : 
         """Method executing a state of the simulation. It is expected to update the attribute :py:attr:current_states.
-        """
-        pass
-
-    @abstractmethod
-    def set_current_state_from_array(self, new_state):
-        """Set the states of the simulation form an arbitrary array-like representation. Used for convenience when handlind external data. 
-
-        :param new_state: Reprensnetation of states of the simulation
-        :type new_state: list | ndarray
         """
         pass
 
@@ -134,7 +127,8 @@ class Simulation(ABC):
             return
 
         interaction.apply(mask, self.current_states)
-        self.to_JSON_object()
+        if (self.NEED_JSON):
+            self.to_JSON_object()
 
     def set_current_state_from_id(self, id : int):
         for state in self.past_states:
@@ -144,10 +138,22 @@ class Simulation(ABC):
                 self.current_states.id = current_id + 1
                 break
 
-    def newStep(self):      
+    def newStep(self):    
         self.past_states[self._history_idx] = copy.deepcopy(self.current_states)
         self._history_idx = (self._history_idx + 1) % self.HISTORY_SIZE
         self._step()
         self.current_states.id += 1
-        self.to_JSON_object()
-        
+        if (self.NEED_JSON):
+            self.to_JSON_object()
+
+    def get_rules_param(self, id : str) -> Param | None:
+        for p in self.rules:
+            if p.id_param == id:
+                return p
+        return None        
+
+    def get_init_param(self, id : str) -> Param | None:
+        for p in self.init_param:
+            if p.id_param == id:
+                return p
+        return None

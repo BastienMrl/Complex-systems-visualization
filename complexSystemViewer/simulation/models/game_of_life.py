@@ -108,12 +108,6 @@ class GOLSimulation(Simulation):
 
         state.set_grid(out.astype(jnp.float32))
 
-    def set_current_state_from_array(self, new_state):
-        state = new_state[2]
-        grid = jnp.asarray(state, dtype=jnp.float32).reshape(self.current_states.grid.shape)
-        self.current_states.set_grid(grid)
-
-
     def init_default_sim(self):
         grid = jnp.zeros((self.grid_size, self.grid_size, 1))
         state = GridState(grid)

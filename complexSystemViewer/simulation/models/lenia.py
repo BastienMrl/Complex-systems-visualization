@@ -101,23 +101,6 @@ class LeniaSimulation(Simulation):
         for i in range(self.C):
             self.interactions.append(Interaction(str(i), partial(lenia_interaction, i)))
 
-    def set_current_state_from_array(self, new_state : list[list[float]]):
-        nb_channels = self.current_states[0].grid.shape[-1]
-        shape = list(self.current_states[0].grid.shape)
-        shape[-1] = 1
-
-
-        grid = None
-        for i in range(nb_channels):
-            state = new_state[2 + i]
-            state = jnp.asarray(state, dtype=jnp.float32).reshape(shape)
-            if (grid == None):
-                grid = state
-            else:
-                grid = jnp.dstack((grid, state))
-        
-        self.current_states[0].set_grid(grid)
-
 
 
     def init_default_sim(self):
