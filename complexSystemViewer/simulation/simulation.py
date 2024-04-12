@@ -139,8 +139,9 @@ class Simulation(ABC):
                 break
 
     def newStep(self):    
-        self.past_states[self._history_idx] = copy.deepcopy(self.current_states)
-        self._history_idx = (self._history_idx + 1) % self.HISTORY_SIZE
+        if (self.NEED_JSON):
+            self.past_states[self._history_idx] = copy.deepcopy(self.current_states)
+            self._history_idx = (self._history_idx + 1) % self.HISTORY_SIZE
         self._step()
         self.current_states.id += 1
         if (self.NEED_JSON):

@@ -53,10 +53,10 @@ export class StatesBuffer {
         this._isNewValues = true;
     }
     getNbElementsFromData(data) {
-        return data[0][1];
+        return data[0][2];
     }
     getNbChannelsFromData(data) {
-        return data[0][2];
+        return data[0][3];
     }
     transformState() {
         this.timers.startTransformationTimer();

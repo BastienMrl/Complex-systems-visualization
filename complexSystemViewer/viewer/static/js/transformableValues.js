@@ -4,14 +4,15 @@ const idxDomain = 0;
 const idxX = 1;
 const idxY = 2;
 const idxFirstState = 3;
-const idxId = 0;
-const idxNbElements = 1;
-const idxNbChannels = 2;
-const idxMinX = 3;
-const idxMaxX = 4;
-const idxMinY = 5;
-const idxMaxY = 6;
-const idxDomainStatesFirst = 7;
+const idxClass = 0;
+const idxId = 1;
+const idxNbElements = 2;
+const idxNbChannels = 3;
+const idxMinX = 4;
+const idxMaxX = 5;
+const idxMinY = 6;
+const idxMaxY = 7;
+const idxDomainStatesFirst = 8;
 export class TransformableValues {
     states;
     positionX;
@@ -87,6 +88,9 @@ export class TransformableValues {
     }
     get id() {
         return this.domain[idxId];
+    }
+    get class() {
+        return this.domain[idxClass];
     }
     getBoundsX() {
         return [this.domain[idxMinX], this.domain[idxMaxX]];

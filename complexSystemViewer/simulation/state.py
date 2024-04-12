@@ -9,6 +9,7 @@ class State(ABC):
     width : int = None
     height : int = None
     id : int = 0
+    c : int = 0
 
     def __init__(self, height : float, width : float):
         if height > 0 :
@@ -21,7 +22,7 @@ class State(ABC):
             raise ValueError("width must be a postive float")
     
     @abstractmethod
-    def to_JSON_object(sefl):
+    def to_JSON_object(self):
         pass
 
 
@@ -41,14 +42,13 @@ class GridState(State) :
         super().__init__(w, h)
         
     def to_JSON_object(self):
-        
         single_x_row = np.arange(0-(self.width-1)/2, (self.width-1)/2+1).tolist()
         single_y_row = np.arange(0-(self.height-1)/2, (self.height-1)/2+1).tolist()
 
         x_row = single_x_row * self.height
         y_row = [val for val in single_y_row for _ in range(self.width)]
 
-        domain = [self.id, self.width * self.height, self.grid.shape[2]]
+        domain = [self.c, self.id, self.width * self.height, self.grid.shape[2]]
         domain.append(float(np.min(x_row)))
         domain.append(float(np.max(x_row)))
         domain.append(float(np.min(y_row)))
@@ -93,7 +93,7 @@ class ParticleState(State) :
         x_row = self.particles[:, 0].tolist()
         y_row = self.particles[:, 1].tolist()
 
-        domain = [self.id, len(self.particles), self.nb_values]
+        domain = [self.c, self.id, len(self.particles), self.nb_values]
         domain.append(float(-self.width / 2))
         domain.append(float(self.width / 2))
         domain.append(float(-self.height / 2))
@@ -107,5 +107,26 @@ class ParticleState(State) :
             domain.append(self.values_max[i])
 
         return l
-        
     
+    def get_pos_x(self) -> jnp.array:
+        return self.particles[:, 0]
+    
+    def get_pos_y(self) -> jnp.array:
+        return self.particles[:, 1]
+    
+    def get_value(self, i : int) -> jnp.array:
+        return self.particles[:, 2 + i]
+        
+
+class CombinaisonState(State):
+    states : list[State] = None
+
+    def __init__(self, states : list[State]):
+        self.states = states
+
+    def to_JSON_object(self):
+        # ret = []
+        # for value in self.states:
+        #     ret.append(value)
+        # return ret
+        return self.states[0].to_JSON_object()

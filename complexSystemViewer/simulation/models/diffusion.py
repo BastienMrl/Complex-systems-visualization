@@ -1,6 +1,7 @@
 import jax.numpy as jnp
 import jax.lax as lax
 import jax.random
+from ..utils import Timer
 
 from ..simulation import *
 
@@ -22,11 +23,11 @@ class DiffusionSimulation(Simulation):
                    max_value = 1., step = 0.05)
     ]
 
-    def __init__(self, init_states : GridState = None, rules : list[Param] = default_rules, needJSON : bool = True):
+    def __init__(self, rules : list[Param] = default_rules, init_param : list[Param] = initialization_parameters, needJSON : bool = True):
         super().__init__(needJSON=needJSON)
-        self.initSimulation(init_states, rules)
+        self.initSimulation(rules, init_param)
 
-    def initSimulation(self, init_states : GridState = None, rules : list[Param] = default_rules, init_param : list[Param] = initialization_parameters):
+    def initSimulation(self, rules : list[Param] = default_rules, init_param : list[Param] = initialization_parameters):
         self.rules = rules
         self.init_param = init_param
 
@@ -39,13 +40,9 @@ class DiffusionSimulation(Simulation):
 
         self._set_kernel()
         self._set_decay()
+        self.current_states : GridState = None
 
-        if init_states != None:
-            self.current_states = init_states
-            self.width = init_states
-            self.height = init_states.height
-            self.current_states.id = 0
-        elif self.random_start:
+        if self.random_start:
             self.init_random_sim()
         else:
             self.init_default_sim()
@@ -53,9 +50,7 @@ class DiffusionSimulation(Simulation):
         if (self.NEED_JSON):
             self.to_JSON_object()
         
-        
-        return super().initSimulation(init_states, rules, init_param)
-    
+            
     def init_default_sim(self):
         grid = jnp.zeros((self.grid_size, self.grid_size, 1))
         state = GridState(grid)
@@ -80,6 +75,8 @@ class DiffusionSimulation(Simulation):
         
             
     def _step(self):
+        timer = Timer("Diffusion step")
+        timer.start()
         state : GridState = self.current_states
         grid = state.grid
 
@@ -87,6 +84,8 @@ class DiffusionSimulation(Simulation):
                             for c in range(grid.shape[-1])])
         out *= (1. - self.decay)
         state.set_grid(out)
+
+        timer.stop()
 
     def _set_decay(self):
         decay : float = self.get_rules_param("decay").value

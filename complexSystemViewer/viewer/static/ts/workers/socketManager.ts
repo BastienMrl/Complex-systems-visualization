@@ -179,8 +179,6 @@ export class SocketManager {
             'id' : id,
             'interaction' : interaction
         });
-
-        
         this._socket.send(string);
     }
     

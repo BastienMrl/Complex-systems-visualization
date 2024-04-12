@@ -73,11 +73,11 @@ export class StatesBuffer{
     }
 
     private getNbElementsFromData(data : any){
-        return data[0][1];
+        return data[0][2];
     }
 
     private getNbChannelsFromData(data : any){
-        return data[0][2];
+        return data[0][3];
     }
 
 
