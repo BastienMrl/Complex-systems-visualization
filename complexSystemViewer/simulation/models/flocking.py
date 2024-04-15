@@ -163,6 +163,12 @@ class FlockingSimulation(Simulation):
 
         return (0.5 * np.sum(E_align(dR, N, N) + E_avoid(dR)) + 
           np.sum(E_cohesion(dR, N)))
+    
+    def get_rules() -> list[Param] | None:
+        return FlockingSimulation.default_rules
+
+    def get_initialization() -> list[Param] | None:
+        return FlockingSimulation.initialization_parameters
 
     # def to_JSON_object(self) :
     #     boids = self.state['boids']

@@ -39,9 +39,17 @@ class Simulation(ABC):
         :rtype: list[Param]
         """
         pass
-    
-    
 
+    
+    @abstractmethod
+    def get_rules() -> list[Param] | None:
+        pass
+
+    @abstractmethod
+    def get_initialization() -> list[Param] | None:
+        pass
+    
+    
     def __init__(self, init_states : State = None, rules : list[Param]  = None, needJSON : bool = True): 
         self.NEED_JSON = needJSON
         self.HISTORY_SIZE = 5
@@ -109,6 +117,8 @@ class Simulation(ABC):
         
         :param json: a dictionary representation of the parameter"
         """
+        if (json == None):
+            return
         for p in self.rules:
             if p.id_param == json["paramId"]:
                 p.set_param(json)

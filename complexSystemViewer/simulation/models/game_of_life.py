@@ -126,4 +126,10 @@ class GOLSimulation(Simulation):
         self.height = self.grid_size
         self.current_states.id = 0
 
+    def get_rules() -> list[Param] | None:
+        return GOLSimulation.default_rules
+
+    def get_initialization() -> list[Param] | None:
+        return GOLSimulation.initialization_parameters
+
 

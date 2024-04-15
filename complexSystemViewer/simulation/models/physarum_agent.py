@@ -93,6 +93,12 @@ class PhysarumAgentSimulation(Simulation):
 
     def set_grid(self, grid : jnp.ndarray):
         self.grid = grid
+
+    def get_rules() -> list[Param] | None:
+        return PhysarumAgentSimulation.default_rules
+
+    def get_initialization() -> list[Param] | None:
+        return PhysarumAgentSimulation.initialization_parameters
     
 @jax.jit
 def _get_new_states(x : jnp.ndarray, y : jnp.ndarray, grid : jnp.ndarray, random_values : jnp.ndarray,
@@ -153,3 +159,5 @@ def _get_new_states(x : jnp.ndarray, y : jnp.ndarray, grid : jnp.ndarray, random
 
 
     return jnp.hstack((x, y, orientation))
+
+

@@ -100,3 +100,9 @@ class DiffusionSimulation(Simulation):
         gauss = jnp.exp(-0.5 * jnp.square(ax) / jnp.square(sigma))
         kernel = jnp.outer(gauss, gauss)
         self.kernel = kernel / jnp.sum(kernel)
+
+    def get_rules() -> list[Param] | None:
+        return DiffusionSimulation.default_rules
+
+    def get_initialization() -> list[Param] | None:
+        return DiffusionSimulation.initialization_parameters

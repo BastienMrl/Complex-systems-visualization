@@ -146,6 +146,12 @@ class LeniaSimulation(Simulation):
 
         nA = jnp.clip(A + self.dt * U, 0., 1.)
         self.current_states.grid = nA
+
+    def get_rules() -> list[Param] | None:
+        return LeniaSimulation.default_rules
+
+    def get_initialization(self) -> list[Param] | None:
+        return LeniaSimulation.default_rules
         
     
     

@@ -38,31 +38,31 @@ class SimulationManager(object):
     def get_default_rules(model_name : str):
         match model_name:
             case "Gol":
-                return cp.deepcopy(GOLSimulation.default_rules)
+                return cp.deepcopy(GOLSimulation.get_rules())
             case "Lenia":
-                return cp.deepcopy(LeniaSimulation.default_rules)
+                return cp.deepcopy(LeniaSimulation.get_rules())
             case "Flocking":
-                return cp.deepcopy(FlockingSimulation.default_rules)
+                return cp.deepcopy(FlockingSimulation.get_rules())
             case "Diffusion":
-                return cp.deepcopy(DiffusionSimulation.default_rules)
+                return cp.deepcopy(DiffusionSimulation.get_rules())
             case "Physarum agents":
-                return cp.deepcopy(PhysarumAgentSimulation.default_rules)
+                return cp.deepcopy(PhysarumAgentSimulation.get_rules())
             case "Ant colony":
-                return cp.deepcopy(AntColony.default_rules)
+                return cp.deepcopy(AntColony.get_rules())
     
     @staticmethod
     def get_initialization_parameters(model_name : str):
         match model_name:
             case "Gol":
-                return cp.deepcopy(GOLSimulation.initialization_parameters)
+                return cp.deepcopy(GOLSimulation.get_initialization())
             case "Lenia":
-                return cp.deepcopy(LeniaSimulation.initialization_parameters)
+                return cp.deepcopy(LeniaSimulation.get_initialization())
             case "Flocking":
-                return cp.deepcopy(FlockingSimulation.initialization_parameters)
+                return cp.deepcopy(FlockingSimulation.get_initialization())
             case "Diffusion":
-                return cp.deepcopy(DiffusionSimulation.initialization_parameters)
+                return cp.deepcopy(DiffusionSimulation.get_initialization())
             case "Physarum agents":
-                return cp.deepcopy(PhysarumAgentSimulation.initialization_parameters)
+                return cp.deepcopy(PhysarumAgentSimulation.get_initialization())
             case "Ant colony":
-                return cp.deepcopy(AntColony.initialization_parameters)
+                return cp.deepcopy(AntColony.get_initialization())
 
