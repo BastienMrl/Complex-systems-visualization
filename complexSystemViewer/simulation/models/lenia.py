@@ -17,7 +17,7 @@ class LeniaSimulation(Simulation):
 
     initialization_parameters = [
         BoolParam(id_p="randomStart", name="Random start", default_value=False),
-        IntParam(id_p="seed", name="Seed", default_value=6, min_value=1),
+        IntParam(id_p="seed", name="Seed", default_value=1, min_value=1),
         IntParam(id_p="gridSize", name="Grid size",
                  default_value=200, min_value=40, step=1),
         FloatParam(id_p="dt", name="dt",
@@ -39,16 +39,20 @@ class LeniaSimulation(Simulation):
                     default_value=0.65, min_value=0.0, max_value=1.0, step=0.05)]
     
     
-    def __init__(self, init_states : GridState = None, rules : list[Param] = default_rules): 
-        super().__init__()
-        self.initSimulation(init_states, rules)
+    def __init__(self, rules : list[Param] = default_rules, init_param : list[Param] = initialization_parameters, needJSON : bool = True): 
+        super().__init__(needJSON=needJSON)
+        self.initSimulation(rules, init_param)
            
-    def initSimulation(self, init_states : State = None, rules : list[Param] = default_rules, init_param : list[Param]= initialization_parameters):
+    def initSimulation(self, rules : list[Param] = default_rules, init_param : list[Param] = initialization_parameters):
         
-        self.random_start : bool = [p for p in init_param if p.id_param == "randomStart"][0].value
-        self.grid_size : int = [p for p in init_param if p.id_param == "gridSize"][0].value
-        self.dt : float = [p for p in init_param if p.id_param == "dt"][0].value
-        self.C : int = [p for p in init_param if p.id_param == "C"][0].value
+        self.init_param = init_param
+        self.rules = rules
+
+        
+        self.random_start : bool = self.get_init_param("randomStart").value
+        self.grid_size : int = self.get_init_param("gridSize").value
+        self.dt : float = self.get_init_param("dt").value
+        self.C : int = self.get_init_param("C").value
 
 
         
@@ -70,12 +74,7 @@ class LeniaSimulation(Simulation):
         params = self.rule_space.sample(params_seed)
         self.c_params = self.kernel_computer(params)
 
-        if init_states != None:
-            self.current_states : GridState = init_states
-            self.width = init_states.width
-            self.height = init_states.height
-            self.current_states.id = 0
-        elif self.random_start:
+        if self.random_start:
             self.init_random_sim(state_seed)
         else:
             self.init_default_sim()
@@ -146,12 +145,6 @@ class LeniaSimulation(Simulation):
 
         nA = jnp.clip(A + self.dt * U, 0., 1.)
         self.current_states.grid = nA
-
-    def get_rules() -> list[Param] | None:
-        return LeniaSimulation.default_rules
-
-    def get_initialization(self) -> list[Param] | None:
-        return LeniaSimulation.default_rules
         
     
     

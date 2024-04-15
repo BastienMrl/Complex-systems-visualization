@@ -1,6 +1,7 @@
 import jax.numpy as jnp
 import jax.lax as lax
 import jax.random
+from jax import jit
 from ..utils import Timer
 
 from ..simulation import *
@@ -47,6 +48,13 @@ class DiffusionSimulation(Simulation):
         else:
             self.init_default_sim()
 
+        def interaction(mask : jnp.ndarray, states : GridState):
+            mask = jnp.expand_dims(mask, 2)
+
+            states.grid = jnp.where(mask >= 0, mask, states.grid)
+        
+        self.interactions = [Interaction("0", interaction)]
+
         if (self.NEED_JSON):
             self.to_JSON_object()
         
@@ -80,8 +88,7 @@ class DiffusionSimulation(Simulation):
         state : GridState = self.current_states
         grid = state.grid
 
-        out = jnp.dstack([jsp.signal.convolve2d(grid[:, :, c], self.kernel, mode = "same")
-                            for c in range(grid.shape[-1])])
+        out = apply_convolution(grid, self.kernel)
         out *= (1. - self.decay)
         state.set_grid(out)
 
@@ -101,8 +108,7 @@ class DiffusionSimulation(Simulation):
         kernel = jnp.outer(gauss, gauss)
         self.kernel = kernel / jnp.sum(kernel)
 
-    def get_rules() -> list[Param] | None:
-        return DiffusionSimulation.default_rules
-
-    def get_initialization() -> list[Param] | None:
-        return DiffusionSimulation.initialization_parameters
+@jit
+def apply_convolution(grid : jnp.ndarray, kernel : jnp.ndarray):
+    return jnp.dstack([jsp.signal.convolve2d(grid[:, :, c], kernel, mode = "same")
+                            for c in range(grid.shape[-1])])

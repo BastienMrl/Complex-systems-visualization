@@ -39,15 +39,6 @@ class Simulation(ABC):
         :rtype: list[Param]
         """
         pass
-
-    
-    @abstractmethod
-    def get_rules() -> list[Param] | None:
-        pass
-
-    @abstractmethod
-    def get_initialization() -> list[Param] | None:
-        pass
     
     
     def __init__(self, init_states : State = None, rules : list[Param]  = None, needJSON : bool = True): 

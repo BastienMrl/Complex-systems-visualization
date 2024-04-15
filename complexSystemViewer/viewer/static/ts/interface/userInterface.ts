@@ -319,7 +319,7 @@ export class UserInterface {
 
     private initSimulationItem(){
         // ADD LISTENER FOR RULES ITEMS
-        let rulesInputs = document.querySelectorAll("#rules .parameterItem input");
+        let rulesInputs = document.querySelectorAll("#rules .parameterItem input, #rules .parameterItem select");
         let rulesInputsHandler = (e) =>{
             sendMessageToWorker(this._viewer.transmissionWorker, WorkerMessage.UPDATE_RULES, this.parseInputToJson(e.target as HTMLInputElement));
         }
@@ -327,7 +327,7 @@ export class UserInterface {
             input.addEventListener("change", rulesInputsHandler);
         });
         // ADD LISTENER FOR INIT_PARAMS
-        let initParamInput = document.querySelectorAll("#initParam .parameterItem input");
+        let initParamInput = document.querySelectorAll("#initParam .parameterItem input, #initParam .parameterItem select");
         let initParamInputsHandler = (e) =>{
             sendMessageToWorker(this._viewer.transmissionWorker, WorkerMessage.UPDATE_INIT_PARAM, this.parseInputToJson(e.target as HTMLInputElement));
         }

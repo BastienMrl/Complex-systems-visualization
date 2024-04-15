@@ -50,11 +50,11 @@ class GOLSimulation(Simulation):
                           step=1
                       ))]
 
-    def __init__(self, init_states : GridState = None, rules = default_rules): 
-        super().__init__()
-        self.initSimulation(init_states, rules)
+    def __init__(self, rules : list[Param] = default_rules, init_param : list[Param] = initialization_parameters, needJSON : bool = True): 
+        super().__init__(needJSON=needJSON)
+        self.initSimulation(rules, init_param)
 
-    def initSimulation(self, init_states : GridState = None, rules = default_rules, init_param = initialization_parameters):
+    def initSimulation(self, rules : list[Param] = default_rules, init_param : list[Param] = initialization_parameters):
 
         self.random_start = [p for p in init_param if p.id_param == "randomStart"][0].value
         self.grid_size = [p for p in init_param if p.id_param == "gridSize"][0].value
@@ -66,12 +66,7 @@ class GOLSimulation(Simulation):
                             [1, 1, 1]])[:, :, jnp.newaxis, jnp.newaxis]
         self.kernel = jnp.transpose(self.kernel, [3, 2, 0, 1])
 
-        if init_states != None:
-            self.current_states = init_states
-            self.width = init_states.width
-            self.height = init_states.height
-            self.current_states.id = 0
-        elif self.random_start:
+        if self.random_start:
             self.init_random_sim()
         else:
             self.init_default_sim() 
@@ -125,11 +120,4 @@ class GOLSimulation(Simulation):
         self.width = self.grid_size
         self.height = self.grid_size
         self.current_states.id = 0
-
-    def get_rules() -> list[Param] | None:
-        return GOLSimulation.default_rules
-
-    def get_initialization() -> list[Param] | None:
-        return GOLSimulation.initialization_parameters
-
 

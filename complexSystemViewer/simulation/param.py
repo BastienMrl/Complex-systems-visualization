@@ -2,9 +2,11 @@ from abc import ABC, abstractmethod
 from enum import Enum
 import jax.numpy as jnp
 import jax.lax as lax
-import jax.random
+
 from .param import *
 import numpy as np
+
+# from viewer.simulation_manager import 
 
 class Paramtype(Enum):
     NUMBERRANGE = 'NR'
@@ -164,6 +166,24 @@ class BoolParam(Param):
             "defaultValue" : self.default_value,
         })
         return superParam
+
+    def set_param(self, json):
+        self.value = json["value"]
+
+class SelectionParam(Param):
+    def __init__(self, id_p : str, name : str, options : list[str] = None, default_idx : int = 0):
+        super().__init__(id_p, Paramtype.SELECTIONVALUE, name)
+        self.options = options
+        self.default_idx = default_idx
+        self.value = 0
+
+    def get_param(self):
+        param = super().get_param()
+        param.update({
+            "defaultValue" : self.default_idx,
+            "options" : self.options,
+        })
+        return param
 
     def set_param(self, json):
         self.value = json["value"]

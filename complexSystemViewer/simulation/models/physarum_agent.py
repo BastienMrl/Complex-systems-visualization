@@ -8,21 +8,21 @@ from ..simulation import *
 class PhysarumAgentSimulation(Simulation):
 
     initialization_parameters = [
-        IntParam(id_p="nbAgents", name="Nb of Agents", default_value= 1,
-                 min_value = 1, max_value= 10000, step=1),
+        IntParam(id_p="nbAgents", name="Nb of Agents", default_value= 10000,
+                 min_value = 100, max_value= 60000, step=1000),
         IntParam(id_p="gridSize", name = "Grid Size",
                  default_value=20, min_value = 10, step=10)
     ]
 
     default_rules = [
-        FloatParam(id_p="speed", name="Speed", default_value=1.,
-                   min_value= 1., max_value= 20, step = 0.5),
-        FloatParam(id_p="distSensor", name="Sensor distance", default_value=1.,
-                   min_value= 0.5, max_value=5, step= 0.1),
-        FloatParam(id_p="angleSensor", name="Sensor angle", default_value=45,
-                   min_value= 10, max_value=270, step=1),
-        FloatParam(id_p="rotationAngle", name="Rotation", default_value=90,
-                   min_value=10, max_value=170, step=1)
+        FloatParam(id_p="speed", name="Speed", default_value=1.2,
+                   min_value= 0.4, max_value= 50, step = 0.1),
+        FloatParam(id_p="distSensor", name="Sensor distance", default_value=8.,
+                   min_value= 0.5, max_value=50, step= 0.1),
+        FloatParam(id_p="angleSensor", name="Sensor angle", default_value=20,
+                   min_value= 2, max_value=270, step=1),
+        FloatParam(id_p="rotationAngle", name="Rotation", default_value=10,
+                   min_value=2, max_value=170, step=1)
     ]
 
 
@@ -43,8 +43,7 @@ class PhysarumAgentSimulation(Simulation):
         self.rotation_angle = self.get_rules_param("rotationAngle").value * jnp.pi / 180
 
         key = jax.random.key(918)
-        self.grid : jnp.ndarray = jax.random.uniform(key, (self.grid_size, self.grid_size))
-
+        self.grid : jnp.ndarray = jax.random.uniform(key, (self.grid_size, self.grid_size, 1))
 
         self.current_states : ParticleState = None
         self.init_default_sim()
@@ -93,12 +92,6 @@ class PhysarumAgentSimulation(Simulation):
 
     def set_grid(self, grid : jnp.ndarray):
         self.grid = grid
-
-    def get_rules() -> list[Param] | None:
-        return PhysarumAgentSimulation.default_rules
-
-    def get_initialization() -> list[Param] | None:
-        return PhysarumAgentSimulation.initialization_parameters
     
 @jax.jit
 def _get_new_states(x : jnp.ndarray, y : jnp.ndarray, grid : jnp.ndarray, random_values : jnp.ndarray,

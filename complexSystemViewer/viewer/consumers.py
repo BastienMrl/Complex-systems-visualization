@@ -1,7 +1,7 @@
 import orjson
 import jax.numpy as jnp
 import jax.image as jimage
-from .simulationManager import SimulationManager
+from .simulation_manager import SimulationManager
 from channels.generic.websocket import AsyncWebsocketConsumer
 from simulation.simulation import Simulation
 import math
