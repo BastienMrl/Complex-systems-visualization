@@ -104,24 +104,24 @@ class PhysarumAgentSimulation(Simulation):
 def _get_new_states(x : jnp.ndarray, y : jnp.ndarray, grid : jnp.ndarray, random_values : jnp.ndarray,
                         dist_sensor : float, angle_sensor : float, orientation : jnp.ndarray, grid_offset : int, speed : float, rotation_angle : float):
     x_front = jnp.round(x + dist_sensor * jnp.cos(orientation)).astype(dtype=jnp.int16)
-    x_front = jnp.where(x_front < 0., x_front + grid_offset, x_front)
+    x_front = jnp.where(x_front < 0., x_front + (grid_offset - 1), x_front)
     x_front = jnp.where(x_front > grid_offset - 1, x_front - (grid_offset - 1), x_front)
     y_front = jnp.round(y + dist_sensor * jnp.cos(orientation)).astype(dtype=jnp.int16)
-    y_front = jnp.where(y_front < 0., y_front + grid_offset, y_front)
+    y_front = jnp.where(y_front < 0., y_front + (grid_offset - 1), y_front)
     y_front = jnp.where(y_front > grid_offset - 1, y_front - (grid_offset - 1), y_front)
 
     x_left = jnp.round(x + dist_sensor * jnp.cos(orientation + angle_sensor)).astype(dtype=jnp.int16)
-    x_left = jnp.where(x_left < 0., x_left + grid_offset, x_left)
+    x_left = jnp.where(x_left < 0., x_left + (grid_offset - 1), x_left)
     x_left = jnp.where(x_left > grid_offset - 1, x_left - (grid_offset - 1), x_left)
     y_left = jnp.round(y + dist_sensor * jnp.sin(orientation + angle_sensor)).astype(dtype=jnp.int16)
-    y_left = jnp.where(y_left < 0., y_left + grid_offset, y_left)
+    y_left = jnp.where(y_left < 0., y_left + (grid_offset - 1), y_left)
     y_left = jnp.where(y_left > grid_offset - 1, y_left - (grid_offset - 1), y_left)
 
     x_right = jnp.round(x + dist_sensor * jnp.cos(orientation - angle_sensor)).astype(dtype=jnp.int16)
-    x_right = jnp.where(x_right < 0., x_right + grid_offset, x_right)
+    x_right = jnp.where(x_right < 0., x_right + (grid_offset - 1), x_right)
     x_right = jnp.where(x_right > grid_offset - 1, x_right - (grid_offset - 1), x_right)
     y_right = jnp.round(y + dist_sensor * jnp.sin(orientation - angle_sensor)).astype(dtype=jnp.int16)
-    y_right = jnp.where(y_right < 0., y_right + grid_offset, y_right)
+    y_right = jnp.where(y_right < 0., y_right + (grid_offset - 1), y_right)
     y_right = jnp.where(y_right > grid_offset - 1, y_right - (grid_offset - 1), y_right)
 
 
@@ -146,10 +146,10 @@ def _get_new_states(x : jnp.ndarray, y : jnp.ndarray, grid : jnp.ndarray, random
 
 
     x += speed * jnp.cos(orientation)
-    x = jnp.where(x < 0., x + grid_offset, x)
+    x = jnp.where(x < 0., x + (grid_offset - 1), x)
     x = jnp.where(x > grid_offset - 1, x - (grid_offset - 1), x)
     y += speed * jnp.sin(orientation)
-    y = jnp.where(y < 0., y + grid_offset, y)
+    y = jnp.where(y < 0., y + (grid_offset - 1), y)
     y = jnp.where(y > grid_offset - 1, y - (grid_offset - 1), y)
 
     x = jnp.expand_dims(x, (1))    
