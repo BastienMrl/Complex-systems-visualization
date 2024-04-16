@@ -28,7 +28,7 @@ def index(request):
 
     meshPath = os.path.join(settings.BASE_DIR, "viewer/"+settings.STATIC_URL+"models/")
     meshFiles = os.listdir(meshPath)
-    viewers = ["Meshes", "Texture"]
+    viewers = ["Meshes", "Texture", "Material"]
     return render(request, "index.html", {"model":modelSelected , "modelsName":modelsName, "initParameters":initParameters,
                                           "rulesParameters":rulesParameters, "transformers":transformersParam, 
                                           "toolsList":toolsList, "meshFiles":meshFiles, "viewers":viewers}) 

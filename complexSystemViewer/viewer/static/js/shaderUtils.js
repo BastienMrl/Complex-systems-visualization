@@ -25,7 +25,6 @@ async function initShaders(gl, srcVertex, srcFragment) {
     }
     gl.attachShader(shaderProgram, vertexShader);
     gl.attachShader(shaderProgram, fragmentShader);
-    gl.transformFeedbackVaryings(shaderProgram, ['feedback_translation'], gl.SEPARATE_ATTRIBS);
     gl.linkProgram(shaderProgram);
     if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
         alert("Could not initialise shaders");
@@ -92,6 +91,14 @@ export class ProgramWithTransformer {
             alert("Could not initialise shaders");
         }
         this._program = shaderProgram;
+    }
+    printShader(isVertex = true) {
+        if (isVertex) {
+            console.log(this._vertexShader);
+        }
+        else {
+            console.log(this._fragmentShader);
+        }
     }
 }
 export function getAnimableValueUniformName(value) {

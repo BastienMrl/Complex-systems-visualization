@@ -33,11 +33,6 @@ async function initShaders(gl : WebGL2RenderingContext, srcVertex : string, srcF
     gl.attachShader(shaderProgram, vertexShader); 
     gl.attachShader(shaderProgram, fragmentShader); 
 
-    gl.transformFeedbackVaryings(
-        shaderProgram,
-        ['feedback_translation'],
-        gl.SEPARATE_ATTRIBS,
-    );
 
     gl.linkProgram(shaderProgram); 
 
@@ -126,6 +121,14 @@ export class ProgramWithTransformer {
         this._program = shaderProgram;
     }
 
+    public printShader(isVertex : boolean = true){
+        if (isVertex){
+            console.log(this._vertexShader)
+        }
+        else{
+            console.log(this._fragmentShader)
+        }
+    }
     
 }
 

@@ -4,12 +4,14 @@ import { WorkerMessage, getMessageBody, getMessageHeader, sendMessageToWorker } 
 import { UserInterface } from "./interface/userInterface.js";
 import { ViewerMultipleMeshes } from "./viewerMultipleMeshes.js";
 import { ViewerTexture } from "./viewerTexture.js";
+import { ViewerMaterial } from "./viewerMaterial.js";
 // provides access to gl constants
 const gl = WebGL2RenderingContext;
 export var ViewerType;
 (function (ViewerType) {
     ViewerType["MULTIPLE_MESHES"] = "Meshes";
     ViewerType["TEXTURE"] = "Texture";
+    ViewerType["MATERIAL"] = "Material";
 })(ViewerType || (ViewerType = {}));
 export class ViewerManager {
     context;
@@ -40,7 +42,7 @@ export class ViewerManager {
         this.transmissionWorker = new Worker("/static/js/workers/transmissionWorker.js", { type: "module" });
         this.transmissionWorker.onmessage = this.onTransmissionWorkerMessage.bind(this);
         this._currentViewer = new ViewerMultipleMeshes(this.canvas, this.context, this);
-        this._viewers = [this._currentViewer, new ViewerTexture(this.canvas, this.context, this)];
+        this._viewers = [this._currentViewer, new ViewerTexture(this.canvas, this.context, this), new ViewerMaterial(this.canvas, context, this)];
         this._textures = new TexturesContainer(this.context);
     }
     set stats(stats) {
@@ -72,6 +74,9 @@ export class ViewerManager {
                 break;
             case ViewerType.TEXTURE:
                 this._currentViewer = this._viewers[1];
+                break;
+            case ViewerType.MATERIAL:
+                this._currentViewer = this._viewers[2];
                 break;
         }
         this._currentViewer.onReset(this._values);

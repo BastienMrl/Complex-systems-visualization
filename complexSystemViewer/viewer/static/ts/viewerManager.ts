@@ -9,13 +9,15 @@ import { Viewer } from "./viewer.js";
 import { ViewerMultipleMeshes } from "./viewerMultipleMeshes.js";
 import { ViewerTexture } from "./viewerTexture.js";
 import { Camera } from "./camera.js";
+import { ViewerMaterial } from "./viewerMaterial.js";
 
 // provides access to gl constants
 const gl = WebGL2RenderingContext
 
 export enum ViewerType {
     MULTIPLE_MESHES = "Meshes",
-    TEXTURE = "Texture"
+    TEXTURE = "Texture",
+    MATERIAL = "Material"
 }
 
 export class ViewerManager {
@@ -61,7 +63,7 @@ export class ViewerManager {
         this.transmissionWorker.onmessage = this.onTransmissionWorkerMessage.bind(this);
         this._currentViewer = new ViewerMultipleMeshes(this.canvas, this.context, this);
 
-        this._viewers = [this._currentViewer, new ViewerTexture(this.canvas, this.context, this)];
+        this._viewers = [this._currentViewer, new ViewerTexture(this.canvas, this.context, this), new ViewerMaterial(this.canvas, context, this)];
         this._textures = new TexturesContainer(this.context);
     }
 
@@ -104,6 +106,9 @@ export class ViewerManager {
                 break;
             case ViewerType.TEXTURE:
                 this._currentViewer = this._viewers[1];
+                break;
+            case ViewerType.MATERIAL:
+                this._currentViewer = this._viewers[2];
                 break;
         }
         this._currentViewer.onReset(this._values);

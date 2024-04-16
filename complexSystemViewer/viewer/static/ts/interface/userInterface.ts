@@ -268,6 +268,9 @@ export class UserInterface {
                 case ("Texture"):
                     viewerType = ViewerType.TEXTURE;
                     break;
+                case ("Material"):
+                    viewerType = ViewerType.MATERIAL;
+                    break;
             }
             this._viewer.switchViewer(viewerType);
         });

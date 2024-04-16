@@ -1,8 +1,111 @@
-import { Vec3 } from "./ext/glMatrix/index.js";
+import { Vec3, Vec2 } from "./ext/glMatrix/index.js";
 import OBJFile from "./ext/objFileParser/OBJFile.js";
 import { ShaderLocation } from "./shaderUtils.js";
 // provides access to gl constants
 const gl = WebGL2RenderingContext;
+export class Mesh {
+    _context;
+    _vertPositions;
+    _vertNormals;
+    _vertUV;
+    _vertIndices;
+    _vao;
+    constructor(context, src) {
+        this._context = context;
+        this._vao = this._context.createVertexArray();
+        this.loadMesh(src);
+        this.initDrawVAO();
+    }
+    async loadMesh(src) {
+        const response = await fetch(src);
+        const text = await response.text();
+        const objFile = new OBJFile(text);
+        const output = objFile.parse();
+        const vertIndices = [];
+        const vertices = new Array(output.models[0].vertices.length);
+        output.models[0].vertices.forEach((e, idx) => {
+            vertices[idx] = Vec3.fromValues(e.x, e.y, e.z);
+        });
+        const normals = new Array(vertices.length);
+        for (let i = 0; i < normals.length; ++i) {
+            normals[i] = Vec3.fromValues(0, 0, 0);
+        }
+        const uvs = new Array(vertices.length);
+        output.models[0].textureCoords.forEach((e, i) => {
+            uvs[i] = Vec2.fromValues(e.u, e.v);
+        });
+        const nbFaces = new Array(vertices.length).fill(0);
+        output.models[0].faces.forEach((element) => {
+            const v0 = element.vertices[0].vertexIndex - 1;
+            let e1 = Vec3.create();
+            let e2 = Vec3.create();
+            Vec3.sub(e1, vertices[element.vertices[1].vertexIndex - 1], vertices[v0]);
+            Vec3.sub(e2, vertices[element.vertices[2].vertexIndex - 1], vertices[v0]);
+            let n = Vec3.create();
+            Vec3.cross(n, e1, e2);
+            for (let i = 1; i < element.vertices.length - 1; i++) {
+                const v1 = element.vertices[i].vertexIndex - 1;
+                const v2 = element.vertices[i + 1].vertexIndex - 1;
+                vertIndices.push(v0, v1, v2);
+            }
+            for (let i = 0; i < element.vertices.length; i++) {
+                const v = element.vertices[i].vertexIndex - 1;
+                normals[v].add(n);
+                nbFaces[v] += 1;
+            }
+        });
+        for (let i = 0; i < vertices.length; ++i) {
+            normals[i].scale(1. / nbFaces[i]);
+            normals[i].normalize();
+        }
+        this._vertPositions = new Float32Array(vertices.length * 3);
+        for (let i = 0; i < vertices.length; i++) {
+            this._vertPositions[i * 3] = vertices[i].x;
+            this._vertPositions[i * 3 + 1] = vertices[i].y;
+            this._vertPositions[i * 3 + 2] = vertices[i].z;
+        }
+        this._vertNormals = new Float32Array(normals.length * 3);
+        for (let i = 0; i < normals.length; i++) {
+            this._vertNormals[i * 3] = normals[i].x;
+            this._vertNormals[i * 3 + 1] = normals[i].y;
+            this._vertNormals[i * 3 + 2] = normals[i].z;
+        }
+        this._vertUV = new Float32Array(uvs.length * 2);
+        for (let i = 0; i < uvs.length; i++) {
+            this._vertUV[i * 2] = uvs[i].x;
+            this._vertUV[i * 2 + 1] = uvs[i].y;
+        }
+        this._vertIndices = new Uint32Array(vertIndices);
+        this.initDrawVAO();
+    }
+    initDrawVAO() {
+        this._context.bindVertexArray(this._vao);
+        //positions
+        this._context.bindBuffer(gl.ARRAY_BUFFER, this._context.createBuffer());
+        this._context.bufferData(gl.ARRAY_BUFFER, this._vertPositions, gl.STATIC_DRAW);
+        this._context.vertexAttribPointer(ShaderLocation.POS, 3, gl.FLOAT, false, 0, 0);
+        this._context.enableVertexAttribArray(ShaderLocation.POS);
+        // normals
+        this._context.bindBuffer(gl.ARRAY_BUFFER, this._context.createBuffer());
+        this._context.bufferData(gl.ARRAY_BUFFER, this._vertNormals, gl.STATIC_DRAW);
+        this._context.vertexAttribPointer(ShaderLocation.NORMAL, 3, gl.FLOAT, false, 0, 0);
+        this._context.enableVertexAttribArray(ShaderLocation.NORMAL);
+        // uvs
+        this._context.bindBuffer(gl.ARRAY_BUFFER, this._context.createBuffer());
+        this._context.bufferData(gl.ARRAY_BUFFER, this._vertUV, gl.STATIC_DRAW);
+        this._context.vertexAttribPointer(ShaderLocation.UV, 2, gl.FLOAT, false, 0, 0);
+        this._context.enableVertexAttribArray(ShaderLocation.UV);
+        this._context.bindBuffer(gl.ARRAY_BUFFER, null);
+        this._context.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._context.createBuffer());
+        this._context.bufferData(gl.ELEMENT_ARRAY_BUFFER, this._vertIndices, gl.STATIC_DRAW);
+        this._context.bindVertexArray(null);
+    }
+    draw() {
+        this._context.bindVertexArray(this._vao);
+        this._context.drawElements(gl.TRIANGLES, this._vertIndices.length, gl.UNSIGNED_INT, 0);
+        this._context.bindVertexArray(null);
+    }
+}
 export class PlanMesh {
     _context;
     _vertPositions;
