@@ -10,8 +10,8 @@ export class AnimationInterface {
         this._viewer = viewer;
         //.... AnimationCurves ....
         // Default animation curve is easeOut, without any bind it would be fc0
-        this._viewer.bindAnimationCurve(AnimableValue.COLOR, AnimationFunction.easeOut);
-        this._viewer.bindAnimationCurve(AnimableValue.POSITION, AnimationFunction.easeOut);
+        this._viewer.bindAnimationCurve(AnimableValue.COLOR, AnimationFunction.linear);
+        this._viewer.bindAnimationCurve(AnimableValue.POSITION, AnimationFunction.linear);
         this.initAnimationItem();
     }
     initAnimationItem() {

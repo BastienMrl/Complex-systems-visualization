@@ -6,44 +6,84 @@ from ..utils import Timer
 
 from ..simulation import *
 
+class DiffusionParameters(SimulationParameters):
+
+    def __init__(self, id_prefix : str = "default"):
+        super().__init__(id_prefix)
+
+        #init
+        self.is_random : bool
+        self.grid_size : int
+        self.nb_channels : int
+
+        #rules
+        self.kernel : jnp.ndarray
+        self.decay : float
+
+        #front
+
+        self._init_param : list[Param] = [
+            BoolParam(id_p= self._get_id_prefix() + "randomStart", name= self._get_name_prefix() + "Random start", default_value=True),
+            IntParam(id_p= self._get_id_prefix() + "gridSize", name= self._get_name_prefix() + "Grid size",
+                    default_value=100, min_value=0, step=1),
+            IntParam(id_p= self._get_id_prefix() + "channels", name = self._get_name_prefix() + "Nb Channels", default_value=1,
+                    min_value= 1, step=1)
+        ]
+
+        self._rules_param : list[Param] = [
+            IntParam(id_p= self._get_id_prefix() + "kernel", name = self._get_name_prefix() + "Kernel Size",
+                    default_value = 3, min_value = 1, max_value = 15, step=2),
+            IntParam(id_p= self._get_id_prefix() + "diffusion", name = self._get_name_prefix() + "Diffusion",
+                    default_value = 0.5, min_value = 0.1, max_value = 5, step = 0.05),
+            FloatParam(id_p= self._get_id_prefix() + "decay", name = self._get_name_prefix() + "Decay", default_value = 0.1, min_value = 0.,
+                    max_value = 1., step = 0.05)
+        ]
+
+        self.set_all_params()
+    
+    
+    def rule_param_value_changed(self, idx: int, param: Param) -> None:
+        match (idx):
+            case 0 | 1:
+                self._set_kernel()
+            case 2:
+                self.decay = param.value
+
+    def init_param_value_changed(self, idx: int, param: Param) -> None:
+        match (idx):
+            case 0:
+                self.is_random = param.value
+            case 1:
+                self.grid_size = param.value
+            case 2:
+                self.nb_channels = param.value
+        
+    def _set_kernel(self):
+        kernel_size : int = self._rules_param[0].value
+        sigma : float = self._rules_param[1].value
+        length = (kernel_size - 1) / 2
+
+        ax = jnp.linspace(-length, length, kernel_size)
+        gauss = jnp.exp(-0.5 * jnp.square(ax) / jnp.square(sigma))
+        kernel = jnp.outer(gauss, gauss)
+        self.kernel = kernel / jnp.sum(kernel)
+
+
+    
+
 class DiffusionSimulation(Simulation):
-    initialization_parameters = [
-        BoolParam(id_p="randomStart", name="Random start", default_value=True),
-        IntParam(id_p="gridSize", name="Grid size",
-                 default_value=100, min_value=0, step=1),
-        IntParam(id_p="channels", name = "Nb Channels", default_value=1,
-                 min_value= 1, step=1)
-    ]
+    
 
-    default_rules = [
-        IntParam(id_p="kernel", name = "Kernel Size",
-                 default_value = 3, min_value = 1, max_value = 15, step=2),
-        IntParam(id_p="diffusion", name = "Diffusion",
-                 default_value = 0.5, min_value = 0.1, max_value = 5, step = 0.05),
-        FloatParam(id_p="decay", name = "Decay", default_value = 0.1, min_value = 0.,
-                   max_value = 1., step = 0.05)
-    ]
-
-    def __init__(self, rules : list[Param] = default_rules, init_param : list[Param] = initialization_parameters, needJSON : bool = True):
+    def __init__(self, params : DiffusionParameters, needJSON : bool = True):
         super().__init__(needJSON=needJSON)
-        self.initSimulation(rules, init_param)
+        self.initSimulation(params)
 
-    def initSimulation(self, rules : list[Param] = default_rules, init_param : list[Param] = initialization_parameters):
-        self.rules = rules
-        self.init_param = init_param
+    def initSimulation(self, params : DiffusionParameters):
+        self.params : DiffusionParameters = params
 
-        self.random_start = self.get_init_param("randomStart").value
-        self.grid_size = self.get_init_param("gridSize").value
-        self.nb_channels = self.get_init_param("channels").value
-        self.kernel : jnp.array = None
-        self.decay : float = 1.
-
-
-        self._set_kernel()
-        self._set_decay()
         self.current_states : GridState = None
 
-        if self.random_start:
+        if self.params.is_random:
             self.init_random_sim()
         else:
             self.init_default_sim()
@@ -60,27 +100,21 @@ class DiffusionSimulation(Simulation):
         
             
     def init_default_sim(self):
-        grid = jnp.zeros((self.grid_size, self.grid_size, 1))
+        grid = jnp.zeros((self.params.grid_size, self.params.grid_size, 1))
         state = GridState(grid)
         self.current_states = state
-        self.width = self.grid_size
-        self.height = self.grid_size
+        self.width = self.params.grid_size
+        self.height = self.params.grid_size
         self.current_states.id = 0
 
     def init_random_sim(self):
         key = jax.random.PRNGKey(1701)
-        grid = jax.random.uniform(key, (self.grid_size, self.grid_size, self.nb_channels), dtype=jnp.float64)
+        grid = jax.random.uniform(key, (self.params.grid_size, self.params.grid_size, self.nb_channels), dtype=jnp.float64)
         state = GridState(grid)
         self.current_states = state
-        self.width = self.grid_size
-        self.height = self.grid_size
-        self.current_states.id = 0
-
-    def updateRule(self, json):
-        super().updateRule(json)
-        self._set_decay()
-        self._set_kernel()
-        
+        self.width = self.params.grid_size
+        self.height = self.params.grid_size
+        self.current_states.id = 0        
             
     def _step(self):
         timer = Timer("Diffusion step")
@@ -94,20 +128,7 @@ class DiffusionSimulation(Simulation):
 
         timer.stop()
 
-    def _set_decay(self):
-        decay : float = self.get_rules_param("decay").value
-        self.decay = decay
     
-    def _set_kernel(self):
-        kernel_size : int = self.get_rules_param("kernel").value
-        sigma : float = self.get_rules_param("diffusion").value
-        length = (kernel_size - 1) / 2
-
-        ax = jnp.linspace(-length, length, kernel_size)
-        gauss = jnp.exp(-0.5 * jnp.square(ax) / jnp.square(sigma))
-        kernel = jnp.outer(gauss, gauss)
-        self.kernel = kernel / jnp.sum(kernel)
-
 @jit
 def apply_convolution(grid : jnp.ndarray, kernel : jnp.ndarray):
     return jnp.dstack([jsp.signal.convolve2d(grid[:, :, c], kernel, mode = "same")

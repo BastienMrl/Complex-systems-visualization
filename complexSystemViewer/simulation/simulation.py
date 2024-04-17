@@ -41,7 +41,7 @@ class Simulation(ABC):
         pass
     
     
-    def __init__(self, init_states : State = None, rules : list[Param]  = None, needJSON : bool = True): 
+    def __init__(self, params : SimulationParameters, needJSON : bool = True): 
         self.NEED_JSON = needJSON
         self.HISTORY_SIZE = 5
         self._history_idx = 0
@@ -51,12 +51,7 @@ class Simulation(ABC):
         self.width : int = None
         self.height : int = None
         self.as_json : list[list[float]] = None
-        self.init_param : list[Param] = None
-        if init_states != None :
-             self.current_states = init_states
-        if rules != None :
-            self.rules = rules
-
+        self.params : SimulationParameters = params
         self.interactions : list[Interaction] = None
             
     @abstractmethod

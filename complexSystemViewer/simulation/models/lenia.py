@@ -1,64 +1,101 @@
-import random
 import jax.numpy as jnp
-import jax.lax as lax
 import jax.random
 import jax.scipy as jsp
 import numpy as np
 import typing as t
 from functools import partial
-import math
 import chex
 from functools import partial
 
 
-
 from ..simulation import * 
+
+
+class LeniaParameters(SimulationParameters):
+
+    def __init__(self, id_prefix : str = "default"):
+        super().__init__(id_prefix)
+
+        #init
+        self.is_random : bool
+        self.seed : int
+        self.grid_size : int
+        self.dt : int
+        self.C : int
+
+        #rules
+        self.nb_k : int
+        self.dd : int
+        self.n : int
+        self.sigma : int
+
+
+        #front
+        self._init_param = [
+            BoolParam(id_p= self._get_id_prefix() + "randomStart", name= self._get_name_prefix() + "Random start", default_value=False),
+            IntParam(id_p= self._get_id_prefix() + "seed", name= self._get_name_prefix() + "Seed", default_value=1, min_value=1),
+            IntParam(id_p= self._get_id_prefix() + "gridSize", name= self._get_name_prefix() + "Grid size",
+                    default_value=200, min_value=40, step=1),
+            FloatParam(id_p= self._get_id_prefix() + "dt", name= self._get_name_prefix() + "dt",
+                        default_value=0.05, min_value=0.1, max_value=1., step=0.1),
+            IntParam(id_p= self._get_id_prefix() + "C", name= self._get_name_prefix() + "Number of Channels",
+                        default_value=1, min_value=1, max_value=4, step=1)
+        ]
+
+        self._rules_param = [
+                IntParam(id_p= self._get_id_prefix() + "number_of_kernels", name= self._get_name_prefix() + "Number of kernels",
+                        default_value=10, min_value=1, step=1),
+                IntParam(id_p= self._get_id_prefix() + "dd", name= self._get_name_prefix() + "dd",
+                        default_value=5, min_value=1, step=1),
+                IntParam(id_p= self._get_id_prefix() + "n", name= self._get_name_prefix() + "n",
+                        default_value=2, min_value=1, step=1),
+                FloatParam(id_p= self._get_id_prefix() + "theta_A", name= self._get_name_prefix() + "Theta A",
+                        default_value=2.0, min_value=0.0, max_value=2.0, step=0.1),
+                FloatParam(id_p= self._get_id_prefix() + "sigma", name= self._get_name_prefix() + "Sigma",
+                    default_value=0.65, min_value=0.0, max_value=1.0, step=0.05)
+        ]
+
+        self.set_all_params()
+    
+    def init_param_value_changed(self, idx: int, param: Param) -> None:
+        match (idx):
+            case 0:
+                self.is_random = param.value
+            case 1:
+                self.seed = param.value
+            case 2:
+                self.grid_size = param.value
+            case 3:
+                self.dt = param.value
+            case 4:
+                self.C = param.value
+        
+    def rule_param_value_changed(self, idx : int, param : Param) -> None:
+        match (idx):
+            case 0:
+                self.nb_k = param.value
+            case 1:
+                self.dd = param.value
+            case 2:
+                self.n = param.value
+            case 3:
+                self.sigma = param.value
+
+
 class LeniaSimulation(Simulation):
 
-    initialization_parameters = [
-        BoolParam(id_p="randomStart", name="Random start", default_value=False),
-        IntParam(id_p="seed", name="Seed", default_value=1, min_value=1),
-        IntParam(id_p="gridSize", name="Grid size",
-                 default_value=200, min_value=40, step=1),
-        FloatParam(id_p="dt", name="dt",
-                    default_value=0.05, min_value=0.1, max_value=1., step=0.1),
-        IntParam(id_p="C", name="Number of Channels",
-                    default_value=1, min_value=1, max_value=4, step=1)
-    ]
-
-    default_rules = [
-            IntParam(id_p="number_of_kernels", name="Number of kernels",
-                    default_value=10, min_value=1, step=1),
-            IntParam(id_p="dd", name="dd",
-                    default_value=5, min_value=1, step=1),
-            IntParam(id_p="n", name="n",
-                    default_value=2, min_value=1, step=1),
-            FloatParam(id_p="theta_A", name="Theta A",
-                    default_value=2.0, min_value=0.0, max_value=2.0, step=0.1),
-            FloatParam(id_p="sigma", name="Sigma",
-                    default_value=0.65, min_value=0.0, max_value=1.0, step=0.05)]
     
-    
-    def __init__(self, rules : list[Param] = default_rules, init_param : list[Param] = initialization_parameters, needJSON : bool = True): 
+    def __init__(self, params : LeniaParameters = LeniaParameters(), needJSON : bool = True): 
         super().__init__(needJSON=needJSON)
-        self.initSimulation(rules, init_param)
+        self.initSimulation(params)
            
-    def initSimulation(self, rules : list[Param] = default_rules, init_param : list[Param] = initialization_parameters):
+    def initSimulation(self, params : LeniaParameters = LeniaParameters()):
         
-        self.init_param = init_param
-        self.rules = rules
-
-        
-        self.random_start : bool = self.get_init_param("randomStart").value
-        self.grid_size : int = self.get_init_param("gridSize").value
-        self.dt : float = self.get_init_param("dt").value
-        self.C : int = self.get_init_param("C").value
+        self.params : LeniaParameters = params
 
 
         
-        self.rules = rules
-        self.nb_k = self.getRuleById("number_of_kernels")
-        SX = SY = self.grid_size
+        SX = SY = self.params.grid_size
         
         self.M = np.ones((self.C, self.C), dtype=int) * self.nb_k
         self.nb_k = int(self.M.sum())
@@ -67,14 +104,13 @@ class LeniaSimulation(Simulation):
         self.rule_space = RuleSpace(self.nb_k)
         self.kernel_computer = KernelComputer(SX, SY, self.nb_k)
 
-        seed : int = [p for p in init_param if p.id_param == "seed"][0].value
         
-        key = jax.random.PRNGKey(seed)
+        key = jax.random.PRNGKey(self.params.seed)
         params_seed, state_seed = jax.random.split(key)
-        params = self.rule_space.sample(params_seed)
-        self.c_params = self.kernel_computer(params)
+        parameters = self.rule_space.sample(params_seed)
+        self.c_params = self.kernel_computer(parameters)
 
-        if self.random_start:
+        if self.params.is_random:
             self.init_random_sim(state_seed)
         else:
             self.init_default_sim()
@@ -103,15 +139,15 @@ class LeniaSimulation(Simulation):
 
 
     def init_default_sim(self):
-        grid = jnp.zeros((self.grid_size, self.grid_size, self.C))
+        grid = jnp.zeros((self.params.grid_size, self.params.grid_size, self.params.C))
         state = GridState(grid)
         self.current_states : GridState = state
-        self.width = self.grid_size
-        self.height = self.grid_size
+        self.width = self.params.grid_size
+        self.height = self.params.grid_size
         self.current_states.id = 0
 
     def init_random_sim(self, state_seed):
-        SX = SY = self.grid_size
+        SX = SY = self.params.grid_size
         mx, my = SX//2, SY//2 # center coordinated
         offsetX, offsetY= round(SX/8), round(SY/8)
 
@@ -121,8 +157,8 @@ class LeniaSimulation(Simulation):
         )
         state = GridState(A0)
         self.current_states : GridState = state
-        self.width = self.grid_size
-        self.height = self.grid_size
+        self.width = self.params.grid_size
+        self.height = self.params.grid_size
         self.current_states.id = 0
 
         

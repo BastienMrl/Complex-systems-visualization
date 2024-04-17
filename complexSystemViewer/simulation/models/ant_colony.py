@@ -3,6 +3,8 @@ import jax.lax as lax
 import jax.random
 import jax.image as jimage
 
+from complexSystemViewer.simulation.param import Param
+
 from ..simulation import *
 from ..models.diffusion import *
 from ..models.game_of_life import *
@@ -10,6 +12,52 @@ from ..models.lenia import *
 from .physarum_agent import *
 from ..utils import Timer
 import copy as cp
+
+class AntColonyParameters(SimulationParameters):
+
+    def __init__(self, agents : list[Simulation], diffusion : Simulation, id_prefix : str = "default"):
+        super().__init__(id_prefix)
+
+        self.agents
+
+        #init
+        self.grid_size_send : int
+        self.grid_size : int
+        
+        # case grid_size
+
+        #rules
+        self.drop_amount : float
+
+        #front
+        self._init_param : list[Param] = [
+            IntParam(id_p= self._get_id_prefix() + "gridsizeSend", name = self._get_name_prefix() + "Sended Grid Size",
+                     default_value=150, min_value = 1, step= 1),
+            IntParam(id_p= self._get_id_prefix() + "gridSize", name = self._get_name_prefix() + "Grid Size",
+                     default_value = 150, min_value = 1, step= 1)
+        ]
+
+        self._rules_param : list[Param] = [
+            FloatParam(id_p=self._get_id_prefix() + "dropAmount", name = self._get_name_prefix() + "Dropped Amount",
+                       default_value=0.1, min_value = 0.0, stpe = 0.05)
+        ]
+
+        self.set_all_params()
+
+    def rule_param_value_changed(self, idx: int, param: Param) -> None:
+        match (idx):
+            case 0:
+                self.drop_amount = param.value
+        
+    def init_param_value_changed(self, idx: int, param: Param) -> None:
+        match(idx):
+            case 0:
+                self.grid_size_send = param.value
+            case 1:
+                self.grid_size = param.value
+    
+
+
 
 
 def substract_param_ids(initial : list[Param], to_substract : list[Param]):
@@ -30,9 +78,9 @@ def generate_init_parameters(own, shared, agent, diffusion):
     return initialization_parameters
 
 def generate_rules_parameter(own, agent, diffusion):
-    default_rules = cp.deepcopy(own)
-    default_rules += cp.deepcopy(agent)
-    default_rules += cp.deepcopy(diffusion)
+    default_rules = own
+    default_rules += agent
+    default_rules += diffusion
     return default_rules
 
 class AntColony(Simulation):
@@ -48,6 +96,8 @@ class AntColony(Simulation):
     shared_initialization_parameters = [
         IntParam(id_p="gridSize", name = "Grid size",
                  default_value=200, min_value = 1, step=1),
+        IntParam(id_p="C", name="Number of Channels",
+                    default_value=1, min_value=1, max_value=4, step=1)
     ]
 
 
@@ -78,6 +128,7 @@ class AntColony(Simulation):
         self.init_param = init_param
 
         self.grid_size_send = self.get_init_param("gridSizeSend").value
+        self.channels = self.get_init_param("C").value
         self.drop_amount = self.get_rules_param("dropAmount").value
 
         self.diffusion : Simulation  = self.diffusion_simulation(self._get_diffusion_rules(), self._get_diffusion_initialization_parameters(), False)
@@ -108,6 +159,9 @@ class AntColony(Simulation):
             self.to_JSON_object()
 
     def updateRule(self, json):
+        for param in self.rules:
+            print(param.id_param)
+        print(self.rules)
         super().updateRule(json)
         self.drop_amount = self.get_rules_param("dropAmount").value
         self.agents.updateRule(None)
@@ -121,13 +175,13 @@ class AntColony(Simulation):
         
         x = jnp.round(self.agents.current_states.get_pos_x()).astype(jnp.int16)
         y = jnp.round(self.agents.current_states.get_pos_y()).astype(jnp.int16)
-        grid = grid.at[x, y].add(self.drop_amount)
+        grid = grid.at[x, y, self.agents.channel].add(self.drop_amount)
         self.diffusion.current_states.set_grid(grid)
         self.diffusion.newStep()
 
         timer = Timer("Resizing grid")
         timer.start()
-        self.current_states.set_grid(jimage.resize(self.diffusion.current_states.grid, (self.grid_size_send, self.grid_size_send, 1), "linear"))
+        self.current_states.set_grid(jimage.resize(self.diffusion.current_states.grid, (self.grid_size_send, self.grid_size_send, self.channels), "linear"))
         timer.stop()
 
 

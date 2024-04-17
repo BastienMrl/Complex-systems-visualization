@@ -57,12 +57,17 @@ vec4 get_normal_color(in vec3 normal){
     return vec4(color, 1.);
 }
 
+vec4 get_uv_color(in vec2 uv){
+    return vec4(uv.x, uv.y, 0., 1.);
+}
+
 void main(){
     vec3 color = vec3(0., 0., 0.);
 
 
-    float x_coord = map(v_uv.x, 0., 1., 0., u_dimensions.x);
-    float y_coord = map(v_uv.y, 0., 1., 0., u_dimensions.y);
+
+    float x_coord = map(v_uv.x, 0., 1., 0., u_dimensions.x - 30.);
+    float y_coord = map(v_uv.y, 0., 1., 0., u_dimensions.y - 30.);
     
     ivec2 tex_coord = ivec2(floor(x_coord), floor(y_coord));
 
@@ -76,4 +81,5 @@ void main(){
     vec3 normal = normalize(v_normal);
 
     out_color = get_color(normal, v_position, color, selected);
+    out_color = get_uv_color(v_uv);
 }
