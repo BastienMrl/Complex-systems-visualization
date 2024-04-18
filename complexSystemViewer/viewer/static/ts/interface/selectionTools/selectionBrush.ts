@@ -1,4 +1,5 @@
 import { ViewerManager } from "../../viewerManager.js";
+import { SelectionManager } from "./selectionManager.js";
 import { SelectionTool } from "./selectionTool.js";
 
 export enum BrushShape{
@@ -20,8 +21,8 @@ export class SelectionBrushTool extends SelectionTool{
     private _idValues : Map<number, number>;
 
     
-    public constructor(viewer : ViewerManager, interactionButton : number, sizes : [number, number]){
-        super(viewer, sizes);
+    public constructor(viewer : ViewerManager, interactionButton : number, manager : SelectionManager){
+        super(viewer, manager);
         this._interactionButton = interactionButton;
         this._shape = BrushShape.CIRCLE;
         this._radius = 3;
@@ -111,7 +112,7 @@ export class SelectionBrushTool extends SelectionTool{
             return;
         this._mouseDown = false;
         if (this._currentMask.length != 0)
-            this._viewer.sendInteractionRequest(new Float32Array(this._currentMask));
+            this._manager.apply_interaction(new Float32Array(this._currentMask));
         this.onCurrentSelectionChanged(null);
     }
 

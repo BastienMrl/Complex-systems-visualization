@@ -27,7 +27,7 @@ class TransmissionWorker {
                 this.updateSimulationRules(getMessageBody(e));
                 break;
             case WorkerMessage.APPLY_INTERACTION:
-                this.applyInteraction(getMessageBody(e)[2], getMessageBody(e)[0], getMessageBody(e)[1]);
+                this.apply_interaction(getMessageBody(e)[2], getMessageBody(e)[0], getMessageBody(e)[1]);
                 break;
             case WorkerMessage.CHANGE_SIMULATION:
                 this.changeSimulation(getMessageBody(e));
@@ -86,11 +86,11 @@ class TransmissionWorker {
             await this.waitSocketConnection();
         this._socketManager.updateInitParams(params);
     }
-    async applyInteraction(mask, interaction, id) {
+    async apply_interaction(mask, interaction, id) {
         if (!this._socketManager.isConnected)
             await this.waitSocketConnection();
         this._statesBuffer.flush();
-        this._socketManager.applyInteraction(mask, interaction, id);
+        this._socketManager.apply_interaction(mask, interaction, id);
         await this.waitNewValues();
         await this.sendValues(true);
     }

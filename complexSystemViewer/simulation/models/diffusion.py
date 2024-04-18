@@ -76,9 +76,9 @@ class DiffusionSimulation(Simulation):
 
     def __init__(self, params : DiffusionParameters, needJSON : bool = True):
         super().__init__(params, needJSON=needJSON)
-        self.initSimulation(params)
+        self.init_simulation(params)
 
-    def initSimulation(self, params : DiffusionParameters):
+    def init_simulation(self, params : DiffusionParameters):
         self.params : DiffusionParameters = params
 
         self.current_states : GridState = None

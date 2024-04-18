@@ -7,10 +7,12 @@ export class SelectionTool {
     _currentId;
     _currentMask;
     _mouseDown = false;
-    constructor(viewer, maskSize) {
+    _manager;
+    constructor(viewer, manager) {
         this._viewer = viewer;
-        this._maskSize = maskSize;
-        this._currentMask = new Float32Array(maskSize[0] * maskSize[1]);
+        this._manager = manager;
+        this._maskSize = manager.maskSize;
+        this._currentMask = new Float32Array(this._maskSize[0] * this._maskSize[1]);
     }
     resetTool() {
         this._mouseDown = false;

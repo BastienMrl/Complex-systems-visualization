@@ -14,13 +14,16 @@ export class SelectionManager {
     _tools;
     _stats;
     _sizes = [100, 100];
+    _currentInteraction;
+    _viewer;
     constructor(viewer) {
+        this._viewer = viewer;
         viewer.createMaskTexture(this._sizes[0], this._sizes[1]);
         this._stats = viewer.stats;
         this._tools = new Array(3);
-        this._tools[SelectionMode.BOX] = new SelectionBoxTool(viewer, 0, this._sizes);
-        this._tools[SelectionMode.BRUSH] = new SelectionBrushTool(viewer, 0, this._sizes);
-        this._tools[SelectionMode.LASSO] = new SelectionLassoTool(viewer, 0, this._sizes);
+        this._tools[SelectionMode.BOX] = new SelectionBoxTool(viewer, 0, this);
+        this._tools[SelectionMode.BRUSH] = new SelectionBrushTool(viewer, 0, this);
+        this._tools[SelectionMode.LASSO] = new SelectionLassoTool(viewer, 0, this);
         viewer.canvas.addEventListener('mousemove', (e) => {
             if (this._mode != SelectionMode.DISABLE)
                 this._tools[this._mode].receiveMouseMoveEvent(e);
@@ -37,8 +40,17 @@ export class SelectionManager {
             }
         });
     }
+    get maskSize() {
+        return this._sizes;
+    }
+    set interaction(name) {
+        this._currentInteraction = name;
+    }
     set stats(stats) {
         this._stats = stats;
+    }
+    apply_interaction(mask) {
+        this._viewer.sendInteractionRequest(mask, this._currentInteraction);
     }
     switchMode(mode) {
         if (mode == this._mode)

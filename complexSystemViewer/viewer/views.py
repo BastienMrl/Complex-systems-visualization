@@ -10,7 +10,6 @@ def index(request):
     models = ALifeModel.objects.all()
     modelSelected = models.first()
     modelsName = [m.value for m in SimulationEnum]
-    print(modelsName)
     
     toolsList = Tool.objects.filter(aLifeModel=modelSelected.pk)
     
@@ -29,9 +28,12 @@ def index(request):
     meshPath = os.path.join(settings.BASE_DIR, "viewer/"+settings.STATIC_URL+"models/")
     meshFiles = os.listdir(meshPath)
     viewers = ["Meshes", "Texture", "Material"]
+
+    interactionsName = ["test", "0"]
     return render(request, "index.html", {"model":modelSelected , "modelsName":modelsName, "initParameters":initParameters,
                                           "rulesParameters":rulesParameters, "transformers":transformersParam, 
-                                          "toolsList":toolsList, "meshFiles":meshFiles, "viewers":viewers}) 
+                                          "toolsList":toolsList, "meshFiles":meshFiles, "viewers":viewers,
+                                          "interactionsName" : interactionsName}) 
 
 def addTransformer(request, transformerType):
     baseTransformer = TransformerItem.objects.filter(transformerType=transformerType).first()
@@ -45,3 +47,7 @@ def changeModel(request, modelsName):
     init_p = SimulationManager.get_initialization_parameters(modelsName)
     initParameters = [ip.get_param() for ip in init_p]
     return render(request, "simulationPanel/simulationConfigSet.html", {"rulesParameters":rulesParameters, "initParameters":initParameters})
+
+def renderInteractions(request):
+    interactions = ["test", "bis", "0", "truc"]
+    return render(request, "simulationPanel/tool/selectionInteraction.html", {"interactionsName" : interactions})

@@ -14,8 +14,8 @@ export class SelectionBrushTool extends SelectionTool {
     _attenuationFunction;
     _prevId;
     _idValues;
-    constructor(viewer, interactionButton, sizes) {
-        super(viewer, sizes);
+    constructor(viewer, interactionButton, manager) {
+        super(viewer, manager);
         this._interactionButton = interactionButton;
         this._shape = BrushShape.CIRCLE;
         this._radius = 3;
@@ -94,7 +94,7 @@ export class SelectionBrushTool extends SelectionTool {
             return;
         this._mouseDown = false;
         if (this._currentMask.length != 0)
-            this._viewer.sendInteractionRequest(new Float32Array(this._currentMask));
+            this._manager.apply_interaction(new Float32Array(this._currentMask));
         this.onCurrentSelectionChanged(null);
     }
     getPath(fromId, targetId) {

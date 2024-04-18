@@ -167,9 +167,9 @@ export class SocketManager {
         }));
     }
 
-    public applyInteraction(mask : Float32Array, interaction : string, id : number){
+    public apply_interaction(mask : Float32Array, interaction : string, id : number){
         if (!this._isConnected){
-            this._awaitingRequests.push(this.applyInteraction.bind(this, mask, interaction, id));
+            this._awaitingRequests.push(this.apply_interaction.bind(this, mask, interaction, id));
             return;
         }
 

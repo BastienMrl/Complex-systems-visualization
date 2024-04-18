@@ -102,10 +102,10 @@ class AntColony(Simulation):
 
     def __init__(self, params : AntColonyParameters, needJSON : bool = True):
         super().__init__(params, needJSON=needJSON)
-        self.initSimulation(params)
+        self.init_simulation(params)
 
 
-    def initSimulation(self, params : AntColonyParameters):
+    def init_simulation(self, params : AntColonyParameters):
 
         self.params : AntColonyParameters = params
 
@@ -127,7 +127,7 @@ class AntColony(Simulation):
             
             mask = jimage.resize(mask, (shape[0], shape[1]), "linear")
 
-            self.diffusion.applyInteraction("0", mask)
+            self.diffusion.apply_interaction("0", mask)
 
             states.set_grid(jimage.resize(self.diffusion.current_states.grid, (self.params.grid_size_send, self.params.grid_size_send, 1), "linear"))
             
@@ -143,13 +143,13 @@ class AntColony(Simulation):
 
         for i, agent in enumerate(self.agents):
             agent.set_grid(grid)
-            agent.newStep()
+            agent.new_step()
             x = jnp.round(agent.current_states.get_pos_x()).astype(jnp.int16)
             y = jnp.round(agent.current_states.get_pos_y()).astype(jnp.int16)
             new_grid = new_grid.at[x, y, agent.params.sensing_channel].add(self.params.drop_amount[i])
                
         self.diffusion.current_states.set_grid(new_grid)
-        self.diffusion.newStep()
+        self.diffusion.new_step()
 
         timer = Timer("Resizing grid")
         timer.start()

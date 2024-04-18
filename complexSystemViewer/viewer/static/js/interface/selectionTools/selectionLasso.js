@@ -3,8 +3,8 @@ export class SelectionLassoTool extends SelectionTool {
     _pathIds = [];
     _aabb = [-1, -1, -1, -1];
     _interactionButton;
-    constructor(viewer, interactionButton, sizes) {
-        super(viewer, sizes);
+    constructor(viewer, interactionButton, manager) {
+        super(viewer, manager);
         this.resetAabb();
         this._interactionButton = interactionButton;
     }
@@ -36,7 +36,7 @@ export class SelectionLassoTool extends SelectionTool {
         if (e.button != this._interactionButton || !this._mouseDown)
             return;
         this._mouseDown = false;
-        this._viewer.sendInteractionRequest(new Float32Array(this._currentMask));
+        this._manager.apply_interaction(new Float32Array(this._currentMask));
         this.onCurrentSelectionChanged(null);
         this.resetAabb();
     }

@@ -1,5 +1,6 @@
 import { Vec3 } from "../../ext/glMatrix/vec3.js";
 import { ViewerManager } from "../../viewerManager.js";
+import { SelectionManager } from "./selectionManager.js";
 
 export abstract class SelectionTool{
     protected _viewer : ViewerManager;
@@ -15,12 +16,15 @@ export abstract class SelectionTool{
 
     protected _mouseDown : boolean = false;
 
+    protected _manager : SelectionManager;
 
 
-    public constructor(viewer : ViewerManager, maskSize : [number, number]){
+
+    public constructor(viewer : ViewerManager, manager : SelectionManager){
         this._viewer = viewer;
-        this._maskSize = maskSize;
-        this._currentMask = new Float32Array(maskSize[0] * maskSize[1])
+        this._manager = manager;
+        this._maskSize = manager.maskSize;
+        this._currentMask = new Float32Array(this._maskSize[0] * this._maskSize[1])
     }
 
     protected abstract onMouseMove(e : MouseEvent) : void;

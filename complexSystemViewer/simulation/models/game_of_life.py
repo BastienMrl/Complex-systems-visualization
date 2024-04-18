@@ -93,9 +93,9 @@ class GOLSimulation(Simulation):
 
     def __init__(self, params : GOLParameters = GOLParameters(), needJSON : bool = True): 
         super().__init__(params, needJSON=needJSON)
-        self.initSimulation(params)
+        self.init_simulation(params)
 
-    def initSimulation(self, params : GOLParameters = GOLParameters()):
+    def init_simulation(self, params : GOLParameters = GOLParameters()):
 
         self.params : GOLParameters = params
 

@@ -1,11 +1,7 @@
 from abc import ABC, abstractmethod, abstractproperty
 import jax.numpy as jnp
-import jax.lax as lax
-import jax.random
 from .param import *
 from .interaction import *
-import numpy as np
-import time
 import copy
 
 
@@ -57,7 +53,7 @@ class Simulation(ABC):
         self.interactions : list[Interaction] = None
             
     @abstractmethod
-    def initSimulation(self, params : SimulationParameters = None):
+    def init_simulation(self, params : SimulationParameters = None):
         """Method called before the simulation starts. It is expected to set the initial states of the simulation.
 
         :param list[State] init_states: Optional states for the simulation 
@@ -79,8 +75,9 @@ class Simulation(ABC):
         """
         tsl = self.current_states.to_JSON_object()
         self.as_json = tsl
+
         
-    def applyInteraction(self, id : str, mask : jnp.ndarray):
+    def apply_interaction(self, id : str, mask : jnp.ndarray):
         """Apply the specified interaction to the current states of the simulation
         
         :param str id: Id of the interaction
@@ -90,8 +87,12 @@ class Simulation(ABC):
         for element in self.interactions:
             if element.id == id:
                 interaction = element
-        if interaction == None :
-            return
+        
+        if (interaction == None):
+            if (self.NEED_JSON):
+                self.to_JSON_object()
+                return
+        
 
         interaction.apply(mask, self.current_states)
         if (self.NEED_JSON):
@@ -105,7 +106,7 @@ class Simulation(ABC):
                 self.current_states.id = current_id + 1
                 break
 
-    def newStep(self):    
+    def new_step(self):    
         if (self.NEED_JSON):
             self.past_states[self._history_idx] = copy.deepcopy(self.current_states)
             self._history_idx = (self._history_idx + 1) % self.HISTORY_SIZE

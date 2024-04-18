@@ -30,54 +30,54 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
         match message:
             case "RequestData":
                 if self.isConnected :
-                    await self.sendOneStep()
+                    await self.send_one_step()
             case "ResetSimulation":
                 if self.isConnected:
-                    await self.resetSimulation()
+                    await self.reset_simulation()
             case "ChangeSimulation":
                 if self.isConnected:
                     self.sim = None
-                    await self.initNewSimulation(text_data_json["simuName"])       
+                    await self.init_new_simulation(text_data_json["simuName"])       
             case "UpdateInitParams":
-                    await self.updateInitParams(text_data_json["params"])
+                    await self.update_init_params(text_data_json["params"])
             case "UpdateRule":
                 if self.isConnected:
-                    await self.updateRule(text_data_json["params"])
+                    await self.update_rule(text_data_json["params"])
             case "ApplyInteraction":
                 if self.isConnected:
-                    await self.applyInteraction(text_data_json["mask"], text_data_json["id"], text_data_json["interaction"])
+                    await self.apply_interaction(text_data_json["mask"], text_data_json["id"], text_data_json["interaction"])
 
-    async def sendOneStep(self):
+    async def send_one_step(self):
         await self.send(bytes_data=orjson.dumps(self.sim.as_json))
-        self.sim.newStep()
+        self.sim.new_step()
 
-    async def updateInitParams(self, params):
+    async def update_init_params(self, params):
         json = orjson.loads(params)
         self.next_params_set.update_init_param(json)
 
-    async def updateRule(self, params):
+    async def update_rule(self, params):
         self.sim.params.update_rules_param(orjson.loads(params))
 
-    async def initNewSimulation(self, name):
+    async def init_new_simulation(self, name):
         self.params = SimulationManager.get_parameters(name)
         self.next_params_set = SimulationManager.get_parameters(name)
         self.sim = SimulationManager.get_simulation_model(name, self.params)
-        await self.sendOneStep()    
+        await self.send_one_step()    
 
-    async def resetSimulation(self):
+    async def reset_simulation(self):
         self.params.set_init_from_list(self.next_params_set.get_init_parameters())
         self.next_params_set = cp.deepcopy(self.next_params_set)
-        self.sim.initSimulation(self.params)
-        await self.sendOneStep()
+        self.sim.init_simulation(self.params)
+        await self.send_one_step()
 
-    async def applyInteraction(self, mask : list[float], stateId : int, interaction : str):
+    async def apply_interaction(self, mask : list[float], stateId : int, interaction : str):        
+        self.sim.set_current_state_from_id(stateId)
         mask_width = int(math.sqrt(len(mask)))
         
-        self.sim.set_current_state_from_id(stateId)
         mask_jnp = jnp.asarray(mask, dtype=jnp.float32)
         mask_jnp = mask_jnp.reshape((mask_width, mask_width))
         mask_jnp = jimage.resize(mask_jnp, (self.sim.width, self.sim.height), "linear")
-        self.sim.applyInteraction(interaction, mask_jnp)
-        await self.sendOneStep()        
+        self.sim.apply_interaction(interaction, mask_jnp)
+        await self.send_one_step()        
 
     

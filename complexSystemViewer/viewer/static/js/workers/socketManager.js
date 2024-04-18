@@ -140,9 +140,9 @@ export class SocketManager {
             'simuName': name
         }));
     }
-    applyInteraction(mask, interaction, id) {
+    apply_interaction(mask, interaction, id) {
         if (!this._isConnected) {
-            this._awaitingRequests.push(this.applyInteraction.bind(this, mask, interaction, id));
+            this._awaitingRequests.push(this.apply_interaction.bind(this, mask, interaction, id));
             return;
         }
         let string = JSON.stringify({

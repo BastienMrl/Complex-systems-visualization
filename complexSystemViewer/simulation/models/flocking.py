@@ -108,7 +108,7 @@ class FlockingSimulation(Simulation):
         
     def __init__(self, params : FlockingParameters = FlockingParameters(), needJSON : bool = True): 
         super().__init__(params, needJSON=needJSON)
-        self.initSimulation(params)
+        self.init_simulation(params)
 
     #methods added to simplify usage of jax
     def JAX_to_ParticleState(self, state) :
@@ -129,7 +129,7 @@ class FlockingSimulation(Simulation):
         return {'boids' :boids}
 
 
-    def initSimulation(self, params : FlockingParameters = FlockingParameters()):
+    def init_simulation(self, params : FlockingParameters = FlockingParameters()):
         self.params : FlockingParameters = params
 
         self.init_default_sim()

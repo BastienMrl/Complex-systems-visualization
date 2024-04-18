@@ -1,0 +1,8 @@
+<div id="interactionSelectorContainer" class="simulationItem">
+    <label for="interactionSelector">Selected interaction</label> 
+    <select name="interaction" id="interactionSelector">
+        {% for interaction in interactionsName %}
+        <option value="{{interaction}}">{{interaction}}</option>
+        {% endfor %}
+    </select>
+</div>

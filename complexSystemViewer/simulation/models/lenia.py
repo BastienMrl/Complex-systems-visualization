@@ -86,9 +86,9 @@ class LeniaSimulation(Simulation):
     
     def __init__(self, params : LeniaParameters = LeniaParameters(), needJSON : bool = True): 
         super().__init__(params, needJSON=needJSON)
-        self.initSimulation(params)
+        self.init_simulation(params)
            
-    def initSimulation(self, params : LeniaParameters = LeniaParameters()):
+    def init_simulation(self, params : LeniaParameters = LeniaParameters()):
         
         self.params : LeniaParameters = params
 

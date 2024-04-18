@@ -13,6 +13,14 @@ div#modelSelectorContainer label {
     margin-right: 10px;
 }
 
+div#interactionSelectorContainer {
+  color: var(--color-lighter);
+}
+
+div#interactionSelectorContainer label {
+  margin-right: 10px;
+}
+
 select#modelSelector {
     box-shadow: 0px 0px 0px;
 }

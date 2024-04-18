@@ -79,6 +79,7 @@ export class UserInterface {
         let addTransformerButton = document.getElementById('buttonAddTransformer');
         let animableSelect = document.getElementById("animableSelect");
         let modelSelector = document.getElementById("modelSelector");
+        let interactionSelector = document.getElementById("interactionSelector");
         let toolSettings = document.getElementById("toolSettings").children;
         let meshInputFile = document.getElementById("meshLoader");
         let viewerSelector = document.getElementById("currentViewer");
@@ -198,8 +199,26 @@ export class UserInterface {
                 }
             };
             xhttp.send();
+            xhttp.open("GET", "renderInteractions", true);
+            xhttp.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    let domParser = new DOMParser();
+                    let options = domParser.parseFromString(this.responseText, "text/html").body.childNodes[0].childNodes;
+                    for (let i = 0; i < interactionSelector.childElementCount; i++) {
+                        interactionSelector.children[i].remove();
+                    }
+                    options.forEach(e => {
+                        interactionSelector.appendChild(e);
+                    });
+                }
+            };
+            xhttp.send();
         });
-        this.initSimulationItem();
+        // Interaction Selector
+        this._selectionManager.interaction = interactionSelector.value;
+        interactionSelector.addEventListener("change", () => {
+            this._selectionManager.interaction = interactionSelector.value;
+        });
         // meshInputFile.addEventListener("change", () => {
         //     let meshFile : string = "/static/models/" + meshInputFile.value;
         //     this._viewer.currentMeshFile = meshFile;
@@ -225,6 +244,7 @@ export class UserInterface {
                 this._selectionManager.setSelectionParameter(toolSettings.item(i).name, Number.parseFloat(toolSettings.item(i).value));
             });
         }
+        this.initSimulationItem();
     }
     displayToolMenu() {
         let toolParam = JSON.parse(this._selectionManager.getSelectionParameter());

@@ -107,6 +107,8 @@ export class UserInterface {
 
         let modelSelector = (document.getElementById("modelSelector") as HTMLSelectElement);
 
+        let interactionSelector = (document.getElementById("interactionSelector") as HTMLSelectElement)
+
         let toolSettings = (document.getElementById("toolSettings") as HTMLDivElement).children as HTMLCollectionOf<HTMLInputElement>;
         
         let meshInputFile = (document.getElementById("meshLoader") as HTMLSelectElement);
@@ -238,14 +240,37 @@ export class UserInterface {
                 }
             }
             xhttp.send();
-        })
-        this.initSimulationItem();
 
+            xhttp.open("GET", "renderInteractions", true);
+            xhttp.onreadystatechange = function() {
+                if(this.readyState == 4 && this.status == 200){
+                    let domParser = new DOMParser();
+                    let options = domParser.parseFromString(this.responseText, "text/html").body.childNodes;
+                    for (let i = 0; i < interactionSelector.childElementCount; i++){
+                        interactionSelector.children[i].remove()
+                    }
+                    options.forEach(e => {
+                        interactionSelector.appendChild(e)
+                    })
+                }
+            }
+            xhttp.send();
+        })
+
+        // Interaction Selector
+
+        this._selectionManager.interaction = interactionSelector.value;
+
+        interactionSelector.addEventListener("change", () => {
+            this._selectionManager.interaction = interactionSelector.value;
+        });
+
+        
         // meshInputFile.addEventListener("change", () => {
         //     let meshFile : string = "/static/models/" + meshInputFile.value;
         //     this._viewer.currentMeshFile = meshFile;
         //     this._viewer.loadMesh(meshFile);
-
+        
         // });
 
         viewerSelector.addEventListener("change", () =>{
@@ -254,21 +279,22 @@ export class UserInterface {
                 case ("Meshes"):
                     viewerType = ViewerType.MULTIPLE_MESHES;
                     break;
-                case ("Texture"):
-                    viewerType = ViewerType.TEXTURE;
+                    case ("Texture"):
+                        viewerType = ViewerType.TEXTURE;
                     break;
-                case ("Material"):
-                    viewerType = ViewerType.MATERIAL;
-                    break;
-            }
-            this._viewer.switchViewer(viewerType);
+                    case ("Material"):
+                        viewerType = ViewerType.MATERIAL;
+                        break;
+                    }
+                    this._viewer.switchViewer(viewerType);
         });
-
+        
         for(let i=0; i<toolSettings.length; i++){
             toolSettings.item(i).addEventListener("change", () => {
                 this._selectionManager.setSelectionParameter(toolSettings.item(i).name, Number.parseFloat(toolSettings.item(i).value));
             });
         }
+        this.initSimulationItem();
     }
 
     private displayToolMenu(){

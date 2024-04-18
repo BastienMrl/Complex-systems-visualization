@@ -71,9 +71,9 @@ class PhysarumAgentSimulation(Simulation):
 
     def __init__(self, params : PhysarumAgentParameters = PhysarumAgentParameters(), needJSON : bool = True):
         super().__init__(params, needJSON=needJSON)
-        self.initSimulation(params)
+        self.init_simulation(params)
 
-    def initSimulation(self, params : PhysarumAgentParameters = PhysarumAgentParameters()):
+    def init_simulation(self, params : PhysarumAgentParameters = PhysarumAgentParameters()):
         self.params : PhysarumAgentParameters = params
 
         key = jax.random.key(918)
