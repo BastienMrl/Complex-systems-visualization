@@ -27,7 +27,7 @@ class FlockingParameters(SimulationParameters):
 
     def __init__(self, id_prefix : str = "default"):
         super().__init__(id_prefix)
-        
+
         #init
         self.box_size : int
         self.boid_count : int
@@ -106,8 +106,8 @@ class FlockingParameters(SimulationParameters):
 class FlockingSimulation(Simulation): 
 
         
-    def __init__(self, params : FlockingParameters = FlockingParameters()): 
-        super().__init__()
+    def __init__(self, params : FlockingParameters = FlockingParameters(), needJSON : bool = True): 
+        super().__init__(params, needJSON=needJSON)
         self.initSimulation(params)
 
     #methods added to simplify usage of jax
@@ -116,7 +116,7 @@ class FlockingSimulation(Simulation):
 
         theta = (boids.theta % (2 * jnp.pi)) / (2. * jnp.pi)
 
-        particles = jnp.stack((boids.R[:, 0] - self.box_size / 2, boids.R[:, 1] - self.box_size / 2, theta), 1)
+        particles = jnp.stack((boids.R[:, 0] - self.params.box_size / 2, boids.R[:, 1] - self.params.box_size / 2, theta), 1)
 
         self.current_states.particles = particles
             
@@ -144,7 +144,7 @@ class FlockingSimulation(Simulation):
 
  
     def _step(self) :
-        speed = self.getRuleById("speed")
+        speed = self.params.speed
         state = self.state
         R, theta = state['boids']
         

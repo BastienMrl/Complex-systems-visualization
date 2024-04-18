@@ -75,7 +75,7 @@ class DiffusionSimulation(Simulation):
     
 
     def __init__(self, params : DiffusionParameters, needJSON : bool = True):
-        super().__init__(needJSON=needJSON)
+        super().__init__(params, needJSON=needJSON)
         self.initSimulation(params)
 
     def initSimulation(self, params : DiffusionParameters):
@@ -109,7 +109,7 @@ class DiffusionSimulation(Simulation):
 
     def init_random_sim(self):
         key = jax.random.PRNGKey(1701)
-        grid = jax.random.uniform(key, (self.params.grid_size, self.params.grid_size, self.nb_channels), dtype=jnp.float64)
+        grid = jax.random.uniform(key, (self.params.grid_size, self.params.grid_size, self.params.nb_channels), dtype=jnp.float64)
         state = GridState(grid)
         self.current_states = state
         self.width = self.params.grid_size
@@ -122,8 +122,8 @@ class DiffusionSimulation(Simulation):
         state : GridState = self.current_states
         grid = state.grid
 
-        out = apply_convolution(grid, self.kernel)
-        out *= (1. - self.decay)
+        out = apply_convolution(grid, self.params.kernel)
+        out *= (1. - self.params.decay)
         state.set_grid(out)
 
         timer.stop()

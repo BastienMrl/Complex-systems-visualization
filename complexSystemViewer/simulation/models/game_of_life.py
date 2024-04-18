@@ -79,11 +79,11 @@ class GOLParameters(SimulationParameters):
     def rule_param_value_changed(self, idx: int, param : Param) -> None:      
         match (idx):
             case 0 :
-                self.birth_min = param.min_param
-                self.birth_max = param.max_param
+                self.birth_min = param.min_param.value
+                self.birth_max = param.max_param.value
             case 1 :
-                self.survival_min = param.min_param
-                self.survival_max = param.max_param
+                self.survival_min = param.min_param.value
+                self.survival_max = param.max_param.value
             
     
         
@@ -92,12 +92,12 @@ class GOLParameters(SimulationParameters):
 class GOLSimulation(Simulation): 
 
     def __init__(self, params : GOLParameters = GOLParameters(), needJSON : bool = True): 
-        super().__init__(needJSON=needJSON)
+        super().__init__(params, needJSON=needJSON)
         self.initSimulation(params)
 
     def initSimulation(self, params : GOLParameters = GOLParameters()):
 
-        self.param = params
+        self.params : GOLParameters = params
 
         self.kernel = jnp.zeros((3, 3, 1, 1), dtype=jnp.float32)
         self.kernel += jnp.array([[1, 1, 1],
@@ -105,7 +105,7 @@ class GOLSimulation(Simulation):
                             [1, 1, 1]])[:, :, jnp.newaxis, jnp.newaxis]
         self.kernel = jnp.transpose(self.kernel, [3, 2, 0, 1])
 
-        if self.param.is_random:
+        if self.params.is_random:
             self.init_random_sim()
         else:
             self.init_default_sim() 
@@ -128,11 +128,11 @@ class GOLSimulation(Simulation):
         out = lax.conv(grid.astype(np.float64), self.kernel.astype(np.float64), (1, 1), 'SAME')
 
         cdt_1 = jnp.zeros_like(out)
-        for i in range(self.param.birth_min, self.param.birth_max + 1):
+        for i in range(self.params.birth_min, self.params.birth_max + 1):
             cdt_1 = jnp.logical_or(cdt_1, out == i)
 
         cdt_2 = jnp.zeros_like(out)
-        for i in range(self.param.survival_min, self.param.survival_max + 1):
+        for i in range(self.params.survival_min, self.params.survival_max + 1):
             cdt_1 = jnp.logical_or(cdt_1, out == 10+i)
         out = jnp.logical_or(cdt_1, cdt_2)
         out = jnp.expand_dims(jnp.squeeze(out), (2))
@@ -140,20 +140,20 @@ class GOLSimulation(Simulation):
         state.set_grid(out.astype(jnp.float32))
 
     def init_default_sim(self):
-        grid = jnp.zeros((self.param.grid_size, self.param.grid_size, 1))
+        grid = jnp.zeros((self.params.grid_size, self.params.grid_size, 1))
         state = GridState(grid)
         self.current_states = state
-        self.width = self.param.grid_size
-        self.height = self.param.grid_size
+        self.width = self.params.grid_size
+        self.height = self.params.grid_size
         self.current_states.id = 0
 
     def init_random_sim(self):
         key = jax.random.PRNGKey(1701)
-        grid = jax.random.uniform(key, (self.param.grid_size, self.param.grid_size, 1))
+        grid = jax.random.uniform(key, (self.params.grid_size, self.params.grid_size, 1))
         grid = jnp.round(grid)
         state = GridState(grid)
         self.current_states = state
-        self.width = self.param.grid_size
-        self.height = self.param.grid_size
+        self.width = self.params.grid_size
+        self.height = self.params.grid_size
         self.current_states.id = 0
 

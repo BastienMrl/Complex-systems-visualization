@@ -10,8 +10,6 @@ export class UserInterface {
     // Singleton
     private static _instance : UserInterface;
 
-    private _nbElements : number;
-
     private _transformers : TransformersInterface;
     private _animationCurves : AnimationInterface;
     private _stats : Stats;
@@ -24,11 +22,6 @@ export class UserInterface {
 
 
 
-    private constructor() {
-        let GridSizeInput = (document.querySelector("input[paramId=gridSize]") as HTMLInputElement);
-        this._nbElements = (GridSizeInput.value as unknown as number) ** 2;
-    }
-
     public static getInstance() : UserInterface {
         if (!UserInterface._instance)
             UserInterface._instance = new UserInterface();
@@ -39,10 +32,6 @@ export class UserInterface {
         this._transformers.setNumberOfStatesOutput(nb);
     }
     
-    public get nbElements() : number {
-        return this._nbElements;
-    }
-
     public initHandlers(viewer : ViewerManager){
         this._viewer = viewer;
         this._selectionManager = new SelectionManager(viewer);

@@ -8,7 +8,6 @@ import { Stats } from "./stats.js";
 export class UserInterface {
     // Singleton
     static _instance;
-    _nbElements;
     _transformers;
     _animationCurves;
     _stats;
@@ -16,10 +15,6 @@ export class UserInterface {
     _selectionManager;
     _ctrlPressed;
     _wheelPressed;
-    constructor() {
-        let GridSizeInput = document.querySelector("input[paramId=gridSize]");
-        this._nbElements = GridSizeInput.value ** 2;
-    }
     static getInstance() {
         if (!UserInterface._instance)
             UserInterface._instance = new UserInterface();
@@ -27,9 +22,6 @@ export class UserInterface {
     }
     set nbChannels(nb) {
         this._transformers.setNumberOfStatesOutput(nb);
-    }
-    get nbElements() {
-        return this._nbElements;
     }
     initHandlers(viewer) {
         this._viewer = viewer;

@@ -1,11 +1,11 @@
 from enum import Enum
 import copy as cp
-from simulation.models.game_of_life import GOLSimulation
-from simulation.models.lenia import LeniaSimulation
-from simulation.models.flocking import FlockingSimulation
-from simulation.models.diffusion import DiffusionSimulation
-from simulation.models.physarum_agent import PhysarumAgentSimulation
-from simulation.models.ant_colony import AntColonySimulation, PhysarumLeniaSimulation
+from simulation.models.game_of_life import *
+from simulation.models.lenia import *
+from simulation.models.flocking import *
+from simulation.models.diffusion import *
+from simulation.models.physarum_agent import *
+from simulation.models.ant_colony import *
 
 class SimulationEnum(Enum):
     GOL = "Gol"
@@ -15,6 +15,7 @@ class SimulationEnum(Enum):
     PHYSARUM_AGENTS = "Physarum agents"
     ANT_COLONY = "Ant colony"
     PHYSARUM_LENIA = "Physarum Lenia"
+    PHYSARUM_LENIA_BIS = "Multiple physarum"
 
     @classmethod
     def get_list(cls):
@@ -34,57 +35,82 @@ class SimulationEnum(Enum):
 class SimulationManager(object):
 
     @staticmethod
-    def get_simulation_model(model_name : str):
+    def get_simulation_model(model_name : str, params : SimulationParameters):
         match model_name :
             case "Gol":
-                return GOLSimulation()
+                return GOLSimulation(params)
             case "Lenia":
-                return LeniaSimulation()
+                return LeniaSimulation(params)
             case "Flocking":
-                return FlockingSimulation()
+                return FlockingSimulation(params)
             case "Diffusion":
-                return DiffusionSimulation()
+                return DiffusionSimulation(params)
             case "Physarum agents":
-                return PhysarumAgentSimulation()
+                return PhysarumAgentSimulation(params)
             case "Ant colony":
-                return AntColonySimulation()
+                return AntColonySimulation(params)
             case "Physarum Lenia":
-                return PhysarumLeniaSimulation()
+                return PhysarumLeniaSimulation(params)
+            case "Multiple physarum":
+                return PhysarumLeniaBisSimulation(params)
             
             
     @staticmethod
     def get_default_rules(model_name : str):
         match model_name:
             case "Gol":
-                return cp.deepcopy(GOLSimulation.default_rules)
+                return GOLParameters().get_rules_paramaters()
             case "Lenia":
-                return cp.deepcopy(LeniaSimulation.default_rules)
+                return LeniaParameters().get_rules_paramaters()
             case "Flocking":
-                return cp.deepcopy(FlockingSimulation.default_rules)
+                return FlockingParameters().get_rules_paramaters()
             case "Diffusion":
-                return cp.deepcopy(DiffusionSimulation.default_rules)
+                return DiffusionParameters().get_rules_paramaters()
             case "Physarum agents":
-                return cp.deepcopy(PhysarumAgentSimulation.default_rules)
+                return PhysarumAgentParameters().get_rules_paramaters()
             case "Ant colony":
-                return cp.deepcopy(AntColonySimulation.default_rules)
+                return AntColonySimulation.params.get_rules_paramaters()
             case "Physarum Lenia":
-                return cp.deepcopy(PhysarumLeniaSimulation.default_rules)
+                return PhysarumLeniaSimulation.params.get_rules_paramaters()
+            case "Multiple physarum":
+                return PhysarumLeniaBisSimulation.params.get_rules_paramaters()
     
     @staticmethod
     def get_initialization_parameters(model_name : str):
         match model_name:
             case "Gol":
-                return cp.deepcopy(GOLSimulation.initialization_parameters)
+                return GOLParameters().get_init_parameters()
             case "Lenia":
-                return cp.deepcopy(LeniaSimulation.initialization_parameters)
+                return LeniaParameters().get_init_parameters()
             case "Flocking":
-                return cp.deepcopy(FlockingSimulation.initialization_parameters)
+                return FlockingParameters().get_init_parameters()
             case "Diffusion":
-                return cp.deepcopy(DiffusionSimulation.initialization_parameters)
+                return DiffusionParameters().get_init_parameters()
             case "Physarum agents":
-                return cp.deepcopy(PhysarumAgentSimulation.initialization_parameters)
+                return PhysarumAgentParameters().get_init_parameters()
             case "Ant colony":
-                return cp.deepcopy(AntColonySimulation.initialization_parameters)
+                return AntColonySimulation.params.get_init_parameters()
             case "Physarum Lenia":
-                return cp.deepcopy(PhysarumLeniaSimulation.initialization_parameters)
+                return PhysarumLeniaSimulation.params.get_init_parameters()
+            case "Multiple physarum":
+                return PhysarumLeniaBisSimulation.params.get_init_parameters()
 
+    @staticmethod
+    def get_parameters(model_name : str):
+        match model_name:
+            case "Gol":
+                return GOLParameters()
+            case "Lenia":
+                return LeniaParameters()
+            case "Flocking":
+                return FlockingParameters()
+            case "Diffusion":
+                return DiffusionParameters()
+            case "Physarum agents":
+                return PhysarumAgentParameters()
+            case "Ant colony":
+                return AntColonySimulation.params
+            case "Physarum Lenia":
+                return PhysarumLeniaSimulation.params
+            case "Multiple physarum":
+                return PhysarumLeniaBisSimulation.params

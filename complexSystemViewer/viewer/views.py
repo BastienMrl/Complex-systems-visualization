@@ -2,7 +2,7 @@ import os
 from complexSystemViewer import settings
 from django.shortcuts import render
 from .models import ALifeModel, TransformerItem, Parameter, Tool
-from simulation.models.game_of_life import GOLSimulation
+from simulation.models.game_of_life import GOLSimulation, GOLParameters
 from .simulation_manager import SimulationEnum, SimulationManager
 
 # Create your views here.
@@ -14,10 +14,10 @@ def index(request):
     
     toolsList = Tool.objects.filter(aLifeModel=modelSelected.pk)
     
-    rules = GOLSimulation.default_rules
+    rules = GOLParameters().get_rules_paramaters()
     rulesParameters = [rule.get_param() for rule in rules]
     
-    init_p = GOLSimulation.initialization_parameters
+    init_p = GOLParameters().get_init_parameters()
     initParameters = [ip.get_param() for ip in init_p]
     
     transformers = TransformerItem.objects.all()

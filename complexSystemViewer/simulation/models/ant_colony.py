@@ -1,9 +1,6 @@
 import jax.numpy as jnp
 import jax.lax as lax
-import jax.random
 import jax.image as jimage
-
-from complexSystemViewer.simulation.param import Param
 
 from ..simulation import *
 from ..models.diffusion import *
@@ -13,12 +10,19 @@ from .physarum_agent import *
 from ..utils import Timer
 import copy as cp
 
+@dataclass
+class _SimulationPair():
+    params : SimulationParameters
+    type : type
+
 class AntColonyParameters(SimulationParameters):
 
-    def __init__(self, agents : list[Simulation], diffusion : Simulation, id_prefix : str = "default"):
+    def __init__(self, agents : list[_SimulationPair], diffusion : _SimulationPair, id_prefix : str = "default"):
         super().__init__(id_prefix)
 
-        self.agents
+        self.agents : list[_SimulationPair] = agents
+        self.diffusion : _SimulationPair = diffusion
+
 
         #init
         self.grid_size_send : int
@@ -27,7 +31,7 @@ class AntColonyParameters(SimulationParameters):
         # case grid_size
 
         #rules
-        self.drop_amount : float
+        self.drop_amount : list[float] = [None] * len(self.agents)
 
         #front
         self._init_param : list[Param] = [
@@ -38,16 +42,47 @@ class AntColonyParameters(SimulationParameters):
         ]
 
         self._rules_param : list[Param] = [
-            FloatParam(id_p=self._get_id_prefix() + "dropAmount", name = self._get_name_prefix() + "Dropped Amount",
-                       default_value=0.1, min_value = 0.0, stpe = 0.05)
+            FloatParam(id_p=self._get_id_prefix() + f"dropAmount{i}", name = self._get_name_prefix() + f"Dropped Amount {i}",
+                       default_value=0.1, min_value = 0.0, step = 0.05) for i in range(len(self.drop_amount))
         ]
 
         self.set_all_params()
 
+    def get_init_parameters(self) -> list[Param]:
+        ret = self._init_param.copy()
+        for agent in self.agents:
+            ret += agent.params.get_init_parameters()
+        ret += self.diffusion.params.get_init_parameters()
+        return [param for param in ret if ((not "gridSize" in param.id_param) or (self._get_id_prefix() in param.id_param))]
+
+    def get_rules_paramaters(self) -> list[Param]:
+        ret = self._rules_param.copy()
+        for agent in self.agents:
+            ret += agent.params.get_rules_paramaters()
+        return ret + self.diffusion.params.get_rules_paramaters()
+
+    def update_rules_param(self, json: dict[str, str | float | int]):
+        super().update_rules_param(json)
+        for agent in self.agents:
+            agent.params.update_rules_param(json)
+        self.diffusion.params.update_rules_param(json)
+
+    def update_init_param(self, json: dict[str, str | float | int]):
+        super().update_init_param(json)
+        for agent in self.agents:
+            agent.params.update_init_param(json)
+        self.diffusion.params.update_init_param(json)
+
+    def set_init_from_list(self, source: list[Param]):
+        for agent in self.agents:
+            agent.params.set_init_from_list(source)
+        self.diffusion.params.set_init_from_list(source)
+        super().set_init_from_list(source)
+
     def rule_param_value_changed(self, idx: int, param: Param) -> None:
-        match (idx):
-            case 0:
-                self.drop_amount = param.value
+        if (not param.id_param.startswith(self.id_prefix)):
+            return
+        self.drop_amount[idx] = param.value
         
     def init_param_value_changed(self, idx: int, param: Param) -> None:
         match(idx):
@@ -55,86 +90,29 @@ class AntColonyParameters(SimulationParameters):
                 self.grid_size_send = param.value
             case 1:
                 self.grid_size = param.value
+                self.diffusion.params.grid_size = self.grid_size
+                for agent in self.agents:
+                    agent.params.grid_size = self.grid_size
     
 
 
-
-
-def substract_param_ids(initial : list[Param], to_substract : list[Param]):
-    ret = initial
-    for sub in to_substract:
-        id = -1
-        for i, param in enumerate(ret):
-            if sub.id_param == param.id_param:
-                id = i
-        if (id != -1):
-            ret.pop(id)
-    return ret
-
-def generate_init_parameters(own, shared, agent, diffusion):
-    initialization_parameters = cp.deepcopy(own) + cp.deepcopy(shared)
-    initialization_parameters += substract_param_ids(cp.deepcopy(agent), shared)
-    initialization_parameters += substract_param_ids(cp.deepcopy(diffusion), shared)
-    return initialization_parameters
-
-def generate_rules_parameter(own, agent, diffusion):
-    default_rules = own
-    default_rules += agent
-    default_rules += diffusion
-    return default_rules
 
 class AntColony(Simulation):
     
 
-    # initialization parameters
-
-    own_initialization_parameters = [
-        IntParam(id_p="gridSizeSend", name = "Sended Grid size",
-                 default_value=150, min_value = 1, step=1),
-    ]
-
-    shared_initialization_parameters = [
-        IntParam(id_p="gridSize", name = "Grid size",
-                 default_value=200, min_value = 1, step=1),
-        IntParam(id_p="C", name="Number of Channels",
-                    default_value=1, min_value=1, max_value=4, step=1)
-    ]
+    def __init__(self, params : AntColonyParameters, needJSON : bool = True):
+        super().__init__(params, needJSON=needJSON)
+        self.initSimulation(params)
 
 
+    def initSimulation(self, params : AntColonyParameters):
 
-    # rules parameters
+        self.params : AntColonyParameters = params
 
-    own_default_rules = [
-        FloatParam(id_p="dropAmount", name = "Dropped amount", default_value = 0.1,
-                   min_value = 0.0, step = 0.05)
-    ]
+        self.diffusion : Simulation  = self.params.diffusion.type(self.params.diffusion.params, False)
+        self.agents : list[Simulation] = [agent.type(agent.params, False) for agent in self.params.agents]
 
-    
-    initialization_parameters = []
-    default_rules = []
-
-    def __init__(self, rules : list[Param] = default_rules, init_param : list[Param] = initialization_parameters, needJSON : bool = True,
-                agent : Simulation = PhysarumAgentSimulation, diffusion : Simulation = DiffusionSimulation):
-        super().__init__(needJSON=needJSON)
-        self.agent_simulation : Simulation = agent
-        self.diffusion_simulation : Simulation = diffusion
-        self.initSimulation(rules, init_param)
-
-
-    def initSimulation(self, rules : list[Param] = default_rules,
-                        init_param : list[Param] = initialization_parameters):
-
-        self.rules = rules
-        self.init_param = init_param
-
-        self.grid_size_send = self.get_init_param("gridSizeSend").value
-        self.channels = self.get_init_param("C").value
-        self.drop_amount = self.get_rules_param("dropAmount").value
-
-        self.diffusion : Simulation  = self.diffusion_simulation(self._get_diffusion_rules(), self._get_diffusion_initialization_parameters(), False)
-        self.agents : Simulation = self.agent_simulation(self._get_agents_rules(), self._get_agents_initialization_parameters(), False)
-
-        self.current_states = GridState(jnp.zeros((self.grid_size_send, self.grid_size_send, 1)))
+        self.current_states = GridState(jnp.zeros((self.params.grid_size_send, self.params.grid_size_send, self.diffusion.current_states.grid.shape[-1])))
 
 
         self.width = self.diffusion.current_states.width
@@ -151,97 +129,59 @@ class AntColony(Simulation):
 
             self.diffusion.applyInteraction("0", mask)
 
-            self.current_states.set_grid(jimage.resize(self.diffusion.current_states.grid, (self.grid_size_send, self.grid_size_send, 1), "linear"))
+            states.set_grid(jimage.resize(self.diffusion.current_states.grid, (self.params.grid_size_send, self.params.grid_size_send, 1), "linear"))
             
         
         self.interactions = [Interaction("0", interaction)]
         if (self.NEED_JSON):
             self.to_JSON_object()
 
-    def updateRule(self, json):
-        for param in self.rules:
-            print(param.id_param)
-        print(self.rules)
-        super().updateRule(json)
-        self.drop_amount = self.get_rules_param("dropAmount").value
-        self.agents.updateRule(None)
-        self.diffusion.updateRule(None)
 
     def _step(self):
         grid = self.diffusion.current_states.grid
-        self.agents.set_grid(grid)
-        self.agents.newStep()
+        new_grid = jnp.copy(grid)
 
-        
-        x = jnp.round(self.agents.current_states.get_pos_x()).astype(jnp.int16)
-        y = jnp.round(self.agents.current_states.get_pos_y()).astype(jnp.int16)
-        grid = grid.at[x, y, self.agents.channel].add(self.drop_amount)
-        self.diffusion.current_states.set_grid(grid)
+        for i, agent in enumerate(self.agents):
+            agent.set_grid(grid)
+            agent.newStep()
+            x = jnp.round(agent.current_states.get_pos_x()).astype(jnp.int16)
+            y = jnp.round(agent.current_states.get_pos_y()).astype(jnp.int16)
+            new_grid = new_grid.at[x, y, agent.params.sensing_channel].add(self.params.drop_amount[i])
+               
+        self.diffusion.current_states.set_grid(new_grid)
         self.diffusion.newStep()
 
         timer = Timer("Resizing grid")
         timer.start()
-        self.current_states.set_grid(jimage.resize(self.diffusion.current_states.grid, (self.grid_size_send, self.grid_size_send, self.channels), "linear"))
+        self.current_states.set_grid(jimage.resize(self.diffusion.current_states.grid, (self.params.grid_size_send, self.params.grid_size_send, self.diffusion.current_states.grid.shape[-1]), "linear"))
         timer.stop()
 
-
-    def _get_agents_initialization_parameters(self) -> list[Param]:
-        ret = []
-        for param in self.init_param:
-            if (self._contains_param_id(self.shared_initialization_parameters + self.agent.initialization_parameters, param)):
-                ret.append(param)
-        return ret
-
-    def _get_diffusion_initialization_parameters(self) -> list[Param]:
-        ret = []
-        for param in self.init_param:
-            if (self._contains_param_id(self.shared_initialization_parameters + self.diffusion.initialization_parameters, param)):
-                ret.append(param)
-        return ret
-
-    def _get_agents_rules(self) -> list[Param]:
-        return self.agent.default_rules
-
-    def _get_diffusion_rules(self) -> list[Param]:
-        return self.diffusion.default_rules
-    
-    def _contains_param_id(self, l : list[Param], value : Param) -> bool:
-        for param in l:
-            if param.id_param == value.id_param:
-                return True
-        return False
     
 class AntColonySimulation(AntColony):
-    agent = PhysarumAgentSimulation
-    diffusion = DiffusionSimulation
+    agent = _SimulationPair(PhysarumAgentParameters("Physarum"), PhysarumAgentSimulation)
+    diffusion = _SimulationPair(DiffusionParameters("Diffusion"), DiffusionSimulation)
 
+    params = AntColonyParameters([agent], diffusion)
+    
 
-    initialization_parameters = generate_init_parameters(AntColony.own_initialization_parameters, AntColony.shared_initialization_parameters, 
-                                                         agent.initialization_parameters, diffusion.initialization_parameters)
-
-    default_rules = generate_rules_parameter(AntColony.own_default_rules, agent.default_rules, diffusion.default_rules)
-
-    def __init__(self, rules : list[Param] = default_rules, init_param : list[Param] = initialization_parameters, needJSON : bool = True,
-                 agent = agent, diffusion = diffusion):
-        super().__init__(rules, init_param, needJSON, agent, diffusion)
-
-    def initSimulation(self, rules : list[Param] = default_rules,
-                        init_param : list[Param] = initialization_parameters):
-        super().initSimulation(rules, init_param)
+    def __init__(self, params : AntColonyParameters = params, needJSON : bool = True):
+        super().__init__(params, needJSON)
     
 class PhysarumLeniaSimulation(AntColony):
-    agent = PhysarumAgentSimulation
-    diffusion = LeniaSimulation
+    agent = _SimulationPair(PhysarumAgentParameters("Physarum"), PhysarumAgentSimulation)
+    diffusion = _SimulationPair(LeniaParameters("Lenia"), LeniaSimulation)
 
-    initialization_parameters = generate_init_parameters(AntColony.own_initialization_parameters, AntColony.shared_initialization_parameters, 
-                                                         agent.initialization_parameters, diffusion.initialization_parameters)
+    params = AntColonyParameters([agent], diffusion)
 
-    default_rules = generate_rules_parameter(AntColony.own_default_rules, agent.default_rules, diffusion.default_rules)
+    def __init__(self, params : AntColonyParameters = params, needJSON : bool = True):
+        super().__init__(params, needJSON)
 
-    def __init__(self, rules : list[Param] = default_rules, init_param : list[Param] = initialization_parameters, needJSON : bool = True,
-                 agent = agent, diffusion = diffusion):
-        super().__init__(rules, init_param, needJSON, agent, diffusion)
+class PhysarumLeniaBisSimulation(AntColony):
+    agent_1 = _SimulationPair(PhysarumAgentParameters("1"), PhysarumAgentSimulation)
+    agent_2 = _SimulationPair(PhysarumAgentParameters("2"), PhysarumAgentSimulation)
+    diffusion = _SimulationPair(LeniaParameters("Lenia"), LeniaSimulation)
 
-    def initSimulation(self, rules : list[Param] = default_rules,
-                        init_param : list[Param] = initialization_parameters):
-        super().initSimulation(rules, init_param)
+    params = AntColonyParameters([agent_1, agent_2], diffusion)
+
+    def __init__(self, params : AntColonyParameters = params, needJSON : bool = True):
+        super().__init__(params, needJSON)

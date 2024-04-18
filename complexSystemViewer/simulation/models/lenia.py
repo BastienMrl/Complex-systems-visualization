@@ -15,7 +15,6 @@ class LeniaParameters(SimulationParameters):
 
     def __init__(self, id_prefix : str = "default"):
         super().__init__(id_prefix)
-
         #init
         self.is_random : bool
         self.seed : int
@@ -86,7 +85,7 @@ class LeniaSimulation(Simulation):
 
     
     def __init__(self, params : LeniaParameters = LeniaParameters(), needJSON : bool = True): 
-        super().__init__(needJSON=needJSON)
+        super().__init__(params, needJSON=needJSON)
         self.initSimulation(params)
            
     def initSimulation(self, params : LeniaParameters = LeniaParameters()):
@@ -97,7 +96,7 @@ class LeniaSimulation(Simulation):
         
         SX = SY = self.params.grid_size
         
-        self.M = np.ones((self.C, self.C), dtype=int) * self.nb_k
+        self.M = np.ones((self.params.C, self.params.C), dtype=int) * self.params.nb_k
         self.nb_k = int(self.M.sum())
         self.c0, self.c1 = conn_from_matrix( self.M )
     
@@ -123,7 +122,7 @@ class LeniaSimulation(Simulation):
 
             minus_one = jnp.subtract(jnp.zeros(shape), jnp.ones(shape))
             new_mask = mask if channel == 0 else minus_one
-            if (self.C > 1):
+            if (self.params.C > 1):
                 for k in range(1, self.C):
                     if (k == channel):
                         new_mask = jnp.dstack((new_mask, mask))
@@ -133,7 +132,7 @@ class LeniaSimulation(Simulation):
 
             states.grid = jnp.where(new_mask >= 0, new_mask, states.grid)
 
-        for i in range(self.C):
+        for i in range(self.params.C):
             self.interactions.append(Interaction(str(i), partial(lenia_interaction, i)))
 
 
@@ -152,8 +151,8 @@ class LeniaSimulation(Simulation):
         offsetX, offsetY= round(SX/8), round(SY/8)
 
 
-        A0 = jnp.zeros((SX, SY, self.C)).at[mx-offsetX:mx+offsetX, my-offsetY:my+offsetY, :].set(
-            jax.random.uniform(state_seed, (2*offsetX, 2*offsetY, self.C))
+        A0 = jnp.zeros((SX, SY, self.params.C)).at[mx-offsetX:mx+offsetX, my-offsetY:my+offsetY, :].set(
+            jax.random.uniform(state_seed, (2*offsetX, 2*offsetY, self.params.C))
         )
         state = GridState(A0)
         self.current_states : GridState = state
@@ -177,9 +176,9 @@ class LeniaSimulation(Simulation):
 
         U = growth(U, self.c_params.m, self.c_params.s) * self.c_params.h  # (x,y,k)
 
-        U = jnp.dstack([ U[:, :, self.c1[c]].sum(axis=-1) for c in range(self.C) ])  # (x,y,c)
+        U = jnp.dstack([ U[:, :, self.c1[c]].sum(axis=-1) for c in range(self.params.C) ])  # (x,y,c)
 
-        nA = jnp.clip(A + self.dt * U, 0., 1.)
+        nA = jnp.clip(A + self.params.dt * U, 0., 1.)
         self.current_states.grid = nA
         
     

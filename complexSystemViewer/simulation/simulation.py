@@ -9,6 +9,8 @@ import time
 import copy
 
 
+
+
 class Simulation(ABC):   
 
     
@@ -20,25 +22,25 @@ class Simulation(ABC):
     """
 
     
-    @property
-    @abstractmethod
-    def initialization_parameters(self):
-        """Abstract attribute containing list of Param that will be exposed to the user and set before the simulation starts
+    # @property
+    # @abstractmethod
+    # def initialization_parameters(self):
+    #     """Abstract attribute containing list of Param that will be exposed to the user and set before the simulation starts
     
-        :rtype: list[Param]
-        """
-        pass
+    #     :rtype: list[Param]
+    #     """
+    #     pass
     
     
     
-    @property
-    @abstractmethod
-    def default_rules(self):
-        """Abstract attribute : list of Param that will be exposed to the user and can be modified anytime during the simulation
+    # @property
+    # @abstractmethod
+    # def default_rules(self):
+    #     """Abstract attribute : list of Param that will be exposed to the user and can be modified anytime during the simulation
     
-        :rtype: list[Param]
-        """
-        pass
+    #     :rtype: list[Param]
+    #     """
+    #     pass
     
     
     def __init__(self, params : SimulationParameters, needJSON : bool = True): 
@@ -55,7 +57,7 @@ class Simulation(ABC):
         self.interactions : list[Interaction] = None
             
     @abstractmethod
-    def initSimulation(self, init_states = None, rules = None, init_param = None):
+    def initSimulation(self, params : SimulationParameters = None):
         """Method called before the simulation starts. It is expected to set the initial states of the simulation.
 
         :param list[State] init_states: Optional states for the simulation 
@@ -77,37 +79,6 @@ class Simulation(ABC):
         """
         tsl = self.current_states.to_JSON_object()
         self.as_json = tsl
-
-    def getRules(self): 
-        """Access the rules parameters
-        
-        :returns: the exposed parameters used to run the simulation
-        :rtype: list[Param]
-        """
-        return self.rules
-    
-    def getRuleById(self, id:str):
-        """Access the current value of a paramer used to run the simulation
-        
-        :param id: Name of the paramer 
-        
-        :returns: The value of the parameter 
-        """
-        for p in self.rules:
-            if p.id_param == id:
-                return p.value
-        return None
-    
-    def updateRule(self, json):
-        """Set the value of a paramer used to run the simulation
-        
-        :param json: a dictionary representation of the parameter"
-        """
-        if (json == None):
-            return
-        for p in self.rules:
-            if p.id_param == json["paramId"]:
-                p.set_param(json)
         
     def applyInteraction(self, id : str, mask : jnp.ndarray):
         """Apply the specified interaction to the current states of the simulation
@@ -142,15 +113,3 @@ class Simulation(ABC):
         self.current_states.id += 1
         if (self.NEED_JSON):
             self.to_JSON_object()
-
-    def get_rules_param(self, id : str) -> Param | None:
-        for p in self.rules:
-            if p.id_param == id:
-                return p
-        return None        
-
-    def get_init_param(self, id : str) -> Param | None:
-        for p in self.init_param:
-            if p.id_param == id:
-                return p
-        return None

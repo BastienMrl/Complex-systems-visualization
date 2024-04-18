@@ -5,19 +5,20 @@ from .simulation_manager import SimulationManager
 from channels.generic.websocket import AsyncWebsocketConsumer
 from simulation.simulation import Simulation
 import math
-
+import copy as cp
 
 class ViewerConsumerV2(AsyncWebsocketConsumer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.isConnected = False
         self.sim : Simulation = None
-        self.init_parameters = None   
+        self.params = None   
     
     async def connect(self):
         await self.accept()
-        self.init_parameters = SimulationManager.get_initialization_parameters("Gol")
-        self.sim = SimulationManager.get_simulation_model("Gol")
+        self.params = SimulationManager.get_parameters("Gol")
+        self.next_params_set = SimulationManager.get_parameters("Gol")
+        self.sim = SimulationManager.get_simulation_model("Gol", self.params)
         self.isConnected = True
     
     async def disconnect(self, close_code):
@@ -52,20 +53,21 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
 
     async def updateInitParams(self, params):
         json = orjson.loads(params)
-        for p in self.init_parameters:
-            if p.id_param == json["paramId"]:
-                p.set_param(json)
+        self.next_params_set.update_init_param(json)
 
     async def updateRule(self, params):
-        self.sim.updateRule(orjson.loads(params))
+        self.sim.params.update_rules_param(orjson.loads(params))
 
     async def initNewSimulation(self, name):
-        self.init_parameters = SimulationManager.get_initialization_parameters(name)
-        self.sim = SimulationManager.get_simulation_model(name)
+        self.params = SimulationManager.get_parameters(name)
+        self.next_params_set = SimulationManager.get_parameters(name)
+        self.sim = SimulationManager.get_simulation_model(name, self.params)
         await self.sendOneStep()    
 
     async def resetSimulation(self):
-        self.sim.initSimulation(init_param=self.init_parameters)
+        self.params.set_init_from_list(self.next_params_set.get_init_parameters())
+        self.next_params_set = cp.deepcopy(self.next_params_set)
+        self.sim.initSimulation(self.params)
         await self.sendOneStep()
 
     async def applyInteraction(self, mask : list[float], stateId : int, interaction : str):
