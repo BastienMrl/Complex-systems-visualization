@@ -245,13 +245,14 @@ export class UserInterface {
             xhttp.onreadystatechange = function() {
                 if(this.readyState == 4 && this.status == 200){
                     let domParser = new DOMParser();
-                    let options = domParser.parseFromString(this.responseText, "text/html").body.childNodes;
-                    for (let i = 0; i < interactionSelector.childElementCount; i++){
-                        interactionSelector.children[i].remove()
-                    }
+                    let options = domParser.parseFromString(this.responseText, "text/html").body.children[0].querySelectorAll("option");
+                    interactionSelector.querySelectorAll("option").forEach( e => {
+                        e.remove()
+                    })
                     options.forEach(e => {
                         interactionSelector.appendChild(e)
                     })
+                    interactionSelector.value = options[0].value
                 }
             }
             xhttp.send();
