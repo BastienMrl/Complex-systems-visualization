@@ -68,6 +68,18 @@ class DiffusionParameters(SimulationParameters):
         kernel = jnp.outer(gauss, gauss)
         self.kernel = kernel / jnp.sum(kernel)
 
+class DiffusionInteractions(SimulationInteractions):
+    def __init__(self):
+        super().__init__()
+
+        self.interactions : dict[str, Callable[[jnp.ndarray, Simulation]]] = {
+            "Channel 1" : partial(self._set_channel_value_with_mask, 0),
+            "Channel 2" : partial(self._set_channel_value_with_mask, 1),
+            "Channel 3" : partial(self._set_channel_value_with_mask, 2),
+            "Channel 4" : partial(self._set_channel_value_with_mask, 3),
+            "Channel 5" : partial(self._set_channel_value_with_mask, 4),
+        }
+
 
     
 
@@ -87,13 +99,8 @@ class DiffusionSimulation(Simulation):
             self.init_random_sim()
         else:
             self.init_default_sim()
-
-        def interaction(mask : jnp.ndarray, states : GridState):
-            mask = jnp.expand_dims(mask, 2)
-
-            states.grid = jnp.where(mask >= 0, mask, states.grid)
         
-        self.interactions = [Interaction("0", interaction)]
+        self.interactions = DiffusionInteractions()
 
         if (self.NEED_JSON):
             self.to_JSON_object()

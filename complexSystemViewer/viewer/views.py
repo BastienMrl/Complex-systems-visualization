@@ -29,7 +29,7 @@ def index(request):
     meshFiles = os.listdir(meshPath)
     viewers = ["Meshes", "Texture", "Material"]
 
-    interactionsName = ["test", "0"]
+    interactionsName = ["0"]
     return render(request, "index.html", {"model":modelSelected , "modelsName":modelsName, "initParameters":initParameters,
                                           "rulesParameters":rulesParameters, "transformers":transformersParam, 
                                           "toolsList":toolsList, "meshFiles":meshFiles, "viewers":viewers,
@@ -48,6 +48,6 @@ def changeModel(request, modelsName):
     initParameters = [ip.get_param() for ip in init_p]
     return render(request, "simulationPanel/simulationConfigSet.html", {"rulesParameters":rulesParameters, "initParameters":initParameters})
 
-def renderInteractions(request):
-    interactions = ["test", "bis", "0", "truc"]
+def renderInteractions(request, modelName):
+    interactions = SimulationManager.get_interactions_names(modelName)
     return render(request, "simulationPanel/tool/selectionInteraction.html", {"interactionsName" : interactions})

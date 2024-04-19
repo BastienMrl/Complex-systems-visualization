@@ -84,6 +84,24 @@ class GOLParameters(SimulationParameters):
             case 1 :
                 self.survival_min = param.min_param.value
                 self.survival_max = param.max_param.value
+
+
+class GOLInteractions(SimulationInteractions):
+    def __init__(self):
+        super().__init__()
+
+        def gol_interaction(mask : jnp.ndarray, simulation : GOLSimulation):
+            mask = jnp.expand_dims(mask, (2))
+            to_zero = jnp.logical_not(mask == 0)
+            to_one = mask > 0
+            simulation.current_states.grid = jnp.logical_or(simulation.current_states.grid, to_one).astype(jnp.float32)
+            simulation.current_states.grid = jnp.logical_and(simulation.current_states.grid, to_zero).astype(jnp.float32)
+
+
+        self.interactions : dict[str, Callable[[jnp.ndarray, Simulation]]] = {
+            "Set cell" : gol_interaction,
+
+        }
             
     
         
@@ -105,20 +123,16 @@ class GOLSimulation(Simulation):
                             [1, 1, 1]])[:, :, jnp.newaxis, jnp.newaxis]
         self.kernel = jnp.transpose(self.kernel, [3, 2, 0, 1])
 
+        self.current_states : GridState
+
         if self.params.is_random:
             self.init_random_sim()
         else:
             self.init_default_sim() 
         self.to_JSON_object()
 
-        def gol_interaction(mask : jnp.ndarray, states : GridState):
-            mask = jnp.expand_dims(mask, (2))
-            to_zero = jnp.logical_not(mask == 0)
-            to_one = mask > 0
-            states.grid = jnp.logical_or(states.grid, to_one).astype(jnp.float32)
-            states.grid = jnp.logical_and(states.grid, to_zero).astype(jnp.float32)
 
-        self.interactions : list[Interaction] = [Interaction("0", gol_interaction)]
+        self.interactions = GOLInteractions()
 
 
     def _step(self) :

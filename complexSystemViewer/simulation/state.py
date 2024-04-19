@@ -1,10 +1,8 @@
 from abc import ABC, abstractmethod 
 import jax.numpy as jnp
-import jax.lax as lax
-import jax.random
 from .particle import *
 import numpy as np
-import time
+
 class State(ABC): 
     width : int = None
     height : int = None

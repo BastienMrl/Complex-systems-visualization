@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod, abstractproperty
 import jax.numpy as jnp
 from .param import *
-from .interaction import *
+from .state import *
 import copy
+from typing import Callable
 
 
 
@@ -50,7 +51,7 @@ class Simulation(ABC):
         self.height : int = None
         self.as_json : list[list[float]] = None
         self.params : SimulationParameters = params
-        self.interactions : list[Interaction] = None
+        self.interactions : SimulationInteractions = None
             
     @abstractmethod
     def init_simulation(self, params : SimulationParameters = None):
@@ -83,18 +84,7 @@ class Simulation(ABC):
         :param str id: Id of the interaction
         :param jnp.ndarray mask: A 2D mask of floats used to apply the interaction
         """
-        interaction : None | Interaction = None
-        for element in self.interactions:
-            if element.id == id:
-                interaction = element
-        
-        if (interaction == None):
-            if (self.NEED_JSON):
-                self.to_JSON_object()
-                return
-        
-
-        interaction.apply(mask, self.current_states)
+        self.interactions.apply_interaction(id, mask, self)
         if (self.NEED_JSON):
             self.to_JSON_object()
 
@@ -114,3 +104,54 @@ class Simulation(ABC):
         self.current_states.id += 1
         if (self.NEED_JSON):
             self.to_JSON_object()
+
+
+
+class Interaction():
+    def __init__(self, id : str, apply_fct : Callable[[jnp.ndarray, Simulation], None]):
+        self.id = id
+        self.apply_fct = apply_fct
+
+    def apply(self, mask : jnp.ndarray, states : list[State]):
+        self.apply_fct(mask, states)
+
+class SimulationInteractions():
+    def __init__(self):
+        self.interactions : dict[str, Callable[[jnp.ndarray, Simulation]]]
+
+    def apply_interaction(self, id : str, mask : jnp.ndarray, simulation : Simulation):
+        
+        print("id = ", id)
+
+        if (not id in self.interactions.keys()):
+            return
+        
+        print("execution")
+        
+        self.interactions[id](mask, simulation)
+
+    def get_names(self):
+        return self.interactions.keys()
+
+    def _get_mask_for_only_one_channel(self, mask : jnp.ndarray, channel : int, nb_channels : int):
+        mask = jnp.expand_dims(mask, 2)
+        shape = list(mask.shape)
+
+        minus_one = jnp.subtract(jnp.zeros(shape), jnp.ones(shape))
+        new_mask = mask if channel == 0 else minus_one
+        if (nb_channels > 1):
+            for k in range(1, nb_channels):
+                if (k == channel):
+                    new_mask = jnp.dstack((new_mask, mask))
+                else:
+                    new_mask = jnp.dstack((new_mask, minus_one))
+        return new_mask
+    
+    def _set_channel_value_with_mask(self, channel : int, mask : jnp.ndarray, simulation : Simulation):
+        nb_channels = simulation.current_states.grid.shape[-1]
+        if (nb_channels <= channel):
+            return
+
+        new_mask = self._get_mask_for_only_one_channel(mask, channel, nb_channels)
+
+        simulation.current_states.grid = jnp.where(new_mask >= 0, new_mask, simulation.current_states.grid)

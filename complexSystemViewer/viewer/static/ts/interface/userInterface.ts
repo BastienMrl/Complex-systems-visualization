@@ -220,6 +220,36 @@ export class UserInterface {
             document.getElementById(funcName).classList.add("active");
         });
 
+        // Interaction Selector
+
+        this._selectionManager.interaction = interactionSelector.value;
+
+        interactionSelector.addEventListener("change", () => {
+            this._selectionManager.interaction = interactionSelector.value;
+        });
+
+        let superThis = this
+        let renderInteractions = function(){
+            let xhttp = new XMLHttpRequest()
+            xhttp.open("GET", "renderInteractions/" + modelSelector.value, true);
+            xhttp.onreadystatechange = function() {
+                if(this.readyState == 4 && this.status == 200){
+                    let domParser = new DOMParser();
+                    let options = domParser.parseFromString(this.responseText, "text/html").body.children[0].querySelectorAll("option");
+                    interactionSelector.querySelectorAll("option").forEach( e => {
+                        e.remove()
+                    })
+                    options.forEach(e => {
+                        interactionSelector.appendChild(e)
+                    })
+                    interactionSelector.value = options[0].value
+                    superThis._selectionManager.interaction = interactionSelector.value
+                }
+            }
+            xhttp.send();
+        }
+        renderInteractions();
+
         modelSelector.addEventListener("change", () => {
             sendMessageToWorker(this._viewer.transmissionWorker, WorkerMessage.CHANGE_SIMULATION, modelSelector.value);
             let xhttp = new XMLHttpRequest()
@@ -241,30 +271,11 @@ export class UserInterface {
             }
             xhttp.send();
 
-            xhttp.open("GET", "renderInteractions", true);
-            xhttp.onreadystatechange = function() {
-                if(this.readyState == 4 && this.status == 200){
-                    let domParser = new DOMParser();
-                    let options = domParser.parseFromString(this.responseText, "text/html").body.children[0].querySelectorAll("option");
-                    interactionSelector.querySelectorAll("option").forEach( e => {
-                        e.remove()
-                    })
-                    options.forEach(e => {
-                        interactionSelector.appendChild(e)
-                    })
-                    interactionSelector.value = options[0].value
-                }
-            }
-            xhttp.send();
+            renderInteractions()
         })
 
-        // Interaction Selector
 
-        this._selectionManager.interaction = interactionSelector.value;
 
-        interactionSelector.addEventListener("change", () => {
-            this._selectionManager.interaction = interactionSelector.value;
-        });
 
         
         // meshInputFile.addEventListener("change", () => {

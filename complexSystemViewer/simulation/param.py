@@ -1,11 +1,9 @@
 from abc import ABC, abstractmethod 
 from enum import Enum
-import jax.numpy as jnp
-import jax.lax as lax
-from dataclasses import dataclass
+
+
 
 from .param import *
-import numpy as np
 
 # from viewer.simulation_manager import 
 

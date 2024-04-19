@@ -135,7 +135,7 @@ class FlockingSimulation(Simulation):
         self.init_default_sim()
             
 
-        self.interactions : list[Interaction] = None
+        self.interactions = SimulationInteractions()
 
         self.displacement, self.shift = space.periodic(self.params.box_size)
 

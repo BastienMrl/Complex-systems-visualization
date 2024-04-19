@@ -81,6 +81,19 @@ class LeniaParameters(SimulationParameters):
                 self.sigma = param.value
 
 
+class LeniaInteractions(SimulationInteractions):
+    def __init__(self):
+        super().__init__()
+
+        self.interactions : dict[str, Callable[[jnp.ndarray, LeniaSimulation]]] = {
+            "Channel 1" : partial(self._set_channel_value_with_mask, 0),
+            "Channel 2" : partial(self._set_channel_value_with_mask, 1),
+            "Channel 3" : partial(self._set_channel_value_with_mask, 2),
+            "Channel 4" : partial(self._set_channel_value_with_mask, 3),
+            "Channel 5" : partial(self._set_channel_value_with_mask, 4),
+        }
+
+
 class LeniaSimulation(Simulation):
 
     
@@ -115,25 +128,8 @@ class LeniaSimulation(Simulation):
             self.init_default_sim()
         self.to_JSON_object()
 
-        self.interactions : list[Interaction] = []
-        def lenia_interaction(channel : int, mask : jnp.ndarray, states : State):
-            mask = jnp.expand_dims(mask, 2)
-            shape = list(mask.shape)
-
-            minus_one = jnp.subtract(jnp.zeros(shape), jnp.ones(shape))
-            new_mask = mask if channel == 0 else minus_one
-            if (self.params.C > 1):
-                for k in range(1, self.C):
-                    if (k == channel):
-                        new_mask = jnp.dstack((new_mask, mask))
-                    else:
-                        new_mask = jnp.dstack((new_mask, minus_one))
-
-
-            states.grid = jnp.where(new_mask >= 0, new_mask, states.grid)
-
-        for i in range(self.params.C):
-            self.interactions.append(Interaction(str(i), partial(lenia_interaction, i)))
+        self.interactions = LeniaInteractions()
+        
 
 
 

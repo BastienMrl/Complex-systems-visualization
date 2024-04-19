@@ -95,7 +95,31 @@ class AntColonyParameters(SimulationParameters):
                     agent.params.grid_size = self.grid_size
     
 
+class AntColonyInteractions(SimulationInteractions):
+    def __init__(self):
+        super().__init__()
 
+        def interaction(diffusion_id : int, mask : jnp.ndarray, simulation : AntColonySimulation):
+            shape = simulation.diffusion.current_states.grid.shape
+            
+            simulation.diffusion.current_states.grid = jimage.resize(simulation.current_states.grid, shape, "linear")
+            
+            
+            mask = jimage.resize(mask, (shape[0], shape[1]), "linear")
+
+            simulation.diffusion.apply_interaction(diffusion_id, mask)
+
+            sended_shape = simulation.current_states.grid.shape
+
+            simulation.current_states.set_grid(jimage.resize(simulation.diffusion.current_states.grid, (sended_shape), "linear"))
+
+        self.interactions : dict[str, Callable[[jnp.ndarray, AntColonySimulation]]] = {
+            "Channel 1" : partial(interaction, "Channel 1"),
+            "Channel 2" : partial(interaction, "Channel 2"),
+            "Channel 3" : partial(interaction, "Channel 3"),
+            "Channel 4" : partial(interaction, "Channel 4"),
+            "Channel 5" : partial(interaction, "Channel 5"),
+        }
 
 class AntColony(Simulation):
     
@@ -117,22 +141,10 @@ class AntColony(Simulation):
 
         self.width = self.diffusion.current_states.width
         self.height = self.diffusion.current_states.height
-
-
-        def interaction(mask : jnp.ndarray, states : GridState):
-            shape = self.diffusion.current_states.grid.shape
-            
-            self.diffusion.current_states.grid = jimage.resize(states.grid, shape, "linear")
-            
-            
-            mask = jimage.resize(mask, (shape[0], shape[1]), "linear")
-
-            self.diffusion.apply_interaction("0", mask)
-
-            states.set_grid(jimage.resize(self.diffusion.current_states.grid, (self.params.grid_size_send, self.params.grid_size_send, 1), "linear"))
-            
+           
         
-        self.interactions = [Interaction("0", interaction)]
+        self.interactions = AntColonyInteractions()
+
         if (self.NEED_JSON):
             self.to_JSON_object()
 

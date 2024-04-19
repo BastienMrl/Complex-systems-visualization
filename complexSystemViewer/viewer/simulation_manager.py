@@ -114,3 +114,23 @@ class SimulationManager(object):
                 return PhysarumLeniaSimulation.params
             case "Multiple physarum":
                 return PhysarumLeniaBisSimulation.params
+            
+    @staticmethod
+    def get_interactions_names(model_name : str):
+         match model_name:
+            case "Gol":
+                return GOLInteractions().get_names()
+            case "Lenia":
+                return LeniaInteractions().get_names()
+            case "Flocking":
+                return SimulationInteractions().get_names()
+            case "Diffusion":
+                return DiffusionInteractions().get_names()
+            case "Physarum agents":
+                return SimulationInteractions().get_names()
+            case "Ant colony":
+                return AntColonyInteractions().get_names()
+            case "Physarum Lenia":
+                return AntColonyInteractions().get_names()
+            case "Multiple physarum":
+                return AntColonyInteractions().get_names()

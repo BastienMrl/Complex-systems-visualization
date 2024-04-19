@@ -80,6 +80,8 @@ class PhysarumAgentSimulation(Simulation):
         self.grid : jnp.ndarray = jax.random.uniform(key, (self.params.grid_size, self.params.grid_size, 1))
 
         self.current_states : ParticleState = None
+        self.interactions = SimulationInteractions()
+
         self.init_default_sim()
 
         if(self.NEED_JSON):
