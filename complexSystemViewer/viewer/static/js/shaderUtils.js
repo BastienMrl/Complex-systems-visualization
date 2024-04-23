@@ -126,6 +126,7 @@ var ShaderUniforms;
     ShaderUniforms["TIME_TRANSLATION"] = "time.translation";
     ShaderUniforms["TIME_ROTATION"] = "time.rotation";
     ShaderUniforms["TIME_SCALING"] = "time.scaling";
+    ShaderUniforms["CUBE_MAP"] = "u_cube_map";
     ShaderUniforms["POS_DOMAIN"] = "u_pos_domain";
     ShaderUniforms["DIMENSION"] = "u_dimensions";
 })(ShaderUniforms || (ShaderUniforms = {}));

@@ -148,6 +148,10 @@ class AntColony(Simulation):
         if (self.NEED_JSON):
             self.to_JSON_object()
 
+    def init_random_simulation(self, params: SimulationParameters = None):
+        self.init_simulation(params)
+        self.diffusion.init_random_simulation(self.params.diffusion.params)
+
 
     def _step(self):
         grid = self.diffusion.current_states.grid

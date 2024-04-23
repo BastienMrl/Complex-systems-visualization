@@ -17,11 +17,10 @@ uniform mat4 u_view;
 
 
 void main(){
-    vec4 view_pos = u_view * vec4(a_position, 1.0);
 
-    gl_Position = u_proj * view_pos;
+    gl_Position = u_proj * u_view * vec4(a_position, 1.0);
 
-    v_position = view_pos.xyz;
-    v_normal = transpose(inverse(mat3(u_view))) * a_normal;
+    v_position = a_position;
+    v_normal = a_normal;
     v_uv = a_uv;
 }

@@ -62,6 +62,9 @@ class Simulation(ABC):
         """
         pass
 
+    def init_random_simulation(self, params : SimulationParameters  = None):
+        self.init_simulation(params)
+
     @abstractmethod
     def _step(self) : 
         """Method executing a state of the simulation. It is expected to update the attribute :py:attr:current_states.

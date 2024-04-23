@@ -1,3 +1,4 @@
+import time
 import jax.numpy as jnp
 import jax.random
 import jax.scipy as jsp
@@ -131,6 +132,28 @@ class LeniaSimulation(Simulation):
         self.interactions = LeniaInteractions()
         
 
+    def init_random_simulation(self, params: SimulationParameters = None):
+        self.params : LeniaParameters = params
+
+       
+        SX = SY = self.params.grid_size
+        
+        self.M = np.ones((self.params.C, self.params.C), dtype=int) * self.params.nb_k
+        self.nb_k = int(self.M.sum())
+        self.c0, self.c1 = conn_from_matrix( self.M )
+    
+        self.rule_space = RuleSpace(self.nb_k)
+        self.kernel_computer = KernelComputer(SX, SY, self.nb_k)
+
+        
+        key = jax.random.PRNGKey(round(time.time()))
+        params_seed, state_seed = jax.random.split(key)
+        parameters = self.rule_space.sample(params_seed)
+        self.c_params = self.kernel_computer(parameters)
+
+        self.init_random_sim(state_seed)
+
+        self.interactions = LeniaInteractions()
 
 
     def init_default_sim(self):

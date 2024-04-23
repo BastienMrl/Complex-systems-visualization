@@ -25,6 +25,8 @@ export class ViewerMaterial extends Viewer{
 
     private _currentMeshFile : string;
 
+    private _cubeMap : WebGLTexture;
+
     public constructor(canvas : HTMLCanvasElement, context : WebGL2RenderingContext, manager : ViewerManager){
         super(canvas, context, manager);
         
@@ -36,6 +38,7 @@ export class ViewerMaterial extends Viewer{
 
     public async initialization(){
         this.initCamera();
+        this.initCubeMap()
 
         await this._shaderProgram.generateProgram(srcVertexShader, srcFragmentShader);
         this._shaderPoint = await initShaders(this.context, srcVertexPoint, srcFragmentPoint);
@@ -70,6 +73,41 @@ export class ViewerMaterial extends Viewer{
         this._camera.distanceMax = 100;
     }
 
+    private initCubeMap(){
+            this._cubeMap = this.context.createTexture();
+            this.context.bindTexture(gl.TEXTURE_CUBE_MAP, this._cubeMap);
+            this.context.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            this.context.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            this.context.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+            this.context.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+        
+            let faces = [["/static/img/pos-x.jpg", gl.TEXTURE_CUBE_MAP_POSITIVE_X],
+                         ["/static/img/neg-x.jpg", gl.TEXTURE_CUBE_MAP_NEGATIVE_X],
+                         ["/static/img/pos-y.jpg", gl.TEXTURE_CUBE_MAP_POSITIVE_Y],
+                         ["/static/img/neg-y.jpg", gl.TEXTURE_CUBE_MAP_NEGATIVE_Y],
+                         ["/static/img/pos-z.jpg", gl.TEXTURE_CUBE_MAP_POSITIVE_Z],
+                         ["/static/img/neg-z.jpg", gl.TEXTURE_CUBE_MAP_NEGATIVE_Z]];
+
+
+            for (let i = 0; i < faces.length; i++) {
+                let face = faces[i][1] as number;
+                let image = new Image();
+                let superthis = this
+
+                image.onload = function(face : number, image : HTMLImageElement) {
+                    return function() {
+                        superthis.context.bindTexture(gl.TEXTURE_CUBE_MAP, superthis._cubeMap);
+                        superthis.context.texImage2D(face, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+                        superthis.context.generateMipmap(gl.TEXTURE_CUBE_MAP);
+                    }
+                } (face, image);
+
+                image.src = faces[i][0] as string;
+            }
+
+            this.context.generateMipmap(gl.TEXTURE_CUBE_MAP);
+    }
+
 
     public onCanvasResize() {
         this._camera.aspectRatio = this.canvas.clientWidth / this.canvas.clientHeight;
@@ -86,6 +124,7 @@ export class ViewerMaterial extends Viewer{
         let projLoc = this.context.getUniformLocation(this._shaderProgram.program, "u_proj");
         let viewLoc = this.context.getUniformLocation(this._shaderProgram.program, "u_view");
         let lightLoc = this.context.getUniformLocation(this._shaderProgram.program, "u_light_loc");
+        let cameraLoc = this.context.getUniformLocation(this._shaderProgram.program, "u_camera_loc");
         let domainLoc = this.context.getUniformLocation(this._shaderProgram.program, ShaderUniforms.POS_DOMAIN);
         let dimensionLoc = this.context.getUniformLocation(this._shaderProgram.program, ShaderUniforms.DIMENSION);
 
@@ -93,6 +132,7 @@ export class ViewerMaterial extends Viewer{
         this.context.uniformMatrix4fv(viewLoc, false, this._camera.viewMatrix);
         this.context.uniform4f(domainLoc, textures.getXMin(0), textures.getXMax(0), textures.getYMin(0), textures.getYMax(0));
         this.context.uniform2f(dimensionLoc, textures.width, textures.height);
+        this.context.uniform3f(cameraLoc, this.camera.position.x, this.camera.position.y, this.camera.position.z);
 
 
         let lightPos = Vec3.fromValues(0.0, 0.0, 0.0);
@@ -108,10 +148,14 @@ export class ViewerMaterial extends Viewer{
 
         this.context.uniform3fv(lightLoc, transformedLightPos);
 
+        let id = 0;
+
+        this.context.activeTexture(gl.TEXTURE0 + id);
+        this.context.bindTexture(gl.TEXTURE_CUBE_MAP, this._cubeMap);
+        this.context.uniform1i(this.context.getUniformLocation(this._shaderProgram.program, ShaderUniforms.CUBE_MAP), id++);
 
         if (textures.getTextures(0) != null){
 
-            let id = 0;
 
             this.context.activeTexture(gl.TEXTURE0 + id);
             this.context.bindTexture(gl.TEXTURE_2D_ARRAY, textures.getTextures(0));
@@ -121,6 +165,7 @@ export class ViewerMaterial extends Viewer{
             this.context.bindTexture(gl.TEXTURE_2D, textures.getMask());
             this.context.uniform1i(this.context.getUniformLocation(this._shaderProgram.program, ShaderElementInputs.TEX_SELECTION), id++);
         }
+
 
 
         this._mesh.draw();

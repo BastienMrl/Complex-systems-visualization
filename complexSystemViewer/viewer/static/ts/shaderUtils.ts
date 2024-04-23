@@ -160,6 +160,8 @@ enum ShaderUniforms {
     TIME_ROTATION = "time.rotation",
     TIME_SCALING = "time.scaling",
 
+    CUBE_MAP = "u_cube_map",
+
     POS_DOMAIN = "u_pos_domain",
     DIMENSION = "u_dimensions"
 }

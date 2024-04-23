@@ -12,7 +12,10 @@ layout (location = 0) out vec4 out_color;
 uniform sampler2DArray tex_t0;
 uniform sampler2D tex_selection;
 
+uniform samplerCube u_cube_map;
+
 uniform vec3 u_light_loc;
+uniform vec3 u_camera_loc;
 uniform vec4 u_pos_domain;
 uniform vec2 u_dimensions;
 
@@ -61,13 +64,31 @@ vec4 get_uv_color(in vec2 uv){
     return vec4(uv.x, uv.y, 0., 1.);
 }
 
+vec4 get_color_from_env_map(in vec3 normal, in vec3 light_dir, in vec3 color, in vec3 selected, in vec3 light_color, in vec3 camera_dir){
+    float diffuse = (dot(normal, light_dir) * 0.5 + 0.5);
+    float op = - sign(max(color.x, max(color.y, color.z)) - 0.5);
+
+    vec3 h = (light_dir + camera_dir) / 2.;
+
+    float specular = pow(max(dot(h, normal), 0.), 32.);
+
+    vec3 c = vec3(color * 0.1);
+
+
+    c += color * diffuse;
+    c += specular * light_color;
+    c += op * selected;
+
+    return vec4(c, 1.);
+}
+
 void main(){
     vec3 color = vec3(0., 0., 0.);
 
 
 
-    float x_coord = map(v_uv.x, 0., 1., 0., u_dimensions.x - 30.);
-    float y_coord = map(v_uv.y, 0., 1., 0., u_dimensions.y - 30.);
+    float x_coord = map(v_uv.x, 0., 1., 0., u_dimensions.x);
+    float y_coord = map(v_uv.y, 0., 1., 0., u_dimensions.y);
     
     ivec2 tex_coord = ivec2(floor(x_coord), floor(y_coord));
 
@@ -81,5 +102,12 @@ void main(){
     vec3 normal = normalize(v_normal);
 
     out_color = get_color(normal, v_position, color, selected);
-    out_color = get_uv_color(v_uv);
+
+    vec3 cam_to_surface = normalize(v_position - u_camera_loc);
+    vec3 direction = reflect(cam_to_surface, v_normal);
+ 
+    out_color = texture(u_cube_map, direction);
+
+    out_color = get_color_from_env_map(normal, direction, color, selected, texture(u_cube_map, direction).rgb, -cam_to_surface);
+        
 }

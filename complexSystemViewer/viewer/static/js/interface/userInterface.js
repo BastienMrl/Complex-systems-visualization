@@ -96,10 +96,7 @@ export class UserInterface {
             console.debug("STOP");
         });
         resetButton.addEventListener('click', () => {
-            this._viewer.stopVisualizationAnimation();
-            sendMessageToWorker(this._viewer.transmissionWorker, WorkerMessage.RESET);
-            playButton.classList.remove("active");
-            pauseButton.classList.add("active");
+            sendMessageToWorker(this._viewer.transmissionWorker, WorkerMessage.RESET_RANDOM);
             console.debug("RESTART");
         });
         animationTimerEl.addEventListener('mouseleave', () => {

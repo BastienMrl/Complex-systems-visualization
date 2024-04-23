@@ -3,6 +3,7 @@ export var WorkerMessage;
     WorkerMessage["INIT_SOCKET"] = "init";
     WorkerMessage["GET_VALUES"] = "get";
     WorkerMessage["RESET"] = "reset";
+    WorkerMessage["RESET_RANDOM"] = "reset_random";
     WorkerMessage["VALUES"] = "values";
     WorkerMessage["VALUES_RESHAPED"] = "reshaped";
     WorkerMessage["READY"] = "ready";

@@ -28,6 +28,9 @@ class TransmissionWorker{
             case WorkerMessage.RESET:
                 this.resetSimulation();
                 break;
+            case WorkerMessage.RESET_RANDOM:
+                this.resetRandomSimulation();
+                break;
             case WorkerMessage.UPDATE_RULES:
                 this.updateSimulationRules(getMessageBody(e));
                 break;
@@ -78,6 +81,16 @@ class TransmissionWorker{
         sendMessageToWindow(WorkerMessage.RESET);
         this._statesBuffer.flush();
         this._socketManager.resetSimulation();
+        await this.waitNewValues();
+        this.sendValues();
+    }
+
+    private async resetRandomSimulation(){
+        if (!this._socketManager.isConnected)
+                await this.waitSocketConnection();
+        sendMessageToWindow(WorkerMessage.RESET);
+        this._statesBuffer.flush();
+        this._socketManager.resetRandomSimulation();
         await this.waitNewValues();
         this.sendValues();
     }

@@ -10,6 +10,7 @@ export class SocketManager {
 
     private _requestDataMessage : string = "RequestData";
     private _resetSimulationMessage : string = "ResetSimulation";
+    private _resetRandomSimulationMessage : string = "ResetRandomSimulation"
     private _changeSimuMessage : string = "ChangeSimulation";
     private _updateInitParams : string = "UpdateInitParams";
     private _updateRulesMessage : string = "UpdateRule";
@@ -131,6 +132,17 @@ export class SocketManager {
         
         this._socket.send(JSON.stringify({
             'message' : this._resetSimulationMessage,
+        }));
+    }
+
+    public resetRandomSimulation(){
+        if (!this._isConnected){
+            this._awaitingRequests.push(this.resetRandomSimulation.bind(this));
+            return;
+        };
+
+        this._socket.send(JSON.stringify({
+            'message' : this._resetRandomSimulationMessage,
         }));
     }
 

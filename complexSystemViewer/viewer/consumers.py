@@ -37,7 +37,10 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
             case "ChangeSimulation":
                 if self.isConnected:
                     self.sim = None
-                    await self.init_new_simulation(text_data_json["simuName"])       
+                    await self.init_new_simulation(text_data_json["simuName"])
+            case "ResetRandomSimulation":
+                if self.isConnected:
+                    await self.reset_random_simulation()       
             case "UpdateInitParams":
                     await self.update_init_params(text_data_json["params"])
             case "UpdateRule":
@@ -68,6 +71,12 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
         self.params.set_init_from_list(self.next_params_set.get_init_parameters())
         self.next_params_set = cp.deepcopy(self.next_params_set)
         self.sim.init_simulation(self.params)
+        await self.send_one_step()
+
+    async def reset_random_simulation(self):
+        self.params.set_init_from_list(self.next_params_set.get_init_parameters())
+        self.next_params_set = cp.deepcopy(self.next_params_set)
+        self.sim.init_random_simulation(self.params)
         await self.send_one_step()
 
     async def apply_interaction(self, mask : list[float], stateId : int, interaction : str):        
