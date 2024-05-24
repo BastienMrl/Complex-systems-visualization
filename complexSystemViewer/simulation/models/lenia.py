@@ -1,167 +1,17 @@
-import random
+import time
 import jax.numpy as jnp
-import jax.lax as lax
 import jax.random
 import jax.scipy as jsp
 import numpy as np
 import typing as t
 from functools import partial
-import math
 import chex
 from functools import partial
 
 
-
 from ..simulation import * 
-class LeniaSimulation(Simulation):
-
-    initialization_parameters = [
-        BoolParam(id_p="randomStart", name="Random start", default_value=False),
-        IntParam(id_p="seed", name="Seed", default_value=6, min_value=1),
-        IntParam(id_p="gridSize", name="Grid size",
-                 default_value=200, min_value=40, step=1),
-        FloatParam(id_p="dt", name="dt",
-                    default_value=0.05, min_value=0.1, max_value=1., step=0.1),
-        IntParam(id_p="C", name="Number of Channels",
-                    default_value=1, min_value=1, max_value=4, step=1)
-    ]
-
-    default_rules = [
-            IntParam(id_p="number_of_kernels", name="Number of kernels",
-                    default_value=10, min_value=1, step=1),
-            IntParam(id_p="dd", name="dd",
-                    default_value=5, min_value=1, step=1),
-            IntParam(id_p="n", name="n",
-                    default_value=2, min_value=1, step=1),
-            FloatParam(id_p="theta_A", name="Theta A",
-                    default_value=2.0, min_value=0.0, max_value=2.0, step=0.1),
-            FloatParam(id_p="sigma", name="Sigma",
-                    default_value=0.65, min_value=0.0, max_value=1.0, step=0.05)]
-    
-    
-    def __init__(self, init_states = None, rules = default_rules): 
-        super().__init__()
-        self.initSimulation(init_states, rules)
-           
-    def initSimulation(self, init_states : list[State] = None, rules : list[Param] = default_rules, init_param : list[Param]= initialization_parameters):
-        
-        self.random_start : bool = [p for p in init_param if p.id_param == "randomStart"][0].value
-        self.grid_size : int = [p for p in init_param if p.id_param == "gridSize"][0].value
-        self.dt : float = [p for p in init_param if p.id_param == "dt"][0].value
-        self.C : int = [p for p in init_param if p.id_param == "C"][0].value
 
 
-        
-        self.rules = rules
-        self.nb_k = self.getRuleById("number_of_kernels")
-        SX = SY = self.grid_size
-        
-        self.M = np.ones((self.C, self.C), dtype=int) * self.nb_k
-        self.nb_k = int(self.M.sum())
-        self.c0, self.c1 = conn_from_matrix( self.M )
-    
-        self.rule_space = RuleSpace(self.nb_k)
-        self.kernel_computer = KernelComputer(SX, SY, self.nb_k)
-
-        seed : int = [p for p in init_param if p.id_param == "seed"][0].value
-        
-        key = jax.random.PRNGKey(seed)
-        params_seed, state_seed = jax.random.split(key)
-        params = self.rule_space.sample(params_seed)
-        self.c_params = self.kernel_computer(params)
-
-        if init_states != None:
-            self.current_states = init_states
-            self.width = init_states[0].width
-            self.height = init_states[0].height
-        elif self.random_start:
-            self.init_random_sim(state_seed)
-        else:
-            self.init_default_sim()
-
-        self.interactions : list[Interaction]= []
-        def lenia_interaction(channel : int, mask : jnp.ndarray, states : list[State]):
-            mask = jnp.expand_dims(mask, 2)
-            shape = list(mask.shape)
-
-            minus_one = jnp.subtract(jnp.zeros(shape), jnp.ones(shape))
-            new_mask = mask if channel == 0 else minus_one
-            if (self.C > 1):
-                for k in range(1, self.C):
-                    if (k == channel):
-                        new_mask = jnp.dstack((new_mask, mask))
-                    else:
-                        new_mask = jnp.dstack((new_mask, minus_one))
-
-
-            states[0].grid = jnp.where(new_mask >= 0, new_mask, states[0].grid)
-
-        for i in range(self.C):
-            self.interactions.append(Interaction(str(i), partial(lenia_interaction, i)))
-
-    def set_current_state_from_array(self, new_state : list[list[float]]):
-        nb_channels = self.current_states[0].grid.shape[-1]
-        shape = list(self.current_states[0].grid.shape)
-        shape[-1] = 1
-
-
-        grid = None
-        for i in range(nb_channels):
-            state = new_state[2 + i]
-            state = jnp.asarray(state, dtype=jnp.float32).reshape(shape)
-            if (grid == None):
-                grid = state
-            else:
-                grid = jnp.dstack((grid, state))
-        
-        self.current_states[0].set_grid(grid)
-
-
-
-    def init_default_sim(self):
-        grid = jnp.zeros((self.grid_size, self.grid_size, self.C))
-        state = GridState(grid)
-        self.current_states = [state]
-        self.width = self.grid_size
-        self.height = self.grid_size
-
-    def init_random_sim(self, state_seed):
-        SX = SY = self.grid_size
-        mx, my = SX//2, SY//2 # center coordinated
-        offsetX, offsetY= round(SX/8), round(SY/8)
-
-
-        A0 = jnp.zeros((SX, SY, self.C)).at[mx-offsetX:mx+offsetX, my-offsetY:my+offsetY, :].set(
-            jax.random.uniform(state_seed, (2*offsetX, 2*offsetY, self.C))
-        )
-        state = GridState(A0)
-        self.current_states = [state]
-        self.width = self.grid_size
-        self.height = self.grid_size
-
-        
-        
-       
-
-    def step(self) :
-
-        A = self.current_states[0].grid
-
-        fA = jnp.fft.fft2(A, axes=(0,1))  # (x,y,c)
-
-        fAk = fA[:, :, self.c0]  # (x,y,k)
-
-        U = jnp.real(jnp.fft.ifft2(self.c_params.fK * fAk, axes=(0,1)))  # (x,y,k)
-
-        U = growth(U, self.c_params.m, self.c_params.s) * self.c_params.h  # (x,y,k)
-
-        U = jnp.dstack([ U[:, :, self.c1[c]].sum(axis=-1) for c in range(self.C) ])  # (x,y,c)
-
-        nA = jnp.clip(A + self.dt * U, 0., 1.)
-        self.current_states[0].grid = nA
-        
-    
-    
 
 
 
@@ -254,7 +104,6 @@ class CompiledParams:
     h: jnp.ndarray
 
 
-
 class RuleSpace :
 
     """Rule space for Flow Lenia system
@@ -266,12 +115,13 @@ class RuleSpace :
     """
     
     #-----------------------------------------------------------------------------
-    def __init__(self, nb_k: int):
+    def __init__(self, nb_k: int, R : int):
         """
         Args:
             nb_k (int): number of kernels in the update rule
         """
         self.nb_k = nb_k    
+        self.R = R
         self.kernel_keys = 'r b w a m s h'.split()
         self.spaces = {
             "r" : {'low' : .2, 'high' : 1., 'mut_std' : .2, 'shape' : None},
@@ -281,7 +131,7 @@ class RuleSpace :
             "m" : {'low' : .05, 'high' : .5, 'mut_std' : .2, 'shape' : None},
             "s" : {'low' : .001, 'high' : .18, 'mut_std' : .01, 'shape' : None},
             "h" : {'low' : .01, 'high' : 1., 'mut_std' : .2, 'shape' : None},
-            'R' : {'low' : 2., 'high' : 25., 'mut_std' : .2, 'shape' : None},
+            # 'R' : {'low' : 2., 'high' : 25., 'mut_std' : .2, 'shape' : None},
         }
     #-----------------------------------------------------------------------------
     def sample(self, key: jnp.ndarray)->Params:
@@ -306,8 +156,8 @@ class RuleSpace :
               key=subkey, minval=self.spaces[k]['low'], maxval=self.spaces[k]['high'], 
               shape=(self.nb_k, 3)
             )
-        R = jax.random.uniform(key=key, minval=self.spaces['R']['low'], maxval=self.spaces['R']['high'])
-        return Params(R=R, **kernels)
+        # R = jax.random.uniform(key=key, minval=self.spaces['R']['low'], maxval=self.spaces['R']['high'])
+        return Params(R=self.R, **kernels)
 
 class KernelComputer:
 
@@ -356,3 +206,206 @@ class KernelComputer:
         """callback to apply
         """
         return self.apply(params)
+
+
+
+
+class LeniaParameters(SimulationParameters):
+
+    def __init__(self, id_prefix : str = "default"):
+        super().__init__(id_prefix)
+        #init
+        self.is_random : bool
+        self.seed : int
+        self.grid_size : int
+        self.C : int
+        self.nb_k : int
+        self.R : int
+        self.T : int
+
+        #rules
+        self.rule_space : RuleSpace
+        self.kernel_computer : KernelComputer
+
+        self.params : Params = None
+        self.c_params : CompiledParams
+
+        self.c0 : jnp.ndarray
+        self.c1 : jnp.ndarray
+
+
+        #front
+        self._init_param = [
+            BoolParam(id_p= self._get_id_prefix() + "randomStart", name= self._get_name_prefix() + "Random start", default_value=False),
+            IntParam(id_p= self._get_id_prefix() + "seed", name= self._get_name_prefix() + "Seed", default_value=1, min_value=1),
+            IntParam(id_p= self._get_id_prefix() + "C", name= self._get_name_prefix() + "Number of Channels",
+                        default_value=1, min_value=1, max_value=4, step=1),
+            IntParam(id_p= self._get_id_prefix() + "numberKernel", name= self._get_name_prefix() + "Number of kernels",
+                    default_value=5, min_value=1, step=1),
+            IntParam(id_p=self._get_id_prefix() + "R", name= self._get_name_prefix() + "R",
+                     default_value=10., min_value=2., max_value=25., step=1.),
+            IntParam(id_p=self._get_id_prefix() + "T", name= self._get_name_prefix() + "T",
+                     default_value= 20, min_value=1., max_value=20, step=1.),
+            IntParam(id_p= self._get_id_prefix() + "gridSize", name= self._get_name_prefix() + "Grid size",
+                    default_value=200, min_value=40, step=1),
+        ]
+
+        self._rules_param = [
+
+        ]
+
+        self.set_all_params()
+        self.compute_init_params()
+    
+    def init_param_value_changed(self, idx: int, param: Param) -> None:
+        match (idx):
+            case 0:
+                self.is_random = param.value
+            case 1:
+                self.seed = param.value
+            case 2:
+                self.C = param.value
+            case 3:
+                self.nb_k = param.value
+            case 4: 
+                self.R = param.value
+            case 5:
+                self.T = param.value
+            case 6:
+                self.grid_size = param.value
+
+    def compute_init_params(self):
+        M = np.ones((self.C, self.C), dtype=int) * self.nb_k
+        nb_k = int(M.sum())
+        self.c0, self.c1 = conn_from_matrix(M)
+        
+        SX = SY = self.grid_size
+    
+        self.rule_space = RuleSpace(nb_k, self.R)
+        self.kernel_computer = KernelComputer(SX, SY, nb_k)
+
+
+        if (self.params == None):
+            key = jax.random.key(1)
+            self.params = self.rule_space.sample(key)
+
+
+    def compile_params(self):
+        self.c_params = self.kernel_computer(self.params)
+
+
+    def set_init_from_list(self, source: list[Param]):
+        super().set_init_from_list(source)
+        self.compute_init_params()
+        
+    def rule_param_value_changed(self, idx : int, param : Param) -> None:
+        pass
+
+
+class LeniaInteractions(SimulationInteractions):
+    def __init__(self):
+        super().__init__()
+
+        self.interactions : dict[str, Callable[[jnp.ndarray, LeniaSimulation]]] = {
+            "Channel 1" : partial(self._set_channel_value_with_mask, 0),
+            "Channel 2" : partial(self._set_channel_value_with_mask, 1),
+            "Channel 3" : partial(self._set_channel_value_with_mask, 2),
+            "Channel 4" : partial(self._set_channel_value_with_mask, 3),
+            "Channel 5" : partial(self._set_channel_value_with_mask, 4),
+        }
+
+
+class LeniaSimulation(Simulation):
+
+    
+    def __init__(self, params : LeniaParameters = LeniaParameters(), needJSON : bool = True): 
+        super().__init__(params, needJSON=needJSON)
+        self.init_simulation(params)
+           
+    def init_simulation(self, params : LeniaParameters = LeniaParameters()):
+        
+        self.params : LeniaParameters = params
+
+
+        
+        key = jax.random.PRNGKey(self.params.seed)
+        params_seed, state_seed = jax.random.split(key)
+
+
+        if self.params.is_random:
+            self.init_random_sim(state_seed)
+        else:
+            self.init_default_sim()
+
+
+        self.params.compile_params()
+
+        self.to_JSON_object()
+
+        self.interactions = LeniaInteractions()
+        
+
+    def init_random_simulation(self, params: LeniaParameters = None):
+        self.params : LeniaParameters = params
+
+        
+        key = jax.random.PRNGKey(self.params.seed)
+        params_seed, state_seed = jax.random.split(key)
+
+
+        self.params.params = self.params.rule_space.sample(params_seed)
+        self.params.compile_params()
+
+        self.init_random_sim(state_seed)
+
+        self.interactions = LeniaInteractions()
+
+
+    def init_default_sim(self):
+        grid = jnp.zeros((self.params.grid_size, self.params.grid_size, self.params.C))
+        state = GridState(grid)
+        self.current_states : GridState = state
+        self.width = self.params.grid_size
+        self.height = self.params.grid_size
+        self.current_states.id = 0
+
+    def init_random_sim(self, state_seed):
+        SX = SY = self.params.grid_size
+        mx, my = SX//2, SY//2 # center coordinated
+        offsetX, offsetY= round(SX/8), round(SY/8)
+
+
+        A0 = jnp.zeros((SX, SY, self.params.C)).at[mx-offsetX:mx+offsetX, my-offsetY:my+offsetY, :].set(
+            jax.random.uniform(state_seed, (2*offsetX, 2*offsetY, self.params.C))
+        )
+
+        # A0 = jax.random.uniform(state_seed, (self.params.grid_size, self.params.grid_size, self.params.C))
+
+        # A0 = jnp.zeros((SX, SY, self.params.C))
+
+        state = GridState(A0)
+        self.current_states : GridState = state
+        self.width = self.params.grid_size
+        self.height = self.params.grid_size
+        self.current_states.id = 0
+
+       
+
+    def _step(self) :
+
+        c_params : CompiledParams = self.params.c_params
+
+        A = self.current_states.grid
+
+        fA = jnp.fft.fft2(A, axes=(0,1))  # (x,y,c)
+
+        fAk = fA[:, :, self.params.c0]  # (x,y,k)
+
+        U = jnp.real(jnp.fft.ifft2(c_params.fK * fAk, axes=(0,1)))  # (x,y,k)
+
+        U = growth(U, c_params.m, c_params.s) * c_params.h  # (x,y,k)
+
+        U = jnp.dstack([ U[:, :, self.params.c1[c]].sum(axis=-1) for c in range(self.params.C) ])  # (x,y,c)
+
+        nA = jnp.clip(A + (1. / self.params.T) * U, 0., 1.)
+        self.current_states.grid = nA

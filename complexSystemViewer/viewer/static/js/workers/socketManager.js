@@ -5,6 +5,7 @@ export class SocketManager {
     timers;
     _requestDataMessage = "RequestData";
     _resetSimulationMessage = "ResetSimulation";
+    _resetRandomSimulationMessage = "ResetRandomSimulation";
     _changeSimuMessage = "ChangeSimulation";
     _updateInitParams = "UpdateInitParams";
     _updateRulesMessage = "UpdateRule";
@@ -107,6 +108,16 @@ export class SocketManager {
             'message': this._resetSimulationMessage,
         }));
     }
+    resetRandomSimulation() {
+        if (!this._isConnected) {
+            this._awaitingRequests.push(this.resetRandomSimulation.bind(this));
+            return;
+        }
+        ;
+        this._socket.send(JSON.stringify({
+            'message': this._resetRandomSimulationMessage,
+        }));
+    }
     updateSimuRules(params) {
         if (!this._isConnected) {
             this._awaitingRequests.push(this.updateSimuRules.bind(this, params));
@@ -140,20 +151,16 @@ export class SocketManager {
             'simuName': name
         }));
     }
-    applyInteraction(mask, currentValues, id) {
+    apply_interaction(mask, interaction, id) {
         if (!this._isConnected) {
-            this._awaitingRequests.push(this.applyInteraction.bind(this, mask));
+            this._awaitingRequests.push(this.apply_interaction.bind(this, mask, interaction, id));
             return;
         }
-        let values = new Array(currentValues.length);
-        currentValues.forEach((e, i) => {
-            values[i] = Array.from(e);
-        });
         let string = JSON.stringify({
             'message': this._applyInteractionMessage,
             'mask': Array.from(mask),
-            'currentStates': values,
-            'interaction': id
+            'id': id,
+            'interaction': interaction
         });
         this._socket.send(string);
     }

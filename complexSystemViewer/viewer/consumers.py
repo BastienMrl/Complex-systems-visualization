@@ -1,21 +1,24 @@
 import orjson
 import jax.numpy as jnp
-from .simulationManager import SimulationManager
+import jax.image as jimage
+from .simulation_manager import SimulationManager
 from channels.generic.websocket import AsyncWebsocketConsumer
 from simulation.simulation import Simulation
-
+import math
+import copy as cp
 
 class ViewerConsumerV2(AsyncWebsocketConsumer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.isConnected = False
         self.sim : Simulation = None
-        self.init_parameters = None   
+        self.params = None   
     
     async def connect(self):
         await self.accept()
-        self.init_parameters = SimulationManager.get_initialization_parameters("Gol")
-        self.sim = SimulationManager.get_simulation_model("Gol")
+        self.params = SimulationManager.get_parameters("Gol")
+        self.next_params_set = SimulationManager.get_parameters("Gol")
+        self.sim = SimulationManager.get_simulation_model("Gol", self.params)
         self.isConnected = True
     
     async def disconnect(self, close_code):
@@ -27,50 +30,63 @@ class ViewerConsumerV2(AsyncWebsocketConsumer):
         match message:
             case "RequestData":
                 if self.isConnected :
-                    await self.sendOneStep()
+                    await self.send_one_step()
             case "ResetSimulation":
                 if self.isConnected:
-                    await self.resetSimulation()
+                    await self.reset_simulation()
             case "ChangeSimulation":
                 if self.isConnected:
                     self.sim = None
-                    await self.initNewSimulation(text_data_json["simuName"])       
+                    await self.init_new_simulation(text_data_json["simuName"])
+            case "ResetRandomSimulation":
+                if self.isConnected:
+                    await self.reset_random_simulation()       
             case "UpdateInitParams":
-                    await self.updateInitParams(text_data_json["params"])
+                    await self.update_init_params(text_data_json["params"])
             case "UpdateRule":
                 if self.isConnected:
-                    await self.updateRule(text_data_json["params"])
+                    await self.update_rule(text_data_json["params"])
             case "ApplyInteraction":
                 if self.isConnected:
-                    await self.applyInteraction(text_data_json["mask"], text_data_json["currentStates"], text_data_json["interaction"])
+                    await self.apply_interaction(text_data_json["mask"], text_data_json["id"], text_data_json["interaction"])
 
-    async def sendOneStep(self):
-        await self.send(bytes_data=orjson.dumps(self.sim.to_JSON_object()))
-        self.sim.step()
+    async def send_one_step(self):
+        await self.send(bytes_data=orjson.dumps(self.sim.as_json))
+        self.sim.new_step()
 
-    async def updateInitParams(self, params):
+    async def update_init_params(self, params):
         json = orjson.loads(params)
-        for p in self.init_parameters:
-            if p.id_param == json["paramId"]:
-                p.set_param(json)
+        self.next_params_set.update_init_param(json)
 
-    async def updateRule(self, params):
-        self.sim.updateRule(orjson.loads(params))
+    async def update_rule(self, params):
+        self.sim.params.update_rules_param(orjson.loads(params))
 
-    async def initNewSimulation(self, name):
-        self.init_parameters = SimulationManager.get_initialization_parameters(name)
-        self.sim = SimulationManager.get_simulation_model(name)
-        await self.sendOneStep()    
+    async def init_new_simulation(self, name):
+        self.params = SimulationManager.get_parameters(name)
+        self.next_params_set = SimulationManager.get_parameters(name)
+        self.sim = SimulationManager.get_simulation_model(name, self.params)
+        await self.send_one_step()    
 
-    async def resetSimulation(self):
-        self.sim.initSimulation(init_param=self.init_parameters)
-        await self.sendOneStep()
+    async def reset_simulation(self):
+        self.params.set_init_from_list(self.next_params_set.get_init_parameters())
+        self.next_params_set = cp.deepcopy(self.next_params_set)
+        self.sim.init_simulation(self.params)
+        await self.send_one_step()
 
-    async def applyInteraction(self, mask : list[float], currentValues : list[list[float]], interaction : str):
-        self.sim.set_current_state_from_array(currentValues)
+    async def reset_random_simulation(self):
+        self.params.set_init_from_list(self.next_params_set.get_init_parameters())
+        self.next_params_set = cp.deepcopy(self.next_params_set)
+        self.sim.init_random_simulation(self.params)
+        await self.send_one_step()
+
+    async def apply_interaction(self, mask : list[float], stateId : int, interaction : str):        
+        self.sim.set_current_state_from_id(stateId)
+        mask_width = int(math.sqrt(len(mask)))
+        
         mask_jnp = jnp.asarray(mask, dtype=jnp.float32)
-        mask_jnp = mask_jnp.reshape(self.sim.width, self.sim.height)
-        self.sim.applyInteraction(interaction, mask_jnp)
-        await self.sendOneStep()        
+        mask_jnp = mask_jnp.reshape((mask_width, mask_width))
+        mask_jnp = jimage.resize(mask_jnp, (self.sim.width, self.sim.height), "linear")
+        self.sim.apply_interaction(interaction, mask_jnp)
+        await self.send_one_step()        
 
     

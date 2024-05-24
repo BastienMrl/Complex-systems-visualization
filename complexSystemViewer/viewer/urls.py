@@ -5,5 +5,6 @@ from . import views
 urlpatterns = [
     path("", views.index, name="index"),
     path("addTransformer/<transformerType>", views.addTransformer, name="addTransformer"),
-    path("changeModel/<modelsName>", views.changeModel, name="changeModel")
+    path("changeModel/<modelsName>", views.changeModel, name="changeModel"),
+    path("renderInteractions/<modelName>", views.renderInteractions, name = "getInteractions")
 ]

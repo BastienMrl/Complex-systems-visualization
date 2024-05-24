@@ -2,22 +2,21 @@ import os
 from complexSystemViewer import settings
 from django.shortcuts import render
 from .models import ALifeModel, TransformerItem, Parameter, Tool
-from simulation.models.game_of_life import GOLSimulation
-from .simulationManager import SimulationEnum, SimulationManager
+from simulation.models.game_of_life import GOLSimulation, GOLParameters
+from .simulation_manager import SimulationEnum, SimulationManager
 
 # Create your views here.
 def index(request):
     models = ALifeModel.objects.all()
     modelSelected = models.first()
     modelsName = [m.value for m in SimulationEnum]
-    print(modelsName)
     
     toolsList = Tool.objects.filter(aLifeModel=modelSelected.pk)
     
-    rules = GOLSimulation.default_rules
+    rules = GOLParameters().get_rules_parameters()
     rulesParameters = [rule.get_param() for rule in rules]
     
-    init_p = GOLSimulation.initialization_parameters
+    init_p = GOLParameters().get_init_parameters()
     initParameters = [ip.get_param() for ip in init_p]
     
     transformers = TransformerItem.objects.all()
@@ -28,9 +27,13 @@ def index(request):
 
     meshPath = os.path.join(settings.BASE_DIR, "viewer/"+settings.STATIC_URL+"models/")
     meshFiles = os.listdir(meshPath)
+    viewers = ["Meshes", "Texture", "Material"]
+
+    interactionsName = ["0"]
     return render(request, "index.html", {"model":modelSelected , "modelsName":modelsName, "initParameters":initParameters,
                                           "rulesParameters":rulesParameters, "transformers":transformersParam, 
-                                          "toolsList":toolsList, "meshFiles":meshFiles}) 
+                                          "toolsList":toolsList, "meshFiles":meshFiles, "viewers":viewers,
+                                          "interactionsName" : interactionsName}) 
 
 def addTransformer(request, transformerType):
     baseTransformer = TransformerItem.objects.filter(transformerType=transformerType).first()
@@ -44,3 +47,7 @@ def changeModel(request, modelsName):
     init_p = SimulationManager.get_initialization_parameters(modelsName)
     initParameters = [ip.get_param() for ip in init_p]
     return render(request, "simulationPanel/simulationConfigSet.html", {"rulesParameters":rulesParameters, "initParameters":initParameters})
+
+def renderInteractions(request, modelName):
+    interactions = SimulationManager.get_interactions_names(modelName)
+    return render(request, "simulationPanel/tool/selectionInteraction.html", {"interactionsName" : interactions})

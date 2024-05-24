@@ -1,10 +1,11 @@
 from abc import ABC, abstractmethod 
 from enum import Enum
-import jax.numpy as jnp
-import jax.lax as lax
-import jax.random
-from .param import *
-import numpy as np
+
+
+# from viewer.simulation_manager import 
+
+
+
 
 class Paramtype(Enum):
     NUMBERRANGE = 'NR'
@@ -51,6 +52,11 @@ class Param(ABC):
     def set_param(self, json): 
         pass
 
+    def set_id(self, id : str):
+        self.id_param = id
+
+    def set_name(self, name : str):
+        self.name = name
 
         
 
@@ -167,3 +173,118 @@ class BoolParam(Param):
 
     def set_param(self, json):
         self.value = json["value"]
+
+class SelectionParam(Param):
+    def __init__(self, id_p : str, name : str, options : list[str] = None, default_idx : int = 0):
+        super().__init__(id_p, Paramtype.SELECTIONVALUE, name)
+        self.options = options
+        self.default_idx = default_idx
+        self.value = 0
+
+    def get_param(self):
+        param = super().get_param()
+        param.update({
+            "defaultValue" : self.default_idx,
+            "options" : self.options,
+        })
+        return param
+
+    def set_param(self, json):
+        self.value = json["value"]
+
+
+
+
+
+class SimulationParameters(ABC):
+
+    def __init__(self, id_prefix : str = "default"):
+        self.id_prefix : str = id_prefix
+        self._rules_param : list[Param] = []
+        self._init_param : list[Param] = []
+        self.type : type = SimulationParameters
+
+    def set_prefix(self, prefix : str):
+        old_id = self._get_id_prefix()
+        old_name = self._get_name_prefix()
+        self.id_prefix = prefix
+        for p in self._rules_param:
+            new_id = self._get_id_prefix() + self._get_id_without_prefix(p.id_param, old_id)
+            new_name = self._get_name_prefix() + self._get_name_without_prefix(p.id_param, old_name)
+            
+            p.set_id(new_id)
+            p.set_name(new_name)
+            
+        for p in self._init_param:
+            new_id = self._get_id_prefix() + self._get_id_without_prefix(p.id_param, old_id)
+            new_name = self._get_name_prefix() + self._get_name_without_prefix(p.id_param, old_name)
+
+            p.set_id(new_id)
+            p.set_name(new_name)
+
+    def update_rules_param(self, json : dict[str, str | float | int]):
+        if (json == None):
+            return
+        if (not json["paramId"].startswith(self.id_prefix)):
+            return
+        for i, p in enumerate(self.get_rules_parameters()):
+            if p.id_param == json["paramId"]:
+                p.set_param(json)
+                self.rule_param_value_changed(i, p)
+
+    def update_init_param(self, json : dict[str, str | float | int]):
+        if (json == None):
+            return
+        if (not json["paramId"].startswith(self.id_prefix)):
+            return
+        for i, p in enumerate(self.get_init_parameters()):
+            if p.id_param == json["paramId"]:
+                p.set_param(json)
+                self.init_param_value_changed(i, p)
+        
+    @abstractmethod
+    def rule_param_value_changed(self, idx : int, param : Param) -> None:
+        pass
+
+    @abstractmethod
+    def init_param_value_changed(self, idx : int, param : Param) -> None:
+        pass
+
+    def set_all_params(self) -> None:
+        for i, p in enumerate(self.get_init_parameters()):
+            self.init_param_value_changed(i, p)
+        for i, p in enumerate(self.get_rules_parameters()):
+            self.rule_param_value_changed(i, p)
+
+    def set_init_from_list(self, source : list[Param]):
+        for s in source:
+            for i in range(len(self._init_param)):
+                if self._init_param[i].id_param == s.id_param:
+                    self._init_param[i] = s
+        for i, p in enumerate(self.get_init_parameters()):
+            self.init_param_value_changed(i, p)
+
+
+    def _get_name_prefix(self) -> str:
+        if (self.id_prefix != "default"):
+            return f"({self.id_prefix}) "
+        else:
+            return "" 
+        
+    def _get_id_prefix(self) -> str:
+        return self.id_prefix + "-"
+    
+    def _get_id_without_prefix(self, id : str, prefix : str) -> str:
+        return id.removeprefix(prefix)
+
+    def _get_name_without_prefix(self, name : str, prefix : str) -> str:
+        return name.removeprefix(prefix)
+
+    def get_rules_parameters(self) -> list[Param]:
+        return self._rules_param
+    
+    def get_init_parameters(self) -> list[Param]:
+        return self._init_param
+
+    def compute_init_params(self):
+        pass

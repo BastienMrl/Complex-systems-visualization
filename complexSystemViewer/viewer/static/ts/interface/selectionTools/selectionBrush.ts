@@ -1,4 +1,5 @@
-import { Viewer } from "../../viewer.js";
+import { ViewerManager } from "../../viewerManager.js";
+import { SelectionManager } from "./selectionManager.js";
 import { SelectionTool } from "./selectionTool.js";
 
 export enum BrushShape{
@@ -20,8 +21,8 @@ export class SelectionBrushTool extends SelectionTool{
     private _idValues : Map<number, number>;
 
     
-    public constructor(viewer : Viewer, interactionButton : number){
-        super(viewer);
+    public constructor(viewer : ViewerManager, interactionButton : number, manager : SelectionManager){
+        super(viewer, manager);
         this._interactionButton = interactionButton;
         this._shape = BrushShape.CIRCLE;
         this._radius = 3;
@@ -111,7 +112,7 @@ export class SelectionBrushTool extends SelectionTool{
             return;
         this._mouseDown = false;
         if (this._currentMask.length != 0)
-            this._viewer.sendInteractionRequest(new Float32Array(this._currentMask));
+            this._manager.apply_interaction(new Float32Array(this._currentMask));
         this.onCurrentSelectionChanged(null);
     }
 
@@ -162,7 +163,6 @@ export class SelectionBrushTool extends SelectionTool{
     }
 
     private getIdValuesInsideBrush(from : number) : Map<number, number>{
-
         let ret = new Map<number, number>();
         
         let centerCoord = this.idToCoords(from);
@@ -174,12 +174,12 @@ export class SelectionBrushTool extends SelectionTool{
 
         if (iMin < 0)
             iMin = 0;
-        if (iMax >= this._meshes.nbRow)
-            iMax = this._meshes.nbRow - 1;
+        if (iMax >= this._maskSize[1])
+            iMax = this._maskSize[1] - 1;
         if (jMin < 0)
             jMin = 0;
-        if (jMax >= this._meshes.nbCol)
-            jMax = this._meshes.nbCol - 1;
+        if (jMax >= this._maskSize[0])
+            jMax = this._maskSize[0] - 1;
 
         
         for(let i = iMin; i < iMax + 1; i++){

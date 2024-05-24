@@ -46,16 +46,17 @@ export class StatesBuffer {
         let nbChannels = this.getNbChannelsFromData(data);
         if (nbElements != this._transformedValues.nbElements || nbChannels != this._transformedValues.nbChannels) {
             this._valueIsReshaped = true;
-            this._transformedValues.reshape(nbElements, nbChannels);
+            this._transformedValues.domain = new Float32Array(data[0]);
+            this._transformedValues.reshape();
         }
         this.transformState();
         this._isNewValues = true;
     }
     getNbElementsFromData(data) {
-        return data[0][0];
+        return data[0][2];
     }
     getNbChannelsFromData(data) {
-        return data[0][1];
+        return data[0][3];
     }
     transformState() {
         this.timers.startTransformationTimer();

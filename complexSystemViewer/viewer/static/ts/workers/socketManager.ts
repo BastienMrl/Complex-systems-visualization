@@ -10,6 +10,7 @@ export class SocketManager {
 
     private _requestDataMessage : string = "RequestData";
     private _resetSimulationMessage : string = "ResetSimulation";
+    private _resetRandomSimulationMessage : string = "ResetRandomSimulation"
     private _changeSimuMessage : string = "ChangeSimulation";
     private _updateInitParams : string = "UpdateInitParams";
     private _updateRulesMessage : string = "UpdateRule";
@@ -134,6 +135,17 @@ export class SocketManager {
         }));
     }
 
+    public resetRandomSimulation(){
+        if (!this._isConnected){
+            this._awaitingRequests.push(this.resetRandomSimulation.bind(this));
+            return;
+        };
+
+        this._socket.send(JSON.stringify({
+            'message' : this._resetRandomSimulationMessage,
+        }));
+    }
+
     public updateSimuRules(params: any){
         if (!this._isConnected){
             this._awaitingRequests.push(this.updateSimuRules.bind(this, params));
@@ -167,24 +179,18 @@ export class SocketManager {
         }));
     }
 
-    public applyInteraction(mask : Float32Array, currentValues : Array<Float32Array>, id : string){
+    public apply_interaction(mask : Float32Array, interaction : string, id : number){
         if (!this._isConnected){
-            this._awaitingRequests.push(this.applyInteraction.bind(this, mask));
+            this._awaitingRequests.push(this.apply_interaction.bind(this, mask, interaction, id));
             return;
         }
-        let values = new Array(currentValues.length);
-        currentValues.forEach((e, i) => {
-            values[i] = Array.from(e);
-        });
 
         let string = JSON.stringify({
             'message' : this._applyInteractionMessage,
             'mask' : Array.from(mask),
-            'currentStates' : values,
-            'interaction' : id
+            'id' : id,
+            'interaction' : interaction
         });
-
-        
         this._socket.send(string);
     }
     

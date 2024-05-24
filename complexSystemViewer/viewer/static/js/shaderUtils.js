@@ -25,7 +25,6 @@ async function initShaders(gl, srcVertex, srcFragment) {
     }
     gl.attachShader(shaderProgram, vertexShader);
     gl.attachShader(shaderProgram, fragmentShader);
-    gl.transformFeedbackVaryings(shaderProgram, ['feedback_translation'], gl.SEPARATE_ATTRIBS);
     gl.linkProgram(shaderProgram);
     if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
         alert("Could not initialise shaders");
@@ -36,30 +35,46 @@ export class ProgramWithTransformer {
     _context;
     _program;
     _templateVertexShader;
+    _templateFragmentShader;
+    _templateInsideVertex;
     _currentTransformers;
     _fragmentShader;
     _vertexShader;
     static _transformersKey = "//${TRANSFORMERS}";
-    constructor(context) {
+    constructor(context, isInsideVertex = true) {
         this._context = context;
+        this._templateInsideVertex = isInsideVertex;
     }
     get program() {
         return this._program;
     }
     async generateProgram(srcVertex, srcFragment) {
-        this._fragmentShader = await fetch(srcFragment, { cache: "no-cache" }).then(response => response.text());
+        this._templateFragmentShader = await fetch(srcFragment, { cache: "no-cache" }).then(response => response.text());
         this._templateVertexShader = await fetch(srcVertex, { cache: "no-cache" }).then(response => response.text());
-        if (this._currentTransformers != undefined)
-            this._vertexShader = this._templateVertexShader.replace(ProgramWithTransformer._transformersKey, this._currentTransformers);
-        else
-            this._vertexShader = this._templateVertexShader;
+        this._vertexShader = this._templateVertexShader;
+        this._fragmentShader = this._templateFragmentShader;
+        if (this._currentTransformers != undefined) {
+            if (this._templateInsideVertex) {
+                this._vertexShader = this._templateVertexShader.replace(ProgramWithTransformer._transformersKey, this._currentTransformers);
+            }
+            else {
+                this._fragmentShader = this._templateFragmentShader.replace(ProgramWithTransformer._transformersKey, this._currentTransformers);
+            }
+        }
         this.reloadProgram();
     }
     updateProgramTransformers(transformers) {
         this._currentTransformers = transformers;
-        if (this._templateVertexShader == undefined)
-            return;
-        this._vertexShader = this._templateVertexShader.replace(ProgramWithTransformer._transformersKey, this._currentTransformers);
+        if (this._templateInsideVertex) {
+            if (this._templateVertexShader == undefined)
+                return;
+            this._vertexShader = this._templateVertexShader.replace(ProgramWithTransformer._transformersKey, this._currentTransformers);
+        }
+        else {
+            if (this._templateFragmentShader == undefined)
+                return;
+            this._fragmentShader = this._templateFragmentShader.replace(ProgramWithTransformer._transformersKey, this._currentTransformers);
+        }
         this.reloadProgram();
     }
     reloadProgram() {
@@ -76,6 +91,14 @@ export class ProgramWithTransformer {
             alert("Could not initialise shaders");
         }
         this._program = shaderProgram;
+    }
+    printShader(isVertex = true) {
+        if (isVertex) {
+            console.log(this._vertexShader);
+        }
+        else {
+            console.log(this._fragmentShader);
+        }
     }
 }
 export function getAnimableValueUniformName(value) {
@@ -99,30 +122,38 @@ var AnimableValue;
 })(AnimableValue || (AnimableValue = {}));
 var ShaderUniforms;
 (function (ShaderUniforms) {
-    ShaderUniforms["TIME_COLOR"] = "u_time_color";
-    ShaderUniforms["TIME_TRANSLATION"] = "u_time_translation";
-    ShaderUniforms["TIME_ROTATION"] = "u_time_rotation";
-    ShaderUniforms["TIME_SCALING"] = "u_time_scaling";
+    ShaderUniforms["TIME_COLOR"] = "time.color";
+    ShaderUniforms["TIME_TRANSLATION"] = "time.translation";
+    ShaderUniforms["TIME_ROTATION"] = "time.rotation";
+    ShaderUniforms["TIME_SCALING"] = "time.scaling";
+    ShaderUniforms["CUBE_MAP"] = "u_cube_map";
+    ShaderUniforms["POS_DOMAIN"] = "u_pos_domain";
+    ShaderUniforms["DIMENSION"] = "u_dimensions";
 })(ShaderUniforms || (ShaderUniforms = {}));
-var ShaderMeshInputs;
-(function (ShaderMeshInputs) {
-    ShaderMeshInputs["TRANSLATION_T0"] = "a_translation_t0";
-    ShaderMeshInputs["TRANLSATION_T1"] = "a_translation_t1";
-    ShaderMeshInputs["STATE_0_T0"] = "a_state_0_t0";
-    ShaderMeshInputs["STATE_0_T1"] = "a_state_0_t1";
-    ShaderMeshInputs["STATE_1_T0"] = "a_state_1_t0";
-    ShaderMeshInputs["STATE_1_T1"] = "a_state_1_t1";
-    ShaderMeshInputs["STATE_2_T0"] = "a_state_2_t0";
-    ShaderMeshInputs["STATE_2_T1"] = "a_state_2_t1";
-    ShaderMeshInputs["STATE_3_T0"] = "a_state_3_t0";
-    ShaderMeshInputs["STATE_3_T1"] = "a_state_3_t1";
-})(ShaderMeshInputs || (ShaderMeshInputs = {}));
+var ShaderBlockIndex;
+(function (ShaderBlockIndex) {
+    ShaderBlockIndex["TIME"] = "Time";
+    ShaderBlockIndex["DOMAIN"] = "Domain";
+})(ShaderBlockIndex || (ShaderBlockIndex = {}));
+var ShaderBlockBindingPoint;
+(function (ShaderBlockBindingPoint) {
+    ShaderBlockBindingPoint[ShaderBlockBindingPoint["TIME"] = 0] = "TIME";
+    ShaderBlockBindingPoint[ShaderBlockBindingPoint["DOMAIN"] = 1] = "DOMAIN";
+})(ShaderBlockBindingPoint || (ShaderBlockBindingPoint = {}));
+var ShaderElementInputs;
+(function (ShaderElementInputs) {
+    ShaderElementInputs["UV"] = "a_uvs";
+    ShaderElementInputs["TEX_T0"] = "tex_t0";
+    ShaderElementInputs["TEX_T1"] = "tex_t1";
+    ShaderElementInputs["TEX_SELECTION"] = "tex_selection";
+})(ShaderElementInputs || (ShaderElementInputs = {}));
 var ShaderVariable;
 (function (ShaderVariable) {
     ShaderVariable["COLOR"] = "color";
     ShaderVariable["TRANSLATION"] = "translation";
     ShaderVariable["SCALING"] = "scaling";
     ShaderVariable["ROTATION"] = "rotation";
+    ShaderVariable["TEX_COORD"] = "tex_coord";
 })(ShaderVariable || (ShaderVariable = {}));
 var ShaderFunction;
 (function (ShaderFunction) {
@@ -138,15 +169,6 @@ var ShaderLocation;
     ShaderLocation[ShaderLocation["UV"] = 2] = "UV";
     ShaderLocation[ShaderLocation["ID"] = 3] = "ID";
     ShaderLocation[ShaderLocation["SELECTED"] = 4] = "SELECTED";
-    ShaderLocation[ShaderLocation["TRANSLATION_T0"] = 5] = "TRANSLATION_T0";
-    ShaderLocation[ShaderLocation["TRANLSATION_T1"] = 6] = "TRANLSATION_T1";
-    ShaderLocation[ShaderLocation["STATE_0_T0"] = 7] = "STATE_0_T0";
-    ShaderLocation[ShaderLocation["STATE_0_T1"] = 8] = "STATE_0_T1";
-    ShaderLocation[ShaderLocation["STATE_1_T0"] = 9] = "STATE_1_T0";
-    ShaderLocation[ShaderLocation["STATE_1_T1"] = 10] = "STATE_1_T1";
-    ShaderLocation[ShaderLocation["STATE_2_T0"] = 11] = "STATE_2_T0";
-    ShaderLocation[ShaderLocation["STATE_2_T1"] = 12] = "STATE_2_T1";
-    ShaderLocation[ShaderLocation["STATE_3_T0"] = 13] = "STATE_3_T0";
-    ShaderLocation[ShaderLocation["STATE_3_T1"] = 14] = "STATE_3_T1";
+    ShaderLocation[ShaderLocation["UVS"] = 13] = "UVS";
 })(ShaderLocation || (ShaderLocation = {}));
-export { initShaders, ShaderVariable, ShaderFunction, ShaderMeshInputs, ShaderUniforms, ShaderLocation, AnimableValue };
+export { initShaders, ShaderVariable, ShaderFunction, ShaderElementInputs, ShaderUniforms, ShaderLocation, AnimableValue, ShaderBlockIndex, ShaderBlockBindingPoint };

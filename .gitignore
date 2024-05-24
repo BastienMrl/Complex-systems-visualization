@@ -3,4 +3,7 @@
 *.pot
 *.pyc
 **/.vscode
+**/*tmp*
+**/*DB*
+**/*exploration_*
 __pycache__

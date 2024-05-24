@@ -1,4 +1,3 @@
-import { TransformableValues } from "../transformableValues.js";
 import { SocketManager } from "./socketManager.js";
 import { StatesBuffer } from "./statesBuffer.js";
 import { WorkerTimers } from "./workerTimers.js";
@@ -24,11 +23,14 @@ class TransmissionWorker {
             case WorkerMessage.RESET:
                 this.resetSimulation();
                 break;
+            case WorkerMessage.RESET_RANDOM:
+                this.resetRandomSimulation();
+                break;
             case WorkerMessage.UPDATE_RULES:
                 this.updateSimulationRules(getMessageBody(e));
                 break;
             case WorkerMessage.APPLY_INTERACTION:
-                this.applyInteraction(getMessageBody(e)[1], getMessageBody(e)[0]);
+                this.apply_interaction(getMessageBody(e)[2], getMessageBody(e)[0], getMessageBody(e)[1]);
                 break;
             case WorkerMessage.CHANGE_SIMULATION:
                 this.changeSimulation(getMessageBody(e));
@@ -71,6 +73,15 @@ class TransmissionWorker {
         await this.waitNewValues();
         this.sendValues();
     }
+    async resetRandomSimulation() {
+        if (!this._socketManager.isConnected)
+            await this.waitSocketConnection();
+        sendMessageToWindow(WorkerMessage.RESET);
+        this._statesBuffer.flush();
+        this._socketManager.resetRandomSimulation();
+        await this.waitNewValues();
+        this.sendValues();
+    }
     async waitSocketConnection() {
         while (!this._socketManager.isConnected) {
             await new Promise(resolve => setTimeout(resolve, 1));
@@ -87,12 +98,11 @@ class TransmissionWorker {
             await this.waitSocketConnection();
         this._socketManager.updateInitParams(params);
     }
-    async applyInteraction(data, interaction) {
+    async apply_interaction(mask, interaction, id) {
         if (!this._socketManager.isConnected)
             await this.waitSocketConnection();
         this._statesBuffer.flush();
-        let values = TransformableValues.fromValuesAsArray(data.slice(1));
-        this._socketManager.applyInteraction(data[0], values.getBackendValues(), interaction);
+        this._socketManager.apply_interaction(mask, interaction, id);
         await this.waitNewValues();
         await this.sendValues(true);
     }

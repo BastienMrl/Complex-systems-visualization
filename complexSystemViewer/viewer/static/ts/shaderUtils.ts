@@ -33,11 +33,6 @@ async function initShaders(gl : WebGL2RenderingContext, srcVertex : string, srcF
     gl.attachShader(shaderProgram, vertexShader); 
     gl.attachShader(shaderProgram, fragmentShader); 
 
-    gl.transformFeedbackVaryings(
-        shaderProgram,
-        ['feedback_translation'],
-        gl.SEPARATE_ATTRIBS,
-    );
 
     gl.linkProgram(shaderProgram); 
 
@@ -52,6 +47,9 @@ export class ProgramWithTransformer {
     private _context : WebGL2RenderingContext;
     private _program : WebGLProgram;
     private _templateVertexShader : string;
+    private _templateFragmentShader : string;
+
+    private _templateInsideVertex : boolean
     private _currentTransformers : string;
 
     private _fragmentShader : string;
@@ -60,8 +58,9 @@ export class ProgramWithTransformer {
     private static readonly _transformersKey : string = "//${TRANSFORMERS}";
 
 
-    constructor(context : WebGL2RenderingContext){
+    constructor(context : WebGL2RenderingContext, isInsideVertex : boolean = true){
         this._context = context;
+        this._templateInsideVertex = isInsideVertex;
     }
 
     public get program() : WebGLProgram {
@@ -69,26 +68,43 @@ export class ProgramWithTransformer {
     }
     
     public async generateProgram(srcVertex : string, srcFragment : string){
-        this._fragmentShader = await fetch(srcFragment, { cache: "no-cache"}).then(response => response.text());
+        this._templateFragmentShader = await fetch(srcFragment, { cache: "no-cache"}).then(response => response.text());
         this._templateVertexShader = await fetch(srcVertex, { cache: "no-cache"}).then(response => response.text());
-        if (this._currentTransformers != undefined)
-            this._vertexShader = this._templateVertexShader.replace(ProgramWithTransformer._transformersKey, this._currentTransformers);
-        else
-            this._vertexShader = this._templateVertexShader;
+
+        this._vertexShader = this._templateVertexShader;
+        this._fragmentShader = this._templateFragmentShader;
+
+        if (this._currentTransformers != undefined){
+            if (this._templateInsideVertex){
+                this._vertexShader = this._templateVertexShader.replace(ProgramWithTransformer._transformersKey, this._currentTransformers);
+            }
+            else{
+                this._fragmentShader = this._templateFragmentShader.replace(ProgramWithTransformer._transformersKey, this._currentTransformers);
+            }
+        }
+
         this.reloadProgram();
     }
 
     public updateProgramTransformers(transformers : string) : void{
         this._currentTransformers = transformers;
-        if (this._templateVertexShader == undefined)
-            return;
-        this._vertexShader = this._templateVertexShader.replace(ProgramWithTransformer._transformersKey, this._currentTransformers);
-        this.reloadProgram();
+        if (this._templateInsideVertex){
+            if (this._templateVertexShader == undefined)
+                return;
+            this._vertexShader = this._templateVertexShader.replace(ProgramWithTransformer._transformersKey, this._currentTransformers);
+        }
+        else{
+            if (this._templateFragmentShader == undefined)
+                return;
+            this._fragmentShader = this._templateFragmentShader.replace(ProgramWithTransformer._transformersKey, this._currentTransformers);
+        }
+        this.reloadProgram();   
     }
     
     private reloadProgram(){
         let vertexShader = getShaderFromString(this._vertexShader, this._context.VERTEX_SHADER, this._context);
         let fragmentShader = getShaderFromString(this._fragmentShader, this._context.FRAGMENT_SHADER, this._context);
+
         
         
         let shaderProgram : WebGLProgram | null = this._context.createProgram(); 
@@ -105,6 +121,14 @@ export class ProgramWithTransformer {
         this._program = shaderProgram;
     }
 
+    public printShader(isVertex : boolean = true){
+        if (isVertex){
+            console.log(this._vertexShader)
+        }
+        else{
+            console.log(this._fragmentShader)
+        }
+    }
     
 }
 
@@ -131,24 +155,35 @@ enum AnimableValue {
 
 
 enum ShaderUniforms {
-    TIME_COLOR = "u_time_color",
-    TIME_TRANSLATION = "u_time_translation",
-    TIME_ROTATION = "u_time_rotation",
-    TIME_SCALING = "u_time_scaling"
+    TIME_COLOR = "time.color",
+    TIME_TRANSLATION = "time.translation",
+    TIME_ROTATION = "time.rotation",
+    TIME_SCALING = "time.scaling",
+
+    CUBE_MAP = "u_cube_map",
+
+    POS_DOMAIN = "u_pos_domain",
+    DIMENSION = "u_dimensions"
+}
+
+enum ShaderBlockIndex {
+    TIME = "Time",
+    DOMAIN = "Domain"
+}
+
+enum ShaderBlockBindingPoint {
+    TIME = 0,
+    DOMAIN = 1
 }
 
 
-enum ShaderMeshInputs {
-    TRANSLATION_T0 = "a_translation_t0",
-    TRANLSATION_T1 = "a_translation_t1",
-    STATE_0_T0 = "a_state_0_t0",
-    STATE_0_T1 = "a_state_0_t1",
-    STATE_1_T0 = "a_state_1_t0",
-    STATE_1_T1 = "a_state_1_t1",
-    STATE_2_T0 = "a_state_2_t0",
-    STATE_2_T1 = "a_state_2_t1",
-    STATE_3_T0 = "a_state_3_t0",
-    STATE_3_T1 = "a_state_3_t1",
+enum ShaderElementInputs {
+    UV = "a_uvs",
+
+    TEX_T0 = "tex_t0",
+    TEX_T1 = "tex_t1",
+
+    TEX_SELECTION = "tex_selection"
 }
 
 
@@ -156,7 +191,8 @@ enum ShaderVariable {
     COLOR = "color",
     TRANSLATION = "translation",
     SCALING = "scaling",
-    ROTATION = "rotation"
+    ROTATION = "rotation",
+    TEX_COORD = "tex_coord"
 }
 
 enum ShaderFunction {
@@ -174,17 +210,8 @@ enum ShaderLocation {
 
     SELECTED = 4,
 
-    TRANSLATION_T0 = 5,
-    TRANLSATION_T1 = 6,
-    STATE_0_T0 = 7,
-    STATE_0_T1 = 8,
-    STATE_1_T0 = 9,
-    STATE_1_T1 = 10,
-    STATE_2_T0 = 11,
-    STATE_2_T1 = 12,
-    STATE_3_T0 = 13,
-    STATE_3_T1 = 14,
+    UVS = 13,
 }
 
 
-export {initShaders, ShaderVariable, ShaderFunction, ShaderMeshInputs, ShaderUniforms, ShaderLocation, AnimableValue}
+export {initShaders, ShaderVariable, ShaderFunction, ShaderElementInputs, ShaderUniforms, ShaderLocation, AnimableValue, ShaderBlockIndex, ShaderBlockBindingPoint}

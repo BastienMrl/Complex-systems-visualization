@@ -1,5 +1,6 @@
 import { SelectionTool } from "./selectionTool.js";
-import { Viewer } from "../../viewer.js";
+import { ViewerManager } from "../../viewerManager.js";
+import { SelectionManager } from "./selectionManager.js";
 
 export class SelectionLassoTool extends SelectionTool {
 
@@ -10,8 +11,8 @@ export class SelectionLassoTool extends SelectionTool {
 
     private _interactionButton : number;
 
-    public constructor(viewer : Viewer, interactionButton : number){
-        super(viewer);
+    public constructor(viewer : ViewerManager, interactionButton : number, manager : SelectionManager){
+        super(viewer, manager);
         this.resetAabb();
         this._interactionButton = interactionButton;
     }
@@ -51,7 +52,7 @@ export class SelectionLassoTool extends SelectionTool {
         if (e.button != this._interactionButton || !this._mouseDown)
             return;
         this._mouseDown = false;
-        this._viewer.sendInteractionRequest(new Float32Array(this._currentMask));
+        this._manager.apply_interaction(new Float32Array(this._currentMask));
         this.onCurrentSelectionChanged(null);
         this.resetAabb();
     }

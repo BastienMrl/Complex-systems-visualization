@@ -1,4 +1,4 @@
-import { Viewer } from "./viewer.js";
+import { ViewerManager, ViewerType } from "./viewerManager.js";
 import { UserInterface } from "./interface/userInterface.js";
 async function main() {
     let canvas = document.getElementById("c");
@@ -7,10 +7,10 @@ async function main() {
     }
     canvas.height = canvas.clientHeight;
     canvas.width = canvas.clientWidth;
-    let viewer = new Viewer("c");
+    let viewer = new ViewerManager("c");
     let userInterface = UserInterface.getInstance();
     userInterface.initHandlers(viewer);
-    await viewer.initialization("/static/shaders/simple.vert", "/static/shaders/simple.frag");
+    await viewer.initialization(ViewerType.MULTIPLE_MESHES);
     viewer.loopAnimation();
 }
 window.onload = function () {

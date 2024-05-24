@@ -1,8 +1,8 @@
-import { Viewer } from "../viewer.js";
+import { ViewerManager, ViewerType } from "../viewerManager.js";
 import { TransformType } from "../transformer/transformType.js";
 import { TransformersInterface } from "./transformerInterface.js";
 import { sendMessageToWorker, WorkerMessage } from "../workers/workerInterface.js"
-import { SelectionMode } from "./selectionTools/selectionManager.js";
+import { SelectionManager, SelectionMode } from "./selectionTools/selectionManager.js";
 import { AnimationInterface } from "./animation/animationInterface.js";
 import { Stats } from "./stats.js";
 
@@ -10,23 +10,17 @@ export class UserInterface {
     // Singleton
     private static _instance : UserInterface;
 
-    private _nbElements : number;
-
     private _transformers : TransformersInterface;
     private _animationCurves : AnimationInterface;
     private _stats : Stats;
 
-    private _viewer : Viewer;
+    private _viewer : ViewerManager;
+    private _selectionManager : SelectionManager;
 
     private _ctrlPressed : boolean;
     private _wheelPressed : boolean;
 
 
-
-    private constructor() {
-        let GridSizeInput = (document.querySelector("input[paramId=gridSize]") as HTMLInputElement);
-        this._nbElements = (GridSizeInput.value as unknown as number) ** 2;
-    }
 
     public static getInstance() : UserInterface {
         if (!UserInterface._instance)
@@ -38,12 +32,9 @@ export class UserInterface {
         this._transformers.setNumberOfStatesOutput(nb);
     }
     
-    public get nbElements() : number {
-        return this._nbElements;
-    }
-
-    public initHandlers(viewer : Viewer){
+    public initHandlers(viewer : ViewerManager){
         this._viewer = viewer;
+        this._selectionManager = new SelectionManager(viewer);
         this.initMouseKeyHandlers();
         this.initInterfaceHandlers();
         this.initTransformers();
@@ -82,14 +73,14 @@ export class UserInterface {
         //zoomIn/zoomOut
         this._viewer.canvas.addEventListener('wheel', (e : WheelEvent) =>{
             let delta : number = e.deltaY * 0.001;
-            this._viewer.camera.moveForward(-delta);
+            this._viewer.onWheelMoved(delta);
         });
         
         
 
         this._viewer.canvas.addEventListener('mousemove', (e : MouseEvent) => {
             if (this._ctrlPressed || this._wheelPressed)
-                this._viewer.camera.rotateCamera(e.movementY * 0.005, e.movementX * 0.005);
+                this._viewer.onMouseMoved(e.movementY * 0.005, e.movementX * 0.005);
         });
     }
 
@@ -116,9 +107,13 @@ export class UserInterface {
 
         let modelSelector = (document.getElementById("modelSelector") as HTMLSelectElement);
 
+        let interactionSelector = (document.getElementById("interactionSelector") as HTMLSelectElement)
+
         let toolSettings = (document.getElementById("toolSettings") as HTMLDivElement).children as HTMLCollectionOf<HTMLInputElement>;
         
         let meshInputFile = (document.getElementById("meshLoader") as HTMLSelectElement);
+
+        let viewerSelector = (document.getElementById("currentViewer") as HTMLSelectElement);
 
         playButton.addEventListener('click', () => {
             this._viewer.startVisualizationAnimation();
@@ -135,10 +130,7 @@ export class UserInterface {
         });
 
         resetButton.addEventListener('click', () => {
-            this._viewer.stopVisualizationAnimation();
-            sendMessageToWorker(this._viewer.transmissionWorker, WorkerMessage.RESET);
-            playButton.classList.remove("active");
-            pauseButton.classList.add("active");
+            sendMessageToWorker(this._viewer.transmissionWorker, WorkerMessage.RESET_RANDOM);
             console.debug("RESTART");
         });
 
@@ -175,10 +167,10 @@ export class UserInterface {
                 let sm = (e.target as HTMLDivElement).parentElement.getAttribute("selectionMode")
                 switch(sm){
                     case "BRUSH":
-                        this._viewer.selectionManager.switchMode(SelectionMode.BRUSH);
+                        this._selectionManager.switchMode(SelectionMode.BRUSH);
                         break;
                     case "BOX":
-                        this._viewer.selectionManager.switchMode(SelectionMode.BOX);
+                        this._selectionManager.switchMode(SelectionMode.BOX);
                         break;
                     default:
                         console.error("Selection mode "+ sm +" is undefined." )
@@ -225,6 +217,36 @@ export class UserInterface {
             document.getElementById(funcName).classList.add("active");
         });
 
+        // Interaction Selector
+
+        this._selectionManager.interaction = interactionSelector.value;
+
+        interactionSelector.addEventListener("change", () => {
+            this._selectionManager.interaction = interactionSelector.value;
+        });
+
+        let superThis = this
+        let renderInteractions = function(){
+            let xhttp = new XMLHttpRequest()
+            xhttp.open("GET", "renderInteractions/" + modelSelector.value, true);
+            xhttp.onreadystatechange = function() {
+                if(this.readyState == 4 && this.status == 200){
+                    let domParser = new DOMParser();
+                    let options = domParser.parseFromString(this.responseText, "text/html").body.children[0].querySelectorAll("option");
+                    interactionSelector.querySelectorAll("option").forEach( e => {
+                        e.remove()
+                    })
+                    options.forEach(e => {
+                        interactionSelector.appendChild(e)
+                    })
+                    interactionSelector.value = options[0].value
+                    superThis._selectionManager.interaction = interactionSelector.value
+                }
+            }
+            xhttp.send();
+        }
+        renderInteractions();
+
         modelSelector.addEventListener("change", () => {
             sendMessageToWorker(this._viewer.transmissionWorker, WorkerMessage.CHANGE_SIMULATION, modelSelector.value);
             let xhttp = new XMLHttpRequest()
@@ -245,25 +267,47 @@ export class UserInterface {
                 }
             }
             xhttp.send();
+
+            renderInteractions()
         })
-        this.initSimulationItem();
 
-        meshInputFile.addEventListener("change", () => {
-            let meshFile : string = "/static/models/" + meshInputFile.value;
-            this._viewer.currentMeshFile = meshFile;
-            this._viewer.loadMesh(meshFile);
 
+
+
+        
+        // meshInputFile.addEventListener("change", () => {
+        //     let meshFile : string = "/static/models/" + meshInputFile.value;
+        //     this._viewer.currentMeshFile = meshFile;
+        //     this._viewer.loadMesh(meshFile);
+        
+        // });
+
+        viewerSelector.addEventListener("change", () =>{
+            let viewerType = null;
+            switch(viewerSelector.value){
+                case ("Meshes"):
+                    viewerType = ViewerType.MULTIPLE_MESHES;
+                    break;
+                    case ("Texture"):
+                        viewerType = ViewerType.TEXTURE;
+                    break;
+                    case ("Material"):
+                        viewerType = ViewerType.MATERIAL;
+                        break;
+                    }
+                    this._viewer.switchViewer(viewerType);
         });
-
+        
         for(let i=0; i<toolSettings.length; i++){
             toolSettings.item(i).addEventListener("change", () => {
-                this._viewer.selectionManager.setSelectionParameter(toolSettings.item(i).name, Number.parseFloat(toolSettings.item(i).value));
+                this._selectionManager.setSelectionParameter(toolSettings.item(i).name, Number.parseFloat(toolSettings.item(i).value));
             });
         }
+        this.initSimulationItem();
     }
 
     private displayToolMenu(){
-        let toolParam = JSON.parse(this._viewer.selectionManager.getSelectionParameter());
+        let toolParam = JSON.parse(this._selectionManager.getSelectionParameter());
         let toolSettings = document.getElementById("toolSettings")
         toolSettings.replaceChildren("");
         if(!toolParam){
@@ -289,7 +333,7 @@ export class UserInterface {
             valueDisplay.innerText = toolParam[toolName]["value"]
             param.addEventListener("change", ()=>{
                 valueDisplay.innerText = param.value;
-                this._viewer.selectionManager.setSelectionParameter(toolName, Number.parseFloat(param.value));
+                this._selectionManager.setSelectionParameter(toolName, Number.parseFloat(param.value));
             })
             let paramContainer = document.createElement("div");
             paramContainer.classList.add("toolParamItem");
@@ -302,7 +346,7 @@ export class UserInterface {
 
     private initSimulationItem(){
         // ADD LISTENER FOR RULES ITEMS
-        let rulesInputs = document.querySelectorAll("#rules .parameterItem input");
+        let rulesInputs = document.querySelectorAll("#rules .parameterItem input, #rules .parameterItem select");
         let rulesInputsHandler = (e) =>{
             sendMessageToWorker(this._viewer.transmissionWorker, WorkerMessage.UPDATE_RULES, this.parseInputToJson(e.target as HTMLInputElement));
         }
@@ -310,7 +354,7 @@ export class UserInterface {
             input.addEventListener("change", rulesInputsHandler);
         });
         // ADD LISTENER FOR INIT_PARAMS
-        let initParamInput = document.querySelectorAll("#initParam .parameterItem input");
+        let initParamInput = document.querySelectorAll("#initParam .parameterItem input, #initParam .parameterItem select");
         let initParamInputsHandler = (e) =>{
             sendMessageToWorker(this._viewer.transmissionWorker, WorkerMessage.UPDATE_INIT_PARAM, this.parseInputToJson(e.target as HTMLInputElement));
         }
@@ -384,6 +428,7 @@ export class UserInterface {
                                 totalElement, transformationEl, parsingEl, receivingEl);
         this._stats.withLog = true;
         this._viewer.stats = this._stats;
+        this._selectionManager.stats = this._stats
         this._stats.logModel(modelSelector.value);
         modelSelector.addEventListener("change", () => {
             this._stats.logModel(modelSelector.value);

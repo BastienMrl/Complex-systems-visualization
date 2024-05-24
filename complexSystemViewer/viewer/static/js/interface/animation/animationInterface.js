@@ -10,8 +10,8 @@ export class AnimationInterface {
         this._viewer = viewer;
         //.... AnimationCurves ....
         // Default animation curve is easeOut, without any bind it would be fc0
-        this._viewer.bindAnimationCurve(AnimableValue.COLOR, AnimationFunction.easeOut);
-        this._viewer.bindAnimationCurve(AnimableValue.POSITION, AnimationFunction.easeOut);
+        this._viewer.bindAnimationCurve(AnimableValue.COLOR, AnimationFunction.linear);
+        this._viewer.bindAnimationCurve(AnimableValue.POSITION, AnimationFunction.linear);
         this.initAnimationItem();
     }
     initAnimationItem() {
@@ -20,8 +20,8 @@ export class AnimationInterface {
         let animationKeysValue = Object.values(AnimableValue);
         for (let i = 0; i < animationKeysValue.length / 2; i++) {
             let option = document.createElement("option");
-            option.value = animationKeysValue.at(i).toString();
-            option.innerText = animationKeysValue.at(i).toString();
+            option.value = animationKeysValue[i].toString();
+            option.innerText = animationKeysValue[i].toString();
             option.setAttribute("animationFunction", "easeOut");
             select.appendChild(option);
         }

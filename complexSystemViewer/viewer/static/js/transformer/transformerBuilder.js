@@ -1,6 +1,6 @@
-import { ShaderFunction, ShaderMeshInputs, ShaderUniforms } from "../shaderUtils.js";
+import { ShaderFunction, ShaderElementInputs, ShaderUniforms, ShaderVariable } from "../shaderUtils.js";
 import { InputType } from "./inputType.js";
-import { TransformType } from "./transformType.js";
+import { TransformFlag, TransformType, transformTypeMatchFlag } from "./transformType.js";
 import { ColorTransformer } from "./colorTransformer.js";
 import { ColorChannelTransformer } from "./colorChannelTransformer.js";
 import { ScalingTransformer } from "./scalingTransformer.js";
@@ -9,16 +9,47 @@ import { RotationTransformer } from "./rotationTransformer.js";
 export class TransformerBuilder {
     _transformers;
     _idCpt;
+    _animatedInputDeclarations;
     _inputDeclarations;
     constructor() {
         this._transformers = [];
         this._idCpt = 0;
+        this._animatedInputDeclarations = [];
         this._inputDeclarations = [];
     }
-    addInputVariableDeclaration(transformType, intputType, name) {
+    addInputVariableDeclaration(transformType, inputType, name) {
+        let s = `float ${name} = texelFetch(`;
+        let idx = 0;
+        switch (inputType) {
+            case InputType.POSITION_X:
+                idx = 0;
+                break;
+            case InputType.POSITION_Y:
+                idx = 1;
+                break;
+            case InputType.POSITION_Z:
+                idx = 0;
+                break;
+            case InputType.STATE_0:
+                idx = 2;
+                break;
+            case InputType.STATE_1:
+                idx = 3;
+                break;
+            case InputType.STATE_2:
+                idx = 4;
+                break;
+            case InputType.STATE_3:
+                idx = 5;
+                break;
+        }
+        s += `${ShaderElementInputs.TEX_T0}, ivec3(${ShaderVariable.TEX_COORD}, ${idx}), 0).r;`;
+        this._inputDeclarations.push(s);
+    }
+    addAnimatedInputVariableDeclaration(transformType, inputType, name) {
         let s = `float ${name} = `;
-        let onT0 = "";
-        let onT1 = "";
+        let onT0 = "texelFetch(";
+        let onT1 = "texelFetch(";
         let time = "";
         let normalized = false;
         let need_normalization = false;
@@ -45,57 +76,55 @@ export class TransformerBuilder {
                 time = ShaderUniforms.TIME_ROTATION;
                 break;
         }
-        switch (intputType) {
+        let idx = 0;
+        switch (inputType) {
             case InputType.POSITION_X:
-                onT0 = ShaderMeshInputs.TRANSLATION_T0 + ".x";
-                onT1 = ShaderMeshInputs.TRANLSATION_T1 + ".x";
+                idx = 0;
                 normalized = true && need_normalization;
                 normalization_axis = 0;
                 break;
             case InputType.POSITION_Y:
-                onT0 = ShaderMeshInputs.TRANSLATION_T0 + ".y";
-                onT1 = ShaderMeshInputs.TRANLSATION_T1 + ".y";
+                idx = 1;
                 normalized = true && need_normalization;
                 normalization_axis = 2;
                 break;
             case InputType.POSITION_Z:
-                onT0 = ShaderMeshInputs.TRANSLATION_T0 + ".z";
-                onT1 = ShaderMeshInputs.TRANLSATION_T1 + ".z";
+                idx = 0;
                 normalized = true && need_normalization;
                 normalization_axis = 1;
                 break;
             case InputType.STATE_0:
-                onT0 = ShaderMeshInputs.STATE_0_T0;
-                onT1 = ShaderMeshInputs.STATE_0_T1;
+                idx = 2;
                 break;
             case InputType.STATE_1:
-                onT0 = ShaderMeshInputs.STATE_1_T0;
-                onT1 = ShaderMeshInputs.STATE_1_T1;
+                idx = 3;
                 break;
             case InputType.STATE_2:
-                onT0 = ShaderMeshInputs.STATE_2_T0;
-                onT1 = ShaderMeshInputs.STATE_2_T1;
+                idx = 4;
                 break;
             case InputType.STATE_3:
-                onT0 = ShaderMeshInputs.STATE_3_T0;
-                onT1 = ShaderMeshInputs.STATE_3_T1;
+                idx = 5;
                 break;
         }
+        onT0 += `${ShaderElementInputs.TEX_T0}, ivec3(${ShaderVariable.TEX_COORD}, ${idx}), 0).r`;
+        onT1 += `${ShaderElementInputs.TEX_T1}, ivec3(${ShaderVariable.TEX_COORD}, ${idx}), 0).r`;
         s += `mix(${onT0}, ${onT1}, ${time});`;
         if (normalized)
             s += `\n${ShaderFunction.NORMALIZE_POSITION}(${name}, ${normalization_axis});`;
-        this._inputDeclarations.push(s);
+        this._animatedInputDeclarations.push(s);
     }
     deleteVariableDeclaration(variable) {
         let idx = -1;
-        for (let i = 0; i < this._inputDeclarations.length; ++i) {
-            if (this._inputDeclarations[i].includes(`${variable}`))
+        for (let i = 0; i < this._animatedInputDeclarations.length; ++i) {
+            if (this._animatedInputDeclarations[i].includes(`${variable}`))
                 idx = i;
         }
-        if (idx >= 0)
+        if (idx >= 0) {
+            this._animatedInputDeclarations.splice(idx, 1);
             this._inputDeclarations.splice(idx, 1);
+        }
     }
-    getInputVariableName(transformType, intputType) {
+    getInputVariableName(transformType, inputType) {
         let s = "input_";
         switch (transformType) {
             case TransformType.COLOR:
@@ -119,7 +148,7 @@ export class TransformerBuilder {
                 break;
         }
         s += "_";
-        switch (intputType) {
+        switch (inputType) {
             case InputType.POSITION_X:
                 s += "x";
                 break;
@@ -182,6 +211,7 @@ export class TransformerBuilder {
                 this._transformers.push(new RotationTransformer(id, inputVariable, 2, params[0], params[1]));
                 break;
         }
+        this.addAnimatedInputVariableDeclaration(type, inputType, inputVariable);
         this.addInputVariableDeclaration(type, inputType, inputVariable);
         return id;
     }
@@ -193,23 +223,31 @@ export class TransformerBuilder {
         this.deleteVariableDeclaration(variable);
         this._transformers.splice(this._transformers.indexOf(transformer), 1);
     }
-    generateTransformersBlock() {
+    generateTransformersBlock(useAnimation = true, flag = TransformFlag.ALL) {
         let inputDeclarations = "";
-        let uniques = this._inputDeclarations.filter((value, index, array) => array.indexOf(value) === index);
+        let uniques = [];
+        if (useAnimation) {
+            uniques = this._animatedInputDeclarations.filter((value, index, array) => array.indexOf(value) === index);
+        }
+        else {
+            uniques = this._inputDeclarations.filter((value, index, array) => array.indexOf(value) === index);
+        }
         uniques.forEach((e) => {
             inputDeclarations += e + "\n";
         });
         let constants = "";
         let fctCalls = "";
         this._transformers.forEach((transformer) => {
-            constants += transformer.getParamsDeclarationBlock() + "\n";
-            fctCalls += transformer.getTransformationsBlock() + "\n";
+            if (transformTypeMatchFlag(transformer.type, flag)) {
+                constants += transformer.getParamsDeclarationBlock() + "\n";
+                fctCalls += transformer.getTransformationsBlock() + "\n";
+            }
         });
         return `${inputDeclarations}\n${constants}\n${fctCalls}`;
     }
     generateTranslationTransformersBlock() {
         let inputDeclarations = "";
-        let uniques = this._inputDeclarations.filter((value, index, array) => array.indexOf(value) === index);
+        let uniques = this._animatedInputDeclarations.filter((value, index, array) => array.indexOf(value) === index);
         uniques.forEach((e) => {
             if (e.includes("_t_"))
                 inputDeclarations += e + "\n";
@@ -240,6 +278,7 @@ export class TransformerBuilder {
         let oldVariable = transformer.getInputVariable();
         let transformType = transformer.type;
         let newVariable = this.getInputVariableName(transformType, inputType);
+        this.addAnimatedInputVariableDeclaration(transformType, inputType, newVariable);
         this.addInputVariableDeclaration(transformType, inputType, newVariable);
         transformer.setInputVariable(newVariable);
         this.deleteVariableDeclaration(oldVariable);

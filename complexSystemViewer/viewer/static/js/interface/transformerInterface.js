@@ -9,7 +9,6 @@ export class TransformersInterface {
         this._viewer = viewer;
         this._currentTransformerBuilder = new TransformerBuilder();
         this._nbChannels = 1;
-        this._viewer.selectionManager.setTransformer(this._currentTransformerBuilder);
     }
     setNumberOfStatesOutput(nb) {
         let oldNumber = this._nbChannels;

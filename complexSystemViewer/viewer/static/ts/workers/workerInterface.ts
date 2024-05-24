@@ -2,6 +2,7 @@ export enum WorkerMessage {
     INIT_SOCKET = "init",
     GET_VALUES = "get",
     RESET = "reset",
+    RESET_RANDOM = "reset_random",
     VALUES = "values",
     VALUES_RESHAPED = "reshaped",
     READY = "ready",

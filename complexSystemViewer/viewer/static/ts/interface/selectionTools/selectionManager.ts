@@ -1,7 +1,5 @@
-import { MultipleMeshInstances } from "../../mesh.js";
 import { Stats } from "../stats.js";
-import { TransformerBuilder } from "../../transformer/transformerBuilder.js";
-import { Viewer } from "../../viewer.js";
+import { ViewerManager } from "../../viewerManager.js";
 import { SelectionBoxTool } from "./selectionBox.js";
 import { SelectionBrushTool } from "./selectionBrush.js";
 import { SelectionLassoTool } from "./selectionLasso.js";
@@ -22,11 +20,22 @@ export class SelectionManager{
     
     private _stats : Stats;
 
-    constructor(viewer : Viewer){
+    private _sizes : [number, number] = [100, 100];
+
+    private _currentInteraction : string;
+
+    private _viewer : ViewerManager
+
+    constructor(viewer : ViewerManager){
+        this._viewer = viewer;
+        
+        viewer.createMaskTexture(this._sizes[0], this._sizes[1]);
+        this._stats = viewer.stats;
+
         this._tools = new Array(3);
-        this._tools[SelectionMode.BOX] = new SelectionBoxTool(viewer, 0); 
-        this._tools[SelectionMode.BRUSH] = new SelectionBrushTool(viewer, 0);
-        this._tools[SelectionMode.LASSO] = new SelectionLassoTool(viewer, 0);
+        this._tools[SelectionMode.BOX] = new SelectionBoxTool(viewer, 0, this); 
+        this._tools[SelectionMode.BRUSH] = new SelectionBrushTool(viewer, 0, this);
+        this._tools[SelectionMode.LASSO] = new SelectionLassoTool(viewer, 0, this);
 
 
 
@@ -49,8 +58,20 @@ export class SelectionManager{
         });
     }
 
+    public get maskSize() : [number, number]{
+        return this._sizes;
+    }
+
+    public set interaction(name : string){
+        this._currentInteraction = name;
+    }
+
     public set stats (stats : Stats){
         this._stats = stats;
+    }
+
+    public apply_interaction(mask : Float32Array){
+        this._viewer.sendInteractionRequest(mask, this._currentInteraction);
     }
     
     public switchMode(mode : SelectionMode){
@@ -60,14 +81,6 @@ export class SelectionManager{
             this._tools[this._mode].resetTool();
         }
         this._mode = mode;
-    }
-
-    public setMeshes(meshes : MultipleMeshInstances){
-        this._tools.forEach(e => e.setMeshes(meshes));
-    }
-
-    public setTransformer(transformer : TransformerBuilder){
-        this._tools.forEach(e => e.setTransformer(transformer));
     }
 
     public setSelectionParameter(attribute:string, value:number){

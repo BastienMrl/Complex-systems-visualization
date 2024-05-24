@@ -3,7 +3,7 @@
       "module": "ESNext",
       "target": "ESNext",
       "preserveConstEnums": true,
-      "lib": ["esnext", "DOM"],
+      "lib": ["esnext", "DOM", "es2020"],
       "outDir": "viewer/static/js/"
     },
     "include": ["viewer/static/ts/**/*"],

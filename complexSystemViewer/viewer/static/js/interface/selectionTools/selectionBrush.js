@@ -14,8 +14,8 @@ export class SelectionBrushTool extends SelectionTool {
     _attenuationFunction;
     _prevId;
     _idValues;
-    constructor(viewer, interactionButton) {
-        super(viewer);
+    constructor(viewer, interactionButton, manager) {
+        super(viewer, manager);
         this._interactionButton = interactionButton;
         this._shape = BrushShape.CIRCLE;
         this._radius = 3;
@@ -94,7 +94,7 @@ export class SelectionBrushTool extends SelectionTool {
             return;
         this._mouseDown = false;
         if (this._currentMask.length != 0)
-            this._viewer.sendInteractionRequest(new Float32Array(this._currentMask));
+            this._manager.apply_interaction(new Float32Array(this._currentMask));
         this.onCurrentSelectionChanged(null);
     }
     getPath(fromId, targetId) {
@@ -149,12 +149,12 @@ export class SelectionBrushTool extends SelectionTool {
         let jMax = centerCoord[1] + this._radius;
         if (iMin < 0)
             iMin = 0;
-        if (iMax >= this._meshes.nbRow)
-            iMax = this._meshes.nbRow - 1;
+        if (iMax >= this._maskSize[1])
+            iMax = this._maskSize[1] - 1;
         if (jMin < 0)
             jMin = 0;
-        if (jMax >= this._meshes.nbCol)
-            jMax = this._meshes.nbCol - 1;
+        if (jMax >= this._maskSize[0])
+            jMax = this._maskSize[0] - 1;
         for (let i = iMin; i < iMax + 1; i++) {
             for (let j = jMin; j < jMax + 1; j++) {
                 let absI = Math.abs(centerCoord[0] - i);

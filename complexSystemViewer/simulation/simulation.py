@@ -1,11 +1,11 @@
 from abc import ABC, abstractmethod, abstractproperty
 import jax.numpy as jnp
-import jax.lax as lax
-import jax.random
 from .param import *
-from .interaction import *
-import numpy as np
-import time
+from .state import *
+import copy
+from typing import Callable
+
+
 
 
 class Simulation(ABC):   
@@ -19,43 +19,42 @@ class Simulation(ABC):
     """
 
     
-    @property
-    @abstractmethod
-    def initialization_parameters(self):
-        """Abstract attribute containing list of Param that will be exposed to the user and set before the simulation starts
+    # @property
+    # @abstractmethod
+    # def initialization_parameters(self):
+    #     """Abstract attribute containing list of Param that will be exposed to the user and set before the simulation starts
     
-        :rtype: list[Param]
-        """
-        pass
+    #     :rtype: list[Param]
+    #     """
+    #     pass
     
     
     
-    @property
-    @abstractmethod
-    def default_rules(self):
-        """Abstract attribute : list of Param that will be exposed to the user and can be modified anytime during the simulation
+    # @property
+    # @abstractmethod
+    # def default_rules(self):
+    #     """Abstract attribute : list of Param that will be exposed to the user and can be modified anytime during the simulation
     
-        :rtype: list[Param]
-        """
-        pass
+    #     :rtype: list[Param]
+    #     """
+    #     pass
     
-    #: A list of State to be updated at each step. This attibute can contain a single state as long it is in a single element list
-    current_states = None
-
-    def __init__(self, init_states : list[State] = None, rules : list[Param]  = None): 
-        self.current_states = None
-        self.rules = None
-        self.width = None
-        self.height = None
-        if init_states != None :
-             self.current_states = init_states
-        if rules != None :
-            self.rules = rules
-
-        self.interactions : list[Interaction] = None
+    
+    def __init__(self, params : SimulationParameters, needJSON : bool = True): 
+        self.NEED_JSON = needJSON
+        self.HISTORY_SIZE = 5
+        self._history_idx = 0
+        self.past_states : list[State] = [None] * self.HISTORY_SIZE
+        self.current_states : State = None
+        self.rules : list[Param] = None
+        self.width : int = None
+        self.height : int = None
+        self.as_json : list[list[float]] = None
+        self.params : SimulationParameters = params
+        self.interactions : SimulationInteractions = None
             
     @abstractmethod
-    def initSimulation(self, init_states = None, rules = None, init_param = None):
+    def init_simulation(self, params : SimulationParameters = None):
         """Method called before the simulation starts. It is expected to set the initial states of the simulation.
 
         :param list[State] init_states: Optional states for the simulation 
@@ -63,18 +62,12 @@ class Simulation(ABC):
         """
         pass
 
+    def init_random_simulation(self, params : SimulationParameters  = None):
+        self.init_simulation(params)
+
     @abstractmethod
-    def step(self) : 
+    def _step(self) : 
         """Method executing a state of the simulation. It is expected to update the attribute :py:attr:current_states.
-        """
-        pass
-
-    @abstractmethod
-    def set_current_state_from_array(self, new_state):
-        """Set the states of the simulation form an arbitrary array-like representation. Used for convenience when handlind external data. 
-
-        :param new_state: Reprensnetation of states of the simulation
-        :type new_state: list | ndarray
         """
         pass
 
@@ -84,57 +77,84 @@ class Simulation(ABC):
         
         :returns: a JSON-serializable representation of the current states of the simulation.
         """
-        t0 = time.time()
-        tsl = self.current_states[0].to_JSON_object()
-        #print("json obj ok - ", 1000*(time.time()-t0), "ms\n")
-        return tsl
+        tsl = self.current_states.to_JSON_object()
+        self.as_json = tsl
 
-    def getRules(self): 
-        """Access the rules parameters
         
-        :returns: the exposed parameters used to run the simulation
-        :rtype: list[Param]
-        """
-        return self.rules
-    
-    def getRuleById(self, id:str):
-        """Access the current value of a paramer used to run the simulation
-        
-        :param id: Name of the paramer 
-        
-        :returns: The value of the parameter 
-        """
-        for p in self.rules:
-            if p.id_param == id:
-                return p.value
-        return None
-    
-    def updateRule(self, json):
-        """Set the value of a paramer used to run the simulation
-        
-        :param json: a dictionary representation of the parameter"
-        """
-        for p in self.rules:
-            if p.id_param == json["paramId"]:
-                p.set_param(json)
-        
-    def applyInteraction(self, id : str, mask : jnp.ndarray):
+    def apply_interaction(self, id : str, mask : jnp.ndarray):
         """Apply the specified interaction to the current states of the simulation
         
         :param str id: Id of the interaction
         :param jnp.ndarray mask: A 2D mask of floats used to apply the interaction
         """
-        interaction : None | Interaction = None
-        for element in self.interactions:
-            if element.id == id:
-                interaction = element
-        if interaction == None :
+        self.interactions.apply_interaction(id, mask, self)
+        if (self.NEED_JSON):
+            self.to_JSON_object()
+
+    def set_current_state_from_id(self, id : int):
+        for state in self.past_states:
+            if (state.id == id):
+                current_id = self.current_states.id
+                self.current_states = state
+                self.current_states.id = current_id + 1
+                break
+
+    def new_step(self):    
+        if (self.NEED_JSON):
+            self.past_states[self._history_idx] = copy.deepcopy(self.current_states)
+            self._history_idx = (self._history_idx + 1) % self.HISTORY_SIZE
+        self._step()
+        self.current_states.id += 1
+        if (self.NEED_JSON):
+            self.to_JSON_object()
+
+
+
+class Interaction():
+    def __init__(self, id : str, apply_fct : Callable[[jnp.ndarray, Simulation], None]):
+        self.id = id
+        self.apply_fct = apply_fct
+
+    def apply(self, mask : jnp.ndarray, states : list[State]):
+        self.apply_fct(mask, states)
+
+class SimulationInteractions():
+    def __init__(self):
+        self.interactions : dict[str, Callable[[jnp.ndarray, Simulation]]]
+
+    def apply_interaction(self, id : str, mask : jnp.ndarray, simulation : Simulation):
+        
+        print("id = ", id)
+
+        if (not id in self.interactions.keys()):
+            return
+        
+        print("execution")
+        
+        self.interactions[id](mask, simulation)
+
+    def get_names(self):
+        return self.interactions.keys()
+
+    def _get_mask_for_only_one_channel(self, mask : jnp.ndarray, channel : int, nb_channels : int):
+        mask = jnp.expand_dims(mask, 2)
+        shape = list(mask.shape)
+
+        minus_one = jnp.subtract(jnp.zeros(shape), jnp.ones(shape))
+        new_mask = mask if channel == 0 else minus_one
+        if (nb_channels > 1):
+            for k in range(1, nb_channels):
+                if (k == channel):
+                    new_mask = jnp.dstack((new_mask, mask))
+                else:
+                    new_mask = jnp.dstack((new_mask, minus_one))
+        return new_mask
+    
+    def _set_channel_value_with_mask(self, channel : int, mask : jnp.ndarray, simulation : Simulation):
+        nb_channels = simulation.current_states.grid.shape[-1]
+        if (nb_channels <= channel):
             return
 
-        interaction.apply(mask, self.current_states)
+        new_mask = self._get_mask_for_only_one_channel(mask, channel, nb_channels)
 
-        
-        
-        
-        
-    
+        simulation.current_states.grid = jnp.where(new_mask >= 0, new_mask, simulation.current_states.grid)
